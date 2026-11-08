@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Truno Beauty Salon · Register{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block body %}
+<section class="relative bg-[#FBF4DE] py-12 md:py-16 px-4 flex items-center justify-center min-h-[calc(100vh-5rem)] overflow-hidden">
+    <!-- Background Image with Lower Opacity -->
+    <img
+        src="{{ asset('images/hero.webp') }}"
+        alt=""
+        aria-hidden="true"
+        class="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none select-none"
+    >
+    <div class="absolute inset-0 bg-[#FBF4DE]/50 pointer-events-none"></div>
+
+    <!-- Main Card Container -->
+    <div class="relative z-10 w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-[#C68E00]/25 overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        <!-- Left Form Panel -->
+        <div class="p-8 md:p-10 lg:p-12 flex flex-col justify-center">
+            <div class="text-center md:text-left mb-8">
+                <span class="text-xs uppercase tracking-widest text-[#C68E00] font-bold font-heading">Create Account</span>
+                <h1 class="h3 text-3xl font-heading font-bold text-gray-900 mt-1">Register</h1>
+                <p class="text-xs text-gray-500 mt-2">Join S Beauty Salon to book and manage your appointments</p>
+            </div>
+
+            {% if form_errors(registrationForm) %}
+                <div class="alert alert-danger rounded-xl bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-xs font-semibold mb-5">
+                    {{ form_errors(registrationForm) }}
+                </div>
+            {% endif %}
+
+            {{ form_start(registrationForm, {'attr': {'class': 'space-y-5'}}) }}
+                <div>
+                    {{ form_label(registrationForm.name, 'Full Name', {'label_attr': {'class': 'block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5'}}) }}
+                    {{ form_widget(registrationForm.name, {
+                        'attr': {
+                            'class': 'w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C68E00] focus:ring-2 focus:ring-[#C68E00]/20 outline-none text-sm text-gray-800',
+                            'placeholder': 'e.g. Jane Doe',
+                            'autocomplete': 'name'
+                        }
+                    }) }}
+                    <div class="text-rose-600 text-xs mt-1">{{ form_errors(registrationForm.name) }}</div>
+                </div>
+
+                <div>
+                    {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5'}}) }}
+                    {{ form_widget(registrationForm.email, {
+                        'attr': {
+                            'class': 'w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C68E00] focus:ring-2 focus:ring-[#C68E00]/20 outline-none text-sm text-gray-800',
+                            'placeholder': 'e.g. example@email.com',
+                            'autocomplete': 'email'
+                        }
+                    }) }}
+                    <div class="text-rose-600 text-xs mt-1">{{ form_errors(registrationForm.email) }}</div>
+                </div>
+
+                <div>
+                    {{ form_label(registrationForm.plainPassword, 'Password', {'label_attr': {'class': 'block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5'}}) }}
+                    {{ form_widget(registrationForm.plainPassword, {
+                        'attr': {
+                            'class': 'w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C68E00] focus:ring-2 focus:ring-[#C68E00]/20 outline-none text-sm text-gray-800',
+                            'placeholder': '••••••••',
+                            'autocomplete': 'new-password'
+                        }
+                    }) }}
+                    <div class="text-rose-600 text-xs mt-1">{{ form_errors(registrationForm.plainPassword) }}</div>
+                </div>
+
+                <div class="text-xs text-gray-600">
+                    <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                        {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'rounded border-gray-300 text-[#C68E00] focus:ring-[#C68E00]'}}) }}
+                        <span>I agree to the terms and conditions</span>
+                    </label>
+                    <div class="text-rose-600 text-xs mt-1">{{ form_errors(registrationForm.agreeTerms) }}</div>
+                </div>
+
+                <button type="submit" class="btn w-full bg-[#C68E00] hover:bg-[#a87700] text-white font-heading font-bold text-sm py-3 px-6 rounded-xl transition-colors shadow-md cursor-pointer">
+                    Register
+                </button>
+
+                <p class="text-center text-xs text-gray-600 pt-2">
+                    Already have an account?
+                    <a href="{{ path('app_login') }}" class="text-[#C68E00] font-heading font-bold underline hover:text-black">Sign in</a>
+                </p>
+            {{ form_end(registrationForm) }}
+        </div>
+
+        <!-- Right Image Panel (Hidden on Mobile) -->
+        <div class="hidden md:block relative min-h-[560px]">
+            <img
+                src="{{ asset('images/Studio.webp') }}"
+                alt="Truno Beauty Salon Studio"
+                class="absolute inset-0 w-full h-full object-cover"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-8 text-white">
+                <span class="text-xs uppercase tracking-[0.25em] text-[#FBF4DE] font-heading font-semibold mb-1">S Beauty Salon</span>
+                <h2 class="text-2xl font-heading font-bold leading-snug">We can create what you imagine</h2>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -228,7 +228,9 @@
         {% block body %}{% endblock %}
     </main>
 
-    {% include 'partials/footer.html.twig' %}
+    {% block footer %}
+        {% include 'partials/footer.html.twig' %}
+    {% endblock %}
 
     {% block javascripts %}{% endblock %}
 </body>
