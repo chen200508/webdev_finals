@@ -9,7 +9,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`')]
+#[ORM\Table(name: 'users')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -19,7 +19,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $name = null;
 
     #[ORM\Column(length: 180)]
@@ -31,13 +31,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var string The hashed password
      */
-    #[ORM\Column]
+    #[ORM\Column(name: 'password_hash', length: 255)]
     private ?string $password = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'is_active')]
     private ?bool $isActive = true;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'created_at')]
     private ?\DateTimeImmutable $createdAt = null;
 
     public function getId(): ?int

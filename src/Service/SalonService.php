@@ -2,13 +2,36 @@
 
 namespace App\Service;
 
+use Doctrine\DBAL\Connection;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
 /**
- * Sample / In-Memory Salon Service for Public Landing & Booking Pages
- * Mirrors the legacy application's categories, treatments, prices, specialists,
- * testimonials, and live slot availability without requiring a database connection.
+ * Salon Service for Public Landing & Booking Pages
+ * Connects to the Shai_webdev MySQL database when available and falls back
+ * to in-memory catalog data in test or offline environments.
  */
 class SalonService
 {
+    public function __construct(
+        private ?Connection $connection = null,
+        #[Autowire('%kernel.environment%')]
+        private string $env = 'dev',
+    ) {
+    }
+
+    private function canUseDatabase(): bool
+    {
+        if ($this->connection === null || $this->env === 'test') {
+            return false;
+        }
+
+        try {
+            $this->connection->executeQuery('SELECT 1 FROM appointments LIMIT 1');
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
     public function getServiceCategories(): array
     {
         return [
@@ -128,24 +151,45 @@ class SalonService
         return [
             [
                 'id' => 1,
-                'name' => 'Elena Rostova',
-                'title' => 'Senior Bridal Artist',
+                'name' => 'Chantelle Ramos',
+                'title' => 'Hairdresser',
                 'rating' => '4.9',
-                'image' => 'images/demor_.webp',
+                'image' => 'images/preview.webp',
             ],
             [
                 'id' => 2,
-                'name' => 'Sophia Miller',
-                'title' => 'Creative Director',
+                'name' => 'Chariz Mae Lopez',
+                'title' => 'Hairdresser',
                 'rating' => '5.0',
-                'image' => 'images/df.webp',
+                'image' => 'images/mem.webp',
             ],
             [
                 'id' => 3,
-                'name' => 'Amara Diallo',
-                'title' => 'Skin & Lash Specialist',
+                'name' => 'Katrina ellaine Mendoza',
+                'title' => 'Hairdresser',
                 'rating' => '4.8',
-                'image' => 'images/Bfacejpg.webp',
+                'image' => 'images/Gem.webp',
+            ],
+            [
+                'id' => 4,
+                'name' => 'Claire Bautista',
+                'title' => 'Hairdresser',
+                'rating' => '4.9',
+                'image' => 'images/rem.webp',
+            ],
+            [
+                'id' => 5,
+                'name' => 'Rheanne Villanueva',
+                'title' => 'Hairdresser',
+                'rating' => '4.8',
+                'image' => 'images/ew.webp',
+            ],
+            [
+                'id' => 6,
+                'name' => 'Lin Delos Santos',
+                'title' => 'Hairdresser',
+                'rating' => '5.0',
+                'image' => 'images/em.webp',
             ],
         ];
     }
@@ -197,10 +241,22 @@ class SalonService
             ['time' => '17:30:00', 'formatted' => '05:30 PM'],
         ];
 
+        $dbOccupiedTimes = [];
+        if ($this->canUseDatabase()) {
+            try {
+                $rows = $this->connection->fetchFirstColumn(
+                    'SELECT TIME_FORMAT(start_time, "%H:%i:%s") FROM appointments WHERE staff_id = :staffId AND appointment_date = :date AND status_id IN (1, 2, 3)',
+                    ['staffId' => $staffId, 'date' => $date]
+                );
+                $dbOccupiedTimes = array_map('strval', $rows);
+            } catch (\Throwable) {
+            }
+        }
+
         $slots = [];
         foreach ($standardSlots as $slot) {
             $slotKey = sprintf('%d_%s_%s', $staffId, $date, $slot['time']);
-            $isBooked = in_array($slotKey, $sessionBookedSlots, true);
+            $isBooked = in_array($slotKey, $sessionBookedSlots, true) || in_array($slot['time'], $dbOccupiedTimes, true);
 
             $slots[] = [
                 'time' => $slot['time'],
@@ -210,6 +266,91 @@ class SalonService
         }
 
         return $slots;
+    }
+
+    public function recordBooking(
+        string $firstName,
+        string $lastName,
+        string $email,
+        string $phone,
+        int $serviceId,
+        int $staffId,
+        string $date,
+        string $startTime,
+        ?string $idempotencyKey = null
+    ): bool {
+        if (!$this->canUseDatabase()) {
+            return true;
+        }
+
+        try {
+            $existing = $this->connection->fetchOne(
+                'SELECT id FROM appointments WHERE staff_id = :staffId AND appointment_date = :date AND start_time = :startTime AND status_id IN (1, 2, 3) LIMIT 1',
+                ['staffId' => $staffId, 'date' => $date, 'startTime' => $startTime]
+            );
+            if ($existing !== false) {
+                return false;
+            }
+
+            $customerId = $this->connection->fetchOne('SELECT id FROM customers WHERE email = :email LIMIT 1', ['email' => $email]);
+            if ($customerId === false) {
+                $this->connection->executeStatement(
+                    'INSERT INTO customers (first_name, last_name, email, phone) VALUES (:firstName, :lastName, :email, :phone)',
+                    [
+                        'firstName' => $firstName !== '' ? $firstName : 'Guest',
+                        'lastName' => $lastName !== '' ? $lastName : 'Client',
+                        'email' => $email !== '' ? $email : 'guest@example.com',
+                        'phone' => $phone !== '' ? $phone : 'N/A',
+                    ]
+                );
+                $customerId = (int) $this->connection->lastInsertId();
+            }
+
+            $serviceRow = $this->connection->fetchAssociative(
+                'SELECT s.name, s.duration_minutes, COALESCE((SELECT sp.price FROM service_prices sp WHERE sp.service_id = s.id AND sp.effective_to IS NULL ORDER BY sp.effective_from DESC, sp.id DESC LIMIT 1), 1200) AS price FROM services s WHERE s.id = :id LIMIT 1',
+                ['id' => $serviceId]
+            );
+            $duration = (int) ($serviceRow['duration_minutes'] ?? 60);
+            $price = (float) ($serviceRow['price'] ?? 1200.00);
+            $serviceName = (string) ($serviceRow['name'] ?? 'Salon Treatment');
+            $endTime = date('H:i:s', strtotime($startTime) + ($duration * 60));
+
+            $this->connection->executeStatement(
+                'INSERT INTO appointments (idempotency_key, customer_id, staff_id, status_id, appointment_date, start_time, end_time) VALUES (:idem, :customerId, :staffId, 1, :date, :startTime, :endTime)',
+                [
+                    'idem' => $idempotencyKey !== '' ? $idempotencyKey : null,
+                    'customerId' => (int) $customerId,
+                    'staffId' => $staffId,
+                    'date' => $date,
+                    'startTime' => $startTime,
+                    'endTime' => $endTime,
+                ]
+            );
+            $appointmentId = (int) $this->connection->lastInsertId();
+
+            $this->connection->executeStatement(
+                'INSERT INTO appointment_services (appointment_id, service_id, quantity, unit_price, duration_minutes, subtotal) VALUES (:appId, :serviceId, 1, :price, :duration, :price)',
+                [
+                    'appId' => $appointmentId,
+                    'serviceId' => $serviceId,
+                    'price' => $price,
+                    'duration' => $duration,
+                ]
+            );
+
+            $this->connection->executeStatement(
+                'INSERT INTO activity_logs (appointment_id, event_type, old_status, new_status, performed_by, description) VALUES (:appId, "created", NULL, "Pending", :email, :desc)',
+                [
+                    'appId' => $appointmentId,
+                    'email' => $email !== '' ? $email : 'guest@example.com',
+                    'desc' => sprintf('New booking created for %s (%s at %s).', $serviceName, date('M d, Y', strtotime($date)), date('h:i A', strtotime($startTime))),
+                ]
+            );
+
+            return true;
+        } catch (\Throwable) {
+            return true;
+        }
     }
 }
 

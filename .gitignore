@@ -18,3 +18,11 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> database-schema-and-credentials ###
+/config/schema.sql
+*.sql
+/credentials.bak
+/credential.bak
+*.bak
+###< database-schema-and-credentials ###

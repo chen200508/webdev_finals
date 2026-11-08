@@ -112,16 +112,30 @@ class HomeController extends AbstractController
 
         $session = $request->getSession();
         $staffId = max(1, (int) $request->request->get('staff_id', 1));
+        $serviceId = max(1, (int) $request->request->get('service_id', 1));
         $date = (string) $request->request->get('appointment_date', date('Y-m-d'));
         $startTime = (string) $request->request->get('start_time', '10:30:00');
         if (strlen($startTime) === 5) {
             $startTime .= ':00';
         }
 
+        $fullName = trim((string) $request->request->get('full_name', ''));
+        $firstName = trim((string) $request->request->get('first_name', ''));
+        $lastName = trim((string) $request->request->get('last_name', ''));
+        if ($firstName === '' && $fullName !== '') {
+            $parts = preg_split('/\s+/', $fullName, 2);
+            $firstName = $parts[0] ?? 'Guest';
+            $lastName = $parts[1] ?? 'Client';
+        }
+
+        $email = trim((string) $request->request->get('email', 'guest@example.com'));
+        $phone = trim((string) $request->request->get('phone', 'N/A'));
+        $idempotencyKey = trim((string) $request->request->get('idempotency_key', ''));
+
         $bookedSlots = (array) $session->get('booked_slots', []);
         $slotKey = sprintf('%d_%s_%s', $staffId, $date, $startTime);
 
-        if (in_array($slotKey, $bookedSlots, true)) {
+        if (in_array($slotKey, $bookedSlots, true) || !$this->salon->recordBooking($firstName, $lastName, $email, $phone, $serviceId, $staffId, $date, $startTime, $idempotencyKey !== '' ? $idempotencyKey : null)) {
             $this->addFlash('error', sprintf(
                 'Slot Collision: The time slot %s on %s is no longer available.',
                 date('h:i A', strtotime($date . ' ' . $startTime)),
