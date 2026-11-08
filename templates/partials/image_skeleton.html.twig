@@ -201,7 +201,12 @@
                     queries: {
                         staleTime: STALE_TIME_MS,
                         gcTime: GC_TIME_MS,
-                        retry: 2,
+                        retry: (failureCount, error) => {
+                            if (error && error.status >= 400 && error.status < 500) {
+                                return false;
+                            }
+                            return failureCount < 1;
+                        },
                         refetchOnWindowFocus: false,
                         refetchOnReconnect: true,
                     },
@@ -279,7 +284,9 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Failed to load image (${response.status}): ${normalizedUrl}`);
+                    const httpError = new Error(`Failed to load image (${response.status}): ${normalizedUrl}`);
+                    httpError.status = response.status;
+                    throw httpError;
                 }
 
                 if (hasCacheStorage) {
@@ -736,7 +743,8 @@
             // Warm up shared high-visibility salon assets during browser idle time
             const warmSharedAssets = () => {
                 window.salonImageCache.prefetchImages([
-                    '{{ asset('images/logo.webp') }}',
+                    '{{ asset('images/secondary.webp') }}',
+                    '{{ asset('images/Beauty Salon logo.webp') }}',
                     '{{ asset('images/hero.webp') }}',
                     '{{ asset('images/Studio.webp') }}'
                 ]);
