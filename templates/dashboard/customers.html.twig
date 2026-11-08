@@ -7,6 +7,10 @@
     <p class="lede">People who have booked at S Beauty Salon.</p>
 
     <section class="card">
+        {% include 'partials/datatable_filter.html.twig' with {
+            filterForm: filterForm,
+            resetPath: path('admin_customers')
+        } %}
         <div style="overflow-x:auto;">
             <table
                 data-datatable
@@ -27,7 +31,7 @@
                         {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : ((customer.first_name is defined or customer.last_name is defined) ? ((customer.first_name ?? '') ~ ' ' ~ (customer.last_name ?? ''))|trim : '')) %}
                         <tr>
                             <td>{{ loop.index }}</td>
-                            <td><strong>{{ customerName }}</strong></td>
+                            <td>{{ customerName }}</td>
                             <td>{{ customer.email is defined ? customer.email : '' }}</td>
                             <td>{{ customer.phone is defined ? customer.phone : '' }}</td>
                         </tr>

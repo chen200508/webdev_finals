@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Customer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,53 @@ class CustomerRepository extends ServiceEntityRepository
         parent::__construct($registry, Customer::class);
     }
 
-//    /**
-//     * @return Customer[] Returns an array of Customer objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function createFilterQueryBuilder(array $filters): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->orderBy('c.id', 'ASC');
 
-//    public function findOneBySomeField($value): ?Customer
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if (!empty($filters['keyword'])) {
+            $kw = '%' . strtolower((string) $filters['keyword']) . '%';
+            $qb->andWhere('LOWER(c.firstName) LIKE :kw OR LOWER(c.lastName) LIKE :kw OR LOWER(c.email) LIKE :kw OR LOWER(c.phone) LIKE :kw')
+               ->setParameter('kw', $kw);
+        }
+
+        if (!empty($filters['email_domain'])) {
+            $qb->andWhere('c.email LIKE :domain')
+               ->setParameter('domain', '%' . (string) $filters['email_domain']);
+        }
+
+        return $qb;
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @param array<int, array<string, mixed>> $records
+     * @return array<int, array<string, mixed>>
+     */
+    public function findByFilters(array $filters, array $records = []): array
+    {
+        return array_values(array_filter($records, static function (array $row) use ($filters): bool {
+            $fullName = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
+            $email = (string) ($row['email'] ?? '');
+            $phone = (string) ($row['phone'] ?? '');
+
+            if (!empty($filters['keyword'])) {
+                $needle = strtolower((string) $filters['keyword']);
+                $haystack = strtolower($fullName . ' ' . $email . ' ' . $phone);
+                if (!str_contains($haystack, $needle)) {
+                    return false;
+                }
+            }
+
+            if (!empty($filters['email_domain'])) {
+                $domain = strtolower((string) $filters['email_domain']);
+                if (!str_ends_with(strtolower($email), $domain)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
+    }
 }

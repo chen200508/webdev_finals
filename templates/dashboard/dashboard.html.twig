@@ -14,10 +14,9 @@
         border: 1px solid var(--card-border);
         border-radius: 18px;
         box-shadow: 0 2px 8px rgba(0,0,0,.02);
-        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
     .kpi-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .kpi-label { color: #C68E00; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .kpi-label { color: #C68E00; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; font-family: var(--font-admin); }
     .kpi-icon {
         width: 42px;
         height: 42px;
@@ -31,9 +30,9 @@
         font-size: 22px;
         flex-shrink: 0;
     }
-    .kpi strong { display: block; margin: 10px 0 6px; font-size: 40px; line-height: 1; color: var(--main-text); }
-    .kpi-desc { margin: 0 0 16px; color: var(--main-sub); font-size: 13px; font-family: "Segoe UI", sans-serif; }
-    .kpi-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; align-self: flex-start; background: #C68E00; color: #fff; border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 700; font-family: "Segoe UI", sans-serif; transition: background .15s; }
+    .kpi strong { display: block; margin: 8px 0 4px; font-size: 30px; line-height: 1; color: var(--main-text); }
+    .kpi-desc { margin: 0 0 16px; color: var(--main-sub); font-size: 13px; font-family: var(--font-admin); }
+    .kpi-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; align-self: flex-start; background: #C68E00; color: #fff; border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 700; font-family: var(--font-admin); transition: background .15s; }
     .kpi-action:hover { background: #a87700; }
     .overview-grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 24px; }
     .overview-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
@@ -54,13 +53,13 @@
         font-size: 20px;
         flex-shrink: 0;
     }
-    .card-head h2 { margin: 0; font-size: 26px; color: var(--main-text); }
-    .card-sub { margin: 2px 0 0; color: var(--main-sub); font-size: 13px; font-family: "Segoe UI", sans-serif; }
-    .btn-link { display: inline-flex; align-items: center; gap: 6px; background: #1c140c; color: #D49A26; border: 1px solid #C68E00; border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 700; font-family: "Segoe UI", sans-serif; transition: all .15s; }
+    .card-head h2 { margin: 0; font-size: 18px; color: var(--main-text); }
+    .card-sub { margin: 2px 0 0; color: var(--main-sub); font-size: 12px; font-family: var(--font-admin); }
+    .btn-link { display: inline-flex; align-items: center; gap: 6px; background: #1c140c; color: #D49A26; border: 1px solid #C68E00; border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 700; font-family: var(--font-admin); transition: all .15s; }
     .btn-link:hover { background: #C68E00; color: #fff; }
     th { padding: 10px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
     td { padding: 12px; }
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: var(--font-admin); }
     .badge-1 { background: #fef3c7; color: #92400e; }
     .badge-2 { background: #dbeafe; color: #1e40af; }
     .badge-3 { background: #dcfce7; color: #166534; }
@@ -77,15 +76,12 @@
         {% set staffMap = staffMap|merge({(member.id): (member.first_name ~ ' ' ~ member.last_name)|trim}) %}
     {% endfor %}
 
-    {# Compute status counts and service revenue for Chart.js #}
-    {% set statusCounts = {1: 0, 2: 0, 3: 0, 4: 0} %}
-    {% set serviceRevenue = {} %}
-    {% for appointment in appointments %}
-        {% set sid = appointment.status_id ?? 1 %}
-        {% set statusCounts = statusCounts|merge({(sid): (statusCounts[sid] ?? 0) + 1}) %}
-        {% set sname = appointment.service_name ?? 'Other' %}
-        {% set serviceRevenue = serviceRevenue|merge({(sname): (serviceRevenue[sname] ?? 0) + (appointment.price ?? 0)}) %}
-    {% endfor %}
+    {# Compute status counts and top services for Chart.js #}
+    {% set pendingCount = appointments|filter(a => (a.status_id ?? 1) == 1)|length %}
+    {% set confirmedCount = appointments|filter(a => (a.status_id ?? 1) == 2)|length %}
+    {% set completedCount = appointments|filter(a => (a.status_id ?? 1) == 3)|length %}
+    {% set cancelledCount = appointments|filter(a => (a.status_id ?? 1) == 4)|length %}
+    {% set chartServices = services|slice(0, 6) %}
 
     <div id="overview">
         <h1>Overview</h1>
@@ -111,7 +107,7 @@
                 <div>
                     <div class="kpi-top">
                         <span class="kpi-label">Services</span>
-                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-sparkles"></i></span>
+                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-scissors"></i></span>
                     </div>
                     <strong>{{ counts.services ?? services|length }}</strong>
                     <p class="kpi-desc">Active treatments and packages in the salon catalog.</p>
@@ -144,7 +140,7 @@
                 <section class="card">
                     <div class="card-head">
                         <div class="card-head-title">
-                            <span class="card-head-icon" aria-hidden="true"><i class="ti ti-chart-donut"></i></span>
+                            <span class="card-head-icon" aria-hidden="true"><i class="ti ti-chart-pie"></i></span>
                             <div>
                                 <h2>Appointments by Status</h2>
                                 <p class="card-sub">Breakdown of pending, confirmed, completed, and cancelled bookings.</p>
@@ -152,7 +148,7 @@
                         </div>
                     </div>
                     <div class="chart-box">
-                        <canvas id="statusChart" aria-label="Appointments by Status Chart" role="img"></canvas>
+                        <canvas id="statusChart" aria-label="Appointments by Status Pie Chart" role="img"></canvas>
                     </div>
                 </section>
 
@@ -201,22 +197,12 @@
                         <tbody>
                             {% for appointment in appointments|slice(0, 4) %}
                                 <tr>
-                                    <td>
-                                        <strong>{{ appointment.appointment_date|date('M j, Y') }}</strong><br>
-                                        <span class="muted">{{ appointment.start_time|date('g:i A') }}</span>
-                                    </td>
-                                    <td>
-                                        <strong>{{ appointment.customer_name }}</strong><br>
-                                        <span class="muted">{{ appointment.email }}</span>
-                                    </td>
+                                    <td>{{ appointment.appointment_date|date('M j, Y') }} {{ appointment.start_time|date('g:i A') }}</td>
+                                    <td>{{ appointment.customer_name }} ({{ appointment.email }})</td>
                                     <td>{{ appointment.service_name }}</td>
                                     <td>{{ staffMap[appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id) }}</td>
-                                    <td><strong>₱{{ appointment.price }}</strong></td>
-                                    <td>
-                                        <span class="badge badge-{{ appointment.status_id }}">
-                                            {{ statuses[appointment.status_id] ?? 'Pending' }}
-                                        </span>
-                                    </td>
+                                    <td>₱{{ appointment.price }}</td>
+                                    <td>{{ statuses[appointment.status_id] ?? 'Pending' }}</td>
                                 </tr>
                             {% else %}
                                 <tr><td colspan="6">No appointments scheduled yet.</td></tr>
@@ -254,12 +240,9 @@
                                 <tbody>
                                     {% for service in services|slice(0, 4) %}
                                         <tr>
-                                            <td>
-                                                <strong>{{ service.name }}</strong><br>
-                                                <span class="muted">{{ service.category_name }}</span>
-                                            </td>
+                                            <td>{{ service.name }} ({{ service.category_name }})</td>
                                             <td>{{ service.duration_minutes }} mins</td>
-                                            <td><strong>₱{{ service.price }}</strong></td>
+                                            <td>₱{{ service.price }}</td>
                                         </tr>
                                     {% else %}
                                         <tr><td colspan="3">No services available.</td></tr>
@@ -297,10 +280,7 @@
                                     {% for customer in customers|slice(0, 4) %}
                                         {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : ((customer.first_name ?? '') ~ ' ' ~ (customer.last_name ?? ''))|trim) %}
                                         <tr>
-                                            <td>
-                                                <strong>{{ customerName }}</strong><br>
-                                                <span class="muted">{{ customer.email ?? '' }}</span>
-                                            </td>
+                                            <td>{{ customerName }}{% if customer.email is defined and customer.email %} ({{ customer.email }}){% endif %}</td>
                                             <td>{{ customer.phone ?? '' }}</td>
                                         </tr>
                                     {% else %}
@@ -317,26 +297,36 @@
 {% endblock %}
 
 {% block javascripts %}
+    {% set pendingCount = appointments|filter(a => (a.status_id ?? 1) == 1)|length %}
+    {% set confirmedCount = appointments|filter(a => (a.status_id ?? 1) == 2)|length %}
+    {% set completedCount = appointments|filter(a => (a.status_id ?? 1) == 3)|length %}
+    {% set cancelledCount = appointments|filter(a => (a.status_id ?? 1) == 4)|length %}
+    {% set chartServices = services|slice(0, 6) %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof Chart === 'undefined') return;
 
-            const statusLabels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
             const statusData = [
-                {{ statusCounts[1] ?? 0 }},
-                {{ statusCounts[2] ?? 0 }},
-                {{ statusCounts[3] ?? 0 }},
-                {{ statusCounts[4] ?? 0 }}
+                {{ pendingCount }},
+                {{ confirmedCount }},
+                {{ completedCount }},
+                {{ cancelledCount }}
+            ];
+            const statusLabels = [
+                'Pending (' + statusData[0] + ')',
+                'Confirmed (' + statusData[1] + ')',
+                'Completed (' + statusData[2] + ')',
+                'Cancelled (' + statusData[3] + ')'
             ];
 
             const serviceLabels = [
-                {% for service in services %}
+                {% for service in chartServices %}
                     {{ service.name|json_encode|raw }}{% if not loop.last %},{% endif %}
                 {% endfor %}
             ];
             const servicePrices = [
-                {% for service in services %}
+                {% for service in chartServices %}
                     {{ service.price ?? 0 }}{% if not loop.last %},{% endif %}
                 {% endfor %}
             ];
@@ -346,29 +336,57 @@
                 return {
                     textColor: isDark ? '#f5efe6' : '#1f2937',
                     mutedColor: isDark ? '#a89f91' : '#6b7280',
-                    gridColor: isDark ? '#332920' : '#e5e7eb'
+                    gridColor: isDark ? '#374151' : '#e5e7eb',
+                    sliceBorderColor: isDark ? '#374151' : '#ffffff'
                 };
             }
 
             let colors = getThemeColors();
 
+            const pieValueLabelsPlugin = {
+                id: 'pieValueLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    const dataset = chart.data.datasets[0];
+                    if (!dataset) return;
+                    const total = dataset.data.reduce((sum, val) => sum + Number(val || 0), 0);
+                    if (total <= 0) return;
+
+                    const meta = chart.getDatasetMeta(0);
+                    ctx.save();
+                    ctx.font = '700 12px "Metropolis", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    meta.data.forEach((arc, index) => {
+                        const value = Number(dataset.data[index] || 0);
+                        if (value <= 0) return;
+                        const pct = Math.round((value / total) * 100);
+                        const pos = arc.tooltipPosition();
+                        ctx.fillText(value + ' (' + pct + '%)', pos.x, pos.y);
+                    });
+                    ctx.restore();
+                }
+            };
+
             const statusCtx = document.getElementById('statusChart');
             const statusChart = statusCtx ? new Chart(statusCtx, {
-                type: 'doughnut',
+                type: 'pie',
                 data: {
                     labels: statusLabels,
                     datasets: [{
                         data: statusData,
                         backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444'],
-                        borderColor: 'transparent',
+                        borderColor: colors.sliceBorderColor,
                         borderWidth: 2,
                         hoverOffset: 6
                     }]
                 },
+                plugins: [pieValueLabelsPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '64%',
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -376,7 +394,7 @@
                                 color: colors.textColor,
                                 padding: 16,
                                 usePointStyle: true,
-                                font: { family: '"Segoe UI", sans-serif', size: 12, weight: '600' }
+                                font: { family: '"Metropolis", sans-serif', size: 12, weight: '600' }
                             }
                         }
                     }
@@ -405,7 +423,7 @@
                         legend: {
                             labels: {
                                 color: colors.textColor,
-                                font: { family: '"Segoe UI", sans-serif', size: 12, weight: '600' }
+                                font: { family: '"Metropolis", sans-serif', size: 12, weight: '600' }
                             }
                         }
                     },
@@ -413,7 +431,7 @@
                         x: {
                             ticks: {
                                 color: colors.mutedColor,
-                                font: { family: '"Segoe UI", sans-serif', size: 11 }
+                                font: { family: '"Metropolis", sans-serif', size: 11 }
                             },
                             grid: { display: false }
                         },
@@ -421,7 +439,7 @@
                             beginAtZero: true,
                             ticks: {
                                 color: colors.mutedColor,
-                                font: { family: '"Segoe UI", sans-serif', size: 11 },
+                                font: { family: '"Metropolis", sans-serif', size: 11 },
                                 callback: (val) => '₱' + val
                             },
                             grid: { color: colors.gridColor }
@@ -437,6 +455,7 @@
                     requestAnimationFrame(() => {
                         const updated = getThemeColors();
                         if (statusChart) {
+                            statusChart.data.datasets[0].borderColor = updated.sliceBorderColor;
                             statusChart.options.plugins.legend.labels.color = updated.textColor;
                             statusChart.update();
                         }

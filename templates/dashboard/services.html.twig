@@ -3,10 +3,82 @@
 {% block title %}Services · S Beauty Salon{% endblock %}
 
 {% block styles %}
-    .add-grid { display: grid; grid-template-columns: 1.4fr 1fr .7fr .8fr 1fr auto; gap: 10px; align-items: end; }
-    .field, select { width: 100%; padding: 8px 10px; border: 1px solid var(--input-border, #d1d5db); border-radius: 10px; font: inherit; }
-    button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 700; cursor: pointer; font-family: "Segoe UI", sans-serif; transition: all 0.15s; }
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .btn-create-service {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #C68E00;
+        color: #fff;
+        border: 0;
+        border-radius: 10px;
+        padding: 9px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: var(--font-admin);
+        transition: background 0.15s;
+    }
+    .btn-create-service:hover {
+        background: #a87700;
+    }
+    .field, select {
+        width: 100%;
+        margin-top: 6px;
+        padding: 9px 12px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 10px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 14px;
+        font-family: var(--font-admin);
+    }
+    .field:focus, select:focus {
+        outline: none;
+        border-color: #C68E00;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    }
+    button {
+        background: #C68E00;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: var(--font-admin);
+        transition: all 0.15s;
+    }
     button:hover { background: #a87700; }
+    .action-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 11px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(198, 142, 0, 0.12);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.35);
+    }
+    .btn-edit:hover {
+        background: #C68E00;
+        color: #ffffff;
+    }
     .btn-delete {
         display: inline-flex;
         align-items: center;
@@ -23,51 +95,136 @@
         background: #dc2626;
         color: #ffffff;
     }
-    label { display: block; font-size: 12px; font-weight: 700; color: var(--main-muted, #4b5563); font-family: "Segoe UI", sans-serif; }
-    @media (max-width: 900px) { .add-grid { grid-template-columns: 1fr; } }
+    label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--main-muted, #4b5563);
+        font-family: var(--font-admin);
+    }
+
+    /* Service Modals (Add & Edit) */
+    .salon-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .salon-modal-backdrop.is-open {
+        display: flex;
+    }
+    .salon-modal {
+        width: 100%;
+        max-width: 560px;
+        background: var(--card-bg, #ffffff);
+        color: var(--main-text, #1f2937);
+        border: 1px solid var(--card-border, rgba(198, 142, 0, 0.3));
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    }
+    .salon-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .salon-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 20px;
+    }
+    .salon-modal-title i {
+        color: #C68E00;
+        font-size: 22px;
+    }
+    .salon-modal-close {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--input-border, #d1d5db);
+        color: var(--main-muted, #4b5563);
+        padding: 0;
+        font-size: 18px;
+    }
+    .salon-modal-close:hover {
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        border-color: #C68E00;
+    }
+    .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .modal-grid .full-span {
+        grid-column: 1 / -1;
+    }
+    .salon-modal-foot {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid var(--table-border, #e5e7eb);
+    }
+    .btn-cancel {
+        background: transparent;
+        color: var(--main-muted, #4b5563);
+        border: 1px solid var(--input-border, #d1d5db);
+        padding: 8px 16px;
+    }
+    .btn-cancel:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--main-text, #1f2937);
+    }
+    .btn-submit-service {
+        padding: 8px 20px;
+    }
+
+    @media (max-width: 640px) {
+        .modal-grid { grid-template-columns: 1fr; }
+    }
 {% endblock %}
 
 {% block content %}
-    <h1>Services</h1>
-    <p class="lede">Add a service, then edit or remove it from the catalog.</p>
+    <div class="page-head">
+        <div>
+            <h1>Services</h1>
+            <p class="lede">Add a service, then edit or remove it from the catalog.</p>
+        </div>
+        <button type="button" class="btn-create-service" id="openAddServiceModal">
+            <i class="ti ti-plus"></i>
+            <span>Create a new service</span>
+        </button>
+    </div>
 
     <section class="card">
-        <h2>Add a service</h2>
-        <form method="post" action="{{ path('admin_service_create') }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
-            <div class="add-grid">
-                <label>Service name
-                    <input class="field" name="service_name" required placeholder="Service name">
-                </label>
-                <label>Category
-                    <select class="field" name="category_id">
-                        {% for category in categories %}
-                            <option value="{{ category.id }}">{{ category.name }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <label>Duration
-                    <input class="field" type="number" name="duration" min="15" value="60" required>
-                </label>
-                <label>Price
-                    <input class="field" type="number" name="price" min="0" step="0.01" required placeholder="Price">
-                </label>
-                <label>Description
-                    <input class="field" name="description" placeholder="Description (optional)">
-                </label>
-                <button type="submit">Add</button>
-            </div>
-        </form>
-    </section>
-
-    <section class="card">
+        {% include 'partials/datatable_filter.html.twig' with {
+            filterForm: filterForm,
+            resetPath: path('admin_services')
+        } %}
         <div style="overflow-x:auto;">
             <table
                 data-datatable
                 data-page-length="10"
                 data-search-placeholder="Search services..."
                 data-empty-text="No services in the catalog."
-                data-filter-columns='[{"index": 1, "label": "Category"}]'
             >
                 <thead>
                     <tr>
@@ -75,6 +232,7 @@
                         <th>Category</th>
                         <th>Duration</th>
                         <th>Price</th>
+                        <th>Description</th>
                         <th data-orderable="false">Actions</th>
                     </tr>
                 </thead>
@@ -83,20 +241,40 @@
                         {% set minutes = service.duration_minutes is defined ? service.duration_minutes : (service.minutes is defined ? service.minutes : (service.duration is defined ? service.duration : '')) %}
                         {% set serviceName = service.name is defined ? service.name : (service.service_name is defined ? service.service_name : '') %}
                         {% set categoryLabel = service.category_name is defined ? service.category_name : (service.category is defined and service.category.name is defined ? service.category.name : (service.category is defined ? service.category : '')) %}
+                        {% set categoryId = service.category_id is defined ? service.category_id : 1 %}
+                        {% set serviceDesc = service.description is defined and service.description != '' ? service.description : '—' %}
                         <tr>
-                            <td><strong>{{ serviceName }}</strong></td>
+                            <td>{{ serviceName }}</td>
                             <td data-filter-value="{{ categoryLabel }}">{{ categoryLabel }}</td>
                             <td>{% if minutes != '' %}{{ minutes }} mins{% endif %}</td>
                             <td>₱{{ service.price is defined ? service.price : '' }}</td>
+                            <td>{{ serviceDesc }}</td>
                             <td>
-                                <form method="post" action="{{ path('admin_service_delete') }}" onsubmit="return confirm('Remove this service?');" style="margin:0;">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
-                                    <input type="hidden" name="service_id" value="{{ service.id }}">
-                                    <button class="btn-delete" type="submit">
-                                        <i class="ti ti-trash"></i>
-                                        <span>Delete</span>
+                                <div class="action-group">
+                                    <button
+                                        type="button"
+                                        class="btn-edit"
+                                        data-edit-service
+                                        data-id="{{ service.id }}"
+                                        data-name="{{ serviceName }}"
+                                        data-category-id="{{ categoryId }}"
+                                        data-duration="{{ minutes }}"
+                                        data-price="{{ service.price is defined ? service.price : 0 }}"
+                                        data-description="{{ service.description is defined ? service.description : '' }}"
+                                    >
+                                        <i class="ti ti-edit"></i>
+                                        <span>Edit</span>
                                     </button>
-                                </form>
+
+                                    <form method="post" action="{{ path('admin_service_delete') }}" onsubmit="return confirm('Remove this service?');" style="margin:0;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                        <input type="hidden" name="service_id" value="{{ service.id }}">
+                                        <button class="btn-delete" type="submit">
+                                            <i class="ti ti-trash"></i>
+                                            <span>Delete</span>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}
@@ -104,4 +282,166 @@
             </table>
         </div>
     </section>
+
+    {# Add a service Modal (Create) #}
+    <div class="salon-modal-backdrop" id="addServiceModal" role="dialog" aria-modal="true" aria-labelledby="addServiceModalTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="addServiceModalTitle">
+                    <i class="ti ti-scissors"></i>
+                    <span>Add a service</span>
+                </h2>
+                <button type="button" class="salon-modal-close" id="closeAddServiceModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+
+            {{ form_start(serviceForm) }}
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <div class="modal-grid">
+                    <label class="full-span">
+                        {{ serviceForm.service_name.vars.label }}
+                        {{ form_widget(serviceForm.service_name, {'attr': {'class': 'field'}}) }}
+                    </label>
+
+                    <label>
+                        {{ serviceForm.category_id.vars.label }}
+                        {{ form_widget(serviceForm.category_id, {'attr': {'class': 'field'}}) }}
+                    </label>
+
+                    <label>
+                        {{ serviceForm.duration.vars.label }}
+                        {{ form_widget(serviceForm.duration, {'attr': {'class': 'field'}}) }}
+                    </label>
+
+                    <label>
+                        {{ serviceForm.price.vars.label }}
+                        {{ form_widget(serviceForm.price, {'attr': {'class': 'field'}}) }}
+                    </label>
+
+                    <label>
+                        {{ serviceForm.description.vars.label }}
+                        {{ form_widget(serviceForm.description, {'attr': {'class': 'field'}}) }}
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" id="cancelAddServiceModal">Cancel</button>
+                    {{ form_widget(serviceForm.add, {'attr': {'class': 'btn-submit-service'}}) }}
+                </div>
+            {{ form_end(serviceForm) }}
+        </div>
+    </div>
+
+    {# Edit Service Modal (Update) #}
+    <div class="salon-modal-backdrop" id="editServiceModal" role="dialog" aria-modal="true" aria-labelledby="editServiceModalTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editServiceModalTitle">
+                    <i class="ti ti-edit"></i>
+                    <span>Edit Service</span>
+                </h2>
+                <button type="button" class="salon-modal-close" id="closeEditServiceModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+
+            <form method="post" action="{{ path('admin_service_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="service_id" id="editServiceId" value="">
+
+                <div class="modal-grid">
+                    <label class="full-span">Service name
+                        <input class="field" type="text" name="service_name" id="editServiceName" required placeholder="Service name">
+                    </label>
+
+                    <label>Category
+                        <select class="field" name="category_id" id="editServiceCategory" required>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>Duration
+                        <input class="field" type="number" name="duration" id="editServiceDuration" min="15" required>
+                    </label>
+
+                    <label>Price
+                        <input class="field" type="number" name="price" id="editServicePrice" min="0" step="0.01" required placeholder="Price">
+                    </label>
+
+                    <label>Description
+                        <input class="field" type="text" name="description" id="editServiceDescription" placeholder="Description (optional)">
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" id="cancelEditServiceModal">Cancel</button>
+                    <button type="submit" class="btn-submit-service">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addModal = document.getElementById('addServiceModal');
+        const openAddBtn = document.getElementById('openAddServiceModal');
+        const closeAddBtn = document.getElementById('closeAddServiceModal');
+        const cancelAddBtn = document.getElementById('cancelAddServiceModal');
+
+        const editModal = document.getElementById('editServiceModal');
+        const closeEditBtn = document.getElementById('closeEditServiceModal');
+        const cancelEditBtn = document.getElementById('cancelEditServiceModal');
+        const editIdInput = document.getElementById('editServiceId');
+        const editNameInput = document.getElementById('editServiceName');
+        const editCategoryInput = document.getElementById('editServiceCategory');
+        const editDurationInput = document.getElementById('editServiceDuration');
+        const editPriceInput = document.getElementById('editServicePrice');
+        const editDescInput = document.getElementById('editServiceDescription');
+
+        function closeAllModals() {
+            if (addModal) addModal.classList.remove('is-open');
+            if (editModal) editModal.classList.remove('is-open');
+        }
+
+        if (openAddBtn) {
+            openAddBtn.addEventListener('click', () => {
+                if (addModal) addModal.classList.add('is-open');
+            });
+        }
+        if (closeAddBtn) closeAddBtn.addEventListener('click', closeAllModals);
+        if (cancelAddBtn) cancelAddBtn.addEventListener('click', closeAllModals);
+        if (closeEditBtn) closeEditBtn.addEventListener('click', closeAllModals);
+        if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeAllModals);
+
+        document.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('[data-edit-service]');
+            if (editBtn && editModal) {
+                editIdInput.value = editBtn.dataset.id || '';
+                editNameInput.value = editBtn.dataset.name || '';
+                editCategoryInput.value = editBtn.dataset.categoryId || '1';
+                editDurationInput.value = editBtn.dataset.duration || '60';
+                editPriceInput.value = editBtn.dataset.price || '0';
+                editDescInput.value = editBtn.dataset.description || '';
+                editModal.classList.add('is-open');
+            }
+        });
+
+        [addModal, editModal].forEach((m) => {
+            if (m) {
+                m.addEventListener('click', (e) => {
+                    if (e.target === m) closeAllModals();
+                });
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAllModals();
+        });
+    });
+</script>
 {% endblock %}

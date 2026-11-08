@@ -20,7 +20,7 @@
         margin-bottom: 16px;
         padding-bottom: 14px;
         border-bottom: 1px solid var(--table-row-border, #f3f4f6);
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
     }
     .dt-salon-filters {
         display: flex;
@@ -43,7 +43,7 @@
         background: var(--input-bg, #fff);
         color: var(--input-text, #1f2937);
         font-size: 13px;
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
         min-width: 150px;
         cursor: pointer;
     }
@@ -52,16 +52,40 @@
         border-color: #C68E00;
         box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
     }
+    .dt-salon-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: #C68E00;
+        color: #ffffff;
+        border: 1px solid #C68E00;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
+        transition: all 0.15s;
+    }
+    .dt-salon-filter-btn:hover {
+        background: #a87700;
+        border-color: #a87700;
+    }
     .dt-salon-reset-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         background: transparent;
         color: #C68E00;
         border: 1px solid rgba(198, 142, 0, 0.4);
         border-radius: 8px;
-        padding: 5px 12px;
+        padding: 6px 12px;
         font-size: 12px;
         font-weight: 700;
         cursor: pointer;
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
+        text-decoration: none;
         transition: all 0.15s;
     }
     .dt-salon-reset-btn:hover {
@@ -69,7 +93,7 @@
         color: #fff;
     }
     .dt-container {
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
         font-size: 14px;
         color: var(--main-text, #1f2937);
     }
@@ -88,7 +112,7 @@
         padding: 6px 10px !important;
         background: var(--input-bg, #fff) !important;
         color: var(--input-text, #1f2937) !important;
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
         font-size: 13px;
         margin-left: 6px;
     }
@@ -102,25 +126,47 @@
         border-color: #C68E00 !important;
         box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15) !important;
     }
-    .dt-container .dt-paging .dt-paging-button {
+    body div.dt-container .dt-paging .dt-paging-button {
         border-radius: 8px !important;
-        padding: 4px 10px !important;
-        margin: 0 2px !important;
+        padding: 5px 12px !important;
+        margin: 0 3px !important;
         font-weight: 600;
-        border: 1px solid transparent !important;
-        color: var(--main-muted, #374151) !important;
-        background: transparent !important;
+        font-size: 13px;
+        border: 1px solid var(--input-border, #d1d5db) !important;
+        color: var(--main-text, #374151) !important;
+        background: var(--input-bg, #ffffff) !important;
+        user-select: none;
+        cursor: pointer !important;
+        transition: all 0.15s;
     }
-    .dt-container .dt-paging .dt-paging-button.current,
-    .dt-container .dt-paging .dt-paging-button.current:hover {
+    body div.dt-container .dt-paging .dt-paging-button.disabled,
+    body div.dt-container .dt-paging .dt-paging-button.disabled:hover,
+    body div.dt-container .dt-paging .dt-paging-button.disabled:active {
+        opacity: 0.75 !important;
+        color: #6b7280 !important;
+        border-color: var(--input-border, #d1d5db) !important;
+        background: var(--input-bg, #ffffff) !important;
+        cursor: not-allowed !important;
+    }
+    body[data-theme="dark"] div.dt-container .dt-paging .dt-paging-button.disabled,
+    body[data-theme="dark"] div.dt-container .dt-paging .dt-paging-button.disabled:hover,
+    body[data-theme="dark"] div.dt-container .dt-paging .dt-paging-button.disabled:active {
+        opacity: 0.85 !important;
+        color: #d1d5db !important;
+        border-color: #4b5563 !important;
+        background: #1f1914 !important;
+        cursor: not-allowed !important;
+    }
+    body div.dt-container .dt-paging .dt-paging-button.current,
+    body div.dt-container .dt-paging .dt-paging-button.current:hover {
         background: #C68E00 !important;
-        color: #fff !important;
+        color: #ffffff !important;
         border-color: #C68E00 !important;
     }
-    .dt-container .dt-paging .dt-paging-button:hover:not(.current):not(.disabled) {
-        background: rgba(198, 142, 0, 0.12) !important;
+    body div.dt-container .dt-paging .dt-paging-button:hover:not(.current):not(.disabled) {
+        background: rgba(198, 142, 0, 0.15) !important;
         color: var(--main-text, #1c140c) !important;
-        border-color: rgba(198, 142, 0, 0.3) !important;
+        border-color: #C68E00 !important;
     }
     .dt-container table.dataTable thead th,
     .dt-container table.dataTable thead td {
@@ -152,6 +198,8 @@
             const pageLength = parseInt(tableEl.dataset.pageLength || '10', 10);
             const emptyText = tableEl.dataset.emptyText || 'No records found.';
             const searchPlaceholder = tableEl.dataset.searchPlaceholder || 'Search records...';
+            const orderCol = tableEl.dataset.orderCol !== undefined ? parseInt(tableEl.dataset.orderCol, 10) : 0;
+            const orderDir = tableEl.dataset.orderDir || 'asc';
 
             // Detect non-orderable columns from <th data-orderable="false">
             const columnDefs = [];
@@ -165,8 +213,17 @@
                 pageLength: pageLength,
                 lengthMenu: [5, 10, 25, 50, 100],
                 ordering: true,
+                order: [[orderCol, orderDir]],
                 searching: true,
                 paging: true,
+                pagingType: 'simple_numbers',
+                layout: {
+                    bottomEnd: {
+                        paging: {
+                            firstLast: false
+                        }
+                    }
+                },
                 info: true,
                 columnDefs: columnDefs,
                 language: {
@@ -176,7 +233,13 @@
                     info: 'Showing _START_ to _END_ of _TOTAL_ entries',
                     infoEmpty: 'Showing 0 to 0 of 0 entries',
                     emptyTable: emptyText,
-                    zeroRecords: 'No matching records found.'
+                    zeroRecords: 'No matching records found.',
+                    paginate: {
+                        first: 'First',
+                        previous: 'Previous',
+                        next: 'Next',
+                        last: 'Last'
+                    }
                 }
             });
 

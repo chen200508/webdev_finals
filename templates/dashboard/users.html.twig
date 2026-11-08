@@ -5,11 +5,11 @@
 {% block styles %}
     .add-grid { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr .8fr auto; gap: 10px; align-items: end; }
     .field, select { width: 100%; padding: 8px 10px; border: 1px solid var(--input-border, #d1d5db); border-radius: 10px; font: inherit; }
-    button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 700; cursor: pointer; font-family: "Segoe UI", sans-serif; transition: all 0.15s; }
+    button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 700; cursor: pointer; font-family: var(--font-admin); transition: all 0.15s; }
     button:hover { background: #a87700; }
-    label { display: block; font-size: 12px; font-weight: 700; color: var(--main-muted, #4b5563); font-family: "Segoe UI", sans-serif; }
+    label { display: block; font-size: 12px; font-weight: 700; color: var(--main-muted, #4b5563); font-family: var(--font-admin); }
 
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: var(--font-admin); }
     .badge-admin { background: rgba(198, 142, 0, 0.16); color: #92400e; border: 1px solid rgba(198, 142, 0, 0.35); }
     .badge-staff { background: #dbeafe; color: #1e40af; }
     .badge-customer { background: #f3f4f6; color: #374151; }
@@ -76,13 +76,16 @@
     </section>
 
     <section class="card">
+        {% include 'partials/datatable_filter.html.twig' with {
+            filterForm: filterForm,
+            resetPath: path('admin_users')
+        } %}
         <div style="overflow-x:auto;">
             <table
                 data-datatable
                 data-page-length="10"
                 data-search-placeholder="Search users..."
                 data-empty-text="No user accounts found."
-                data-filter-columns='[{"index": 2, "label": "Role"}, {"index": 3, "label": "Status", "options": ["Active", "Deactivated"]}]'
             >
                 <thead>
                     <tr>
@@ -100,20 +103,9 @@
                         {% set statusLabel = user.is_active ? 'Active' : 'Deactivated' %}
                         <tr>
                             <td>{{ user.id }}</td>
-                            <td>
-                                <strong>{{ user.name }}</strong><br>
-                                <span class="muted">{{ user.email }}</span>
-                            </td>
-                            <td data-filter-value="{{ roleLabel }}">
-                                <span class="badge {{ user.role == 'ROLE_ADMIN' ? 'badge-admin' : (user.role == 'ROLE_STAFF' ? 'badge-staff' : 'badge-customer') }}">
-                                    {{ roleLabel }}
-                                </span>
-                            </td>
-                            <td data-filter-value="{{ statusLabel }}">
-                                <span class="badge {{ user.is_active ? 'badge-active' : 'badge-inactive' }}">
-                                    {{ statusLabel }}
-                                </span>
-                            </td>
+                            <td>{{ user.name }} ({{ user.email }})</td>
+                            <td data-filter-value="{{ roleLabel }}">{{ roleLabel }}</td>
+                            <td data-filter-value="{{ statusLabel }}">{{ statusLabel }}</td>
                             <td>{{ user.created_at|date('M j, Y') }}</td>
                             <td>
                                 <form method="post" action="{{ path('admin_user_delete') }}" onsubmit="return confirm('Remove this user account?');" style="margin:0;">

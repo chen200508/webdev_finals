@@ -5,7 +5,7 @@
 {% block styles %}
     td { vertical-align: middle; }
     select, input { font: inherit; }
-    button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 6px 12px; font-weight: 700; cursor: pointer; font-family: "Segoe UI", sans-serif; transition: background 0.15s; }
+    button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 6px 12px; font-weight: 700; cursor: pointer; font-family: var(--font-admin); transition: background 0.15s; }
     button:hover { background: #a87700; }
 
     /* Action Buttons Row */
@@ -23,7 +23,7 @@
         border-radius: 8px;
         font-size: 12px;
         font-weight: 700;
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin);
         cursor: pointer;
         transition: all 0.15s;
     }
@@ -129,7 +129,7 @@
         margin: -6px 0 18px;
         font-size: 13px;
         color: var(--main-sub, #6b7280);
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin);
     }
     .edit-grid {
         display: grid;
@@ -148,7 +148,7 @@
         background: var(--input-bg, #fff);
         color: var(--input-text, #1f2937);
         font-size: 14px;
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin);
     }
     .field:focus {
         outline: none;
@@ -160,7 +160,7 @@
         font-size: 12px;
         font-weight: 700;
         color: var(--main-muted, #4b5563);
-        font-family: "Segoe UI", sans-serif;
+        font-family: var(--font-admin);
     }
     .salon-modal-foot {
         display: flex;
@@ -204,13 +204,16 @@
     <p class="lede">Manage scheduled appointments, update statuses, or edit booking details.</p>
 
     <section class="card">
+        {% include 'partials/datatable_filter.html.twig' with {
+            filterForm: filterForm,
+            resetPath: path('admin_appointments')
+        } %}
         <div style="overflow-x:auto;">
             <table
                 data-datatable
                 data-page-length="10"
                 data-search-placeholder="Search appointments..."
                 data-empty-text="No appointments on the book."
-                data-filter-columns='[{"index": 2, "label": "Service"}, {"index": 3, "label": "Artist"}, {"index": 5, "label": "Status", "options": ["Pending", "Confirmed", "Completed", "Cancelled"]}]'
             >
                 <thead>
                     <tr>
@@ -228,31 +231,25 @@
                         {% set statusLabel = statuses[appointment.status_id] ?? 'Pending' %}
                         {% set artistName = staffMap[appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id) %}
                         <tr>
-                            <td style="white-space: nowrap;">
-                                <strong>{{ appointment.appointment_date|date('M j, Y') }}</strong><br>
-                                <span class="muted">{{ appointment.start_time|date('g:i A') }}</span>
-                            </td>
-                            <td>
-                                <strong>{{ appointment.customer_name }}</strong><br>
-                                <span class="muted">{{ appointment.email }}</span>
-                            </td>
+                            <td style="white-space: nowrap;">{{ appointment.appointment_date|date('M j, Y') }} {{ appointment.start_time|date('g:i A') }}</td>
+                            <td>{{ appointment.customer_name }} ({{ appointment.email }})</td>
                             <td data-filter-value="{{ appointment.service_name }}">{{ appointment.service_name }}</td>
                             <td data-filter-value="{{ artistName }}">{{ artistName }}</td>
-                            <td style="white-space: nowrap;"><strong>₱{{ appointment.price }}</strong></td>
-                            <td data-filter-value="{{ statusLabel }}" data-search="{{ statusLabel }}">
-                                <form class="status-form" method="post" action="{{ path('admin_appointment_status') }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
-                                    <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
-                                    <select class="status-select" name="status_id" aria-label="Status for {{ appointment.customer_name }}">
-                                        {% for id, label in statuses %}
-                                            <option value="{{ id }}" {% if appointment.status_id == id %}selected{% endif %}>{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit">Update</button>
-                                </form>
-                            </td>
+                            <td style="white-space: nowrap;">₱{{ appointment.price }}</td>
+                            <td data-filter-value="{{ statusLabel }}" data-search="{{ statusLabel }}">{{ statusLabel }}</td>
                             <td>
                                 <div class="action-group">
+                                    <form class="status-form" method="post" action="{{ path('admin_appointment_status') }}" style="margin:0;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                        <select class="status-select" name="status_id" aria-label="Status for {{ appointment.customer_name }}">
+                                            {% for id, label in statuses %}
+                                                <option value="{{ id }}" {% if appointment.status_id == id %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit">Update</button>
+                                    </form>
+
                                     <button
                                         type="button"
                                         class="btn-action btn-edit"

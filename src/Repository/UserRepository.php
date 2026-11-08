@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,44 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-//    /**
-//     * @return User[] Returns an array of User objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function createFilterQueryBuilder(array $filters): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->orderBy('u.id', 'ASC');
 
-//    public function findOneBySomeField($value): ?User
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if (!empty($filters['role'])) {
+            $qb->andWhere('u.role = :role')
+               ->setParameter('role', (string) $filters['role']);
+        }
+
+        if (isset($filters['status']) && $filters['status'] !== '' && $filters['status'] !== null) {
+            $qb->andWhere('u.isActive = :isActive')
+               ->setParameter('isActive', (string) $filters['status'] === '1');
+        }
+
+        return $qb;
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @param array<int, array<string, mixed>> $records
+     * @return array<int, array<string, mixed>>
+     */
+    public function findByFilters(array $filters, array $records = []): array
+    {
+        return array_values(array_filter($records, static function (array $row) use ($filters): bool {
+            if (!empty($filters['role']) && ($row['role'] ?? '') !== (string) $filters['role']) {
+                return false;
+            }
+
+            if (isset($filters['status']) && $filters['status'] !== '' && $filters['status'] !== null) {
+                $expectedActive = (string) $filters['status'] === '1';
+                if ((bool) ($row['is_active'] ?? false) !== $expectedActive) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
+    }
 }

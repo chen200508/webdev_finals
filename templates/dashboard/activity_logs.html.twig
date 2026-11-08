@@ -3,7 +3,7 @@
 {% block title %}Activity Logs · S Beauty Salon{% endblock %}
 
 {% block styles %}
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: var(--font-admin); }
     .badge-created { background: #fef3c7; color: #92400e; }
     .badge-status { background: #dbeafe; color: #1e40af; }
     .badge-completed { background: #dcfce7; color: #166534; }
@@ -15,23 +15,35 @@
     {% set eventLabels = {
         'created': 'Booking Created',
         'status_updated': 'Status Updated',
+        'appointment_updated': 'Booking Updated',
         'completed': 'Session Completed',
         'cancelled': 'Booking Cancelled',
+        'service_created': 'Service Created',
         'service_updated': 'Catalog Updated',
-        'user_login': 'User Login'
+        'service_deleted': 'Service Removed',
+        'user_created': 'User Created',
+        'user_updated': 'User Updated',
+        'user_deleted': 'User Removed',
+        'user_login': 'User Login',
+        'user_logout': 'User Logout'
     } %}
 
     <h1>Activity Logs</h1>
     <p class="lede">Audit trail of booking events, status changes, catalog updates, and administrator actions.</p>
 
     <section class="card">
+        {% include 'partials/datatable_filter.html.twig' with {
+            filterForm: filterForm,
+            resetPath: path('admin_activity_logs')
+        } %}
         <div style="overflow-x:auto;">
             <table
                 data-datatable
                 data-page-length="10"
+                data-order-col="0"
+                data-order-dir="desc"
                 data-search-placeholder="Search activity logs..."
                 data-empty-text="No activity logs recorded yet."
-                data-filter-columns='[{"index": 1, "label": "Event Type"}, {"index": 3, "label": "Performed By"}]'
             >
                 <thead>
                     <tr>
@@ -50,29 +62,11 @@
                             : (log.event_type == 'completed' ? 'badge-completed'
                             : (log.event_type == 'cancelled' ? 'badge-cancelled' : 'badge-system'))) %}
                         <tr>
-                            <td style="white-space: nowrap;">
-                                <strong>{{ log.created_at|date('M j, Y') }}</strong><br>
-                                <span class="muted">{{ log.created_at|date('g:i:s A') }}</span>
-                            </td>
-                            <td data-filter-value="{{ eventLabel }}">
-                                <span class="badge {{ badgeClass }}">{{ eventLabel }}</span>
-                            </td>
-                            <td>
-                                <strong>{{ log.description }}</strong>
-                                {% if log.appointment_id %}
-                                    <br><span class="muted">Appointment #{{ log.appointment_id }}</span>
-                                {% endif %}
-                            </td>
-                            <td data-filter-value="{{ log.performed_by }}">
-                                <code>{{ log.performed_by }}</code>
-                            </td>
-                            <td style="white-space: nowrap;">
-                                {% if log.old_status %}
-                                    <span class="muted">{{ log.old_status }}</span> &rarr; <strong>{{ log.new_status }}</strong>
-                                {% else %}
-                                    <strong>{{ log.new_status }}</strong>
-                                {% endif %}
-                            </td>
+                            <td style="white-space: nowrap;" data-order="{{ log.id }}">{{ log.created_at|date('M j, Y g:i:s A') }}</td>
+                            <td data-filter-value="{{ eventLabel }}">{{ eventLabel }}</td>
+                            <td>{{ log.description }}{% if log.appointment_id %} (Appointment #{{ log.appointment_id }}){% endif %}</td>
+                            <td data-filter-value="{{ log.performed_by }}">{{ log.performed_by }}</td>
+                            <td style="white-space: nowrap;">{% if log.old_status %}{{ log.old_status }} -> {{ log.new_status }}{% else %}{{ log.new_status }}{% endif %}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

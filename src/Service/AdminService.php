@@ -3,15 +3,66 @@
 namespace App\Service;
 
 use Doctrine\DBAL\Connection;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class AdminService
 {
+    private const STATUS_LABELS = [
+        1 => 'Pending',
+        2 => 'Confirmed',
+        3 => 'Completed',
+        4 => 'Cancelled',
+    ];
+
     public function __construct(
         private ?Connection $connection = null,
         #[Autowire('%kernel.environment%')]
         private string $env = 'dev',
+        private ?Security $security = null,
     ) {
+    }
+
+    private function getActor(?string $performedBy = null): string
+    {
+        if ($performedBy !== null && trim($performedBy) !== '') {
+            return trim($performedBy);
+        }
+
+        $user = $this->security?->getUser();
+        if ($user !== null && $user->getUserIdentifier() !== '') {
+            return $user->getUserIdentifier();
+        }
+
+        return 'admin@salon.com';
+    }
+
+    public function logActivity(
+        string $eventType,
+        string $newStatus,
+        ?string $performedBy,
+        string $description,
+        ?string $oldStatus = null,
+        ?int $appointmentId = null
+    ): void {
+        if (!$this->canUseDatabase()) {
+            return;
+        }
+
+        try {
+            $this->connection->executeStatement(
+                'INSERT INTO activity_logs (appointment_id, event_type, old_status, new_status, performed_by, description, created_at) VALUES (:appointmentId, :eventType, :oldStatus, :newStatus, :performedBy, :description, NOW())',
+                [
+                    'appointmentId' => $appointmentId,
+                    'eventType' => $eventType,
+                    'oldStatus' => $oldStatus,
+                    'newStatus' => $newStatus,
+                    'performedBy' => $this->getActor($performedBy),
+                    'description' => $description,
+                ]
+            );
+        } catch (\Throwable) {
+        }
     }
 
     private function canUseDatabase(): bool
@@ -238,10 +289,25 @@ class AdminService
         if (!$this->canUseDatabase()) {
             return;
         }
+
+        $oldStatusId = (int) ($this->connection->fetchOne('SELECT status_id FROM appointments WHERE id = :id', ['id' => $id]) ?: 1);
+        $oldLabel = self::STATUS_LABELS[$oldStatusId] ?? 'Pending';
+        $newLabel = self::STATUS_LABELS[$statusId] ?? 'Pending';
+
         $this->connection->executeStatement('UPDATE appointments SET status_id = :statusId WHERE id = :id', [
             'statusId' => $statusId,
             'id' => $id,
         ]);
+
+        $eventType = $statusId === 3 ? 'completed' : ($statusId === 4 ? 'cancelled' : 'status_updated');
+        $this->logActivity(
+            $eventType,
+            $newLabel,
+            null,
+            sprintf('Appointment #%d status changed from %s to %s.', $id, $oldLabel, $newLabel),
+            $oldLabel,
+            $id
+        );
     }
 
     public function deleteAppointment(int $id): void
@@ -249,7 +315,19 @@ class AdminService
         if (!$this->canUseDatabase()) {
             return;
         }
+        $oldStatusId = (int) ($this->connection->fetchOne('SELECT status_id FROM appointments WHERE id = :id', ['id' => $id]) ?: 1);
+        $oldLabel = self::STATUS_LABELS[$oldStatusId] ?? 'Pending';
+
         $this->connection->executeStatement('DELETE FROM appointments WHERE id = :id', ['id' => $id]);
+
+        $this->logActivity(
+            'cancelled',
+            'Deleted',
+            null,
+            sprintf('Deleted appointment #%d from schedule.', $id),
+            $oldLabel,
+            null
+        );
     }
 
     public function updateAppointment(int $id, int $staffId, string $date, string $startTime, int $serviceId, float $price): bool
@@ -271,6 +349,15 @@ class AdminService
             ['serviceId' => $serviceId, 'price' => $price, 'id' => $id]
         );
 
+        $this->logActivity(
+            'appointment_updated',
+            'Updated',
+            null,
+            sprintf('Updated appointment #%d details (%s at %s, ₱%s).', $id, $date, substr($startTime, 0, 5), number_format($price, 2)),
+            'Scheduled',
+            $id
+        );
+
         return true;
     }
 
@@ -289,6 +376,13 @@ class AdminService
             'INSERT INTO service_prices (service_id, price, effective_from) VALUES (:serviceId, :price, CURDATE())',
             ['serviceId' => $serviceId, 'price' => $price]
         );
+
+        $this->logActivity(
+            'service_created',
+            'Active',
+            null,
+            sprintf('Added new service "%s" (₱%s, %d mins) to catalog.', $name, number_format($price, 2), $duration)
+        );
     }
 
     public function updateService(int $id, string $name, int $categoryId, int $duration, float $price, string $description): bool
@@ -305,6 +399,14 @@ class AdminService
             ['price' => $price, 'id' => $id]
         );
 
+        $this->logActivity(
+            'service_updated',
+            'Updated',
+            null,
+            sprintf('Updated catalog service "%s" (₱%s, %d mins).', $name, number_format($price, 2), $duration),
+            'Active'
+        );
+
         return true;
     }
 
@@ -313,7 +415,16 @@ class AdminService
         if (!$this->canUseDatabase()) {
             return;
         }
+        $serviceName = (string) ($this->connection->fetchOne('SELECT name FROM services WHERE id = :id', ['id' => $id]) ?: '');
         $this->connection->executeStatement('DELETE FROM services WHERE id = :id', ['id' => $id]);
+
+        $this->logActivity(
+            'service_deleted',
+            'Removed',
+            null,
+            sprintf('Removed service %s from catalog.', $serviceName !== '' ? '"' . $serviceName . '"' : '#' . $id),
+            'Active'
+        );
     }
 
     public function createUser(string $name, string $email, string $role, bool $isActive = true): void
@@ -331,6 +442,13 @@ class AdminService
                 'isActive' => $isActive ? 1 : 0,
             ]
         );
+
+        $this->logActivity(
+            'user_created',
+            $isActive ? 'Active' : 'Deactivated',
+            null,
+            sprintf('Created user account for %s (%s) with role %s.', $name, $email, $role)
+        );
     }
 
     public function updateUserRole(int $id, string $role, bool $isActive): void
@@ -342,6 +460,14 @@ class AdminService
             'UPDATE users SET role = :role, is_active = :isActive WHERE id = :id',
             ['role' => $role, 'isActive' => $isActive ? 1 : 0, 'id' => $id]
         );
+
+        $this->logActivity(
+            'user_updated',
+            $isActive ? 'Active' : 'Deactivated',
+            null,
+            sprintf('Updated user #%d role to %s (%s).', $id, $role, $isActive ? 'Active' : 'Deactivated'),
+            'Active'
+        );
     }
 
     public function deleteUser(int $id): void
@@ -349,6 +475,15 @@ class AdminService
         if (!$this->canUseDatabase()) {
             return;
         }
+        $email = (string) ($this->connection->fetchOne('SELECT email FROM users WHERE id = :id', ['id' => $id]) ?: '');
         $this->connection->executeStatement('DELETE FROM users WHERE id = :id', ['id' => $id]);
+
+        $this->logActivity(
+            'user_deleted',
+            'Removed',
+            null,
+            sprintf('Removed user account %s.', $email !== '' ? $email : '#' . $id),
+            'Active'
+        );
     }
 }

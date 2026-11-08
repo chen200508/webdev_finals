@@ -2,7 +2,7 @@
 
 <aside class="desk-sidebar" aria-label="Beauty Salon">
     <a class="desk-brand" href="{{ path('app_dashboard') }}">
-        <img class="desk-logo" src="{{ asset('images/secondary.webp') }}" alt="Beauty Salon">
+        <img class="desk-logo" src="{{ asset('images/secondary.webp') }}" alt="Beauty Salon" width="150" height="54" loading="eager" decoding="sync" data-no-skeleton>
     </a>
     <nav class="desk-nav-wrap" aria-label="Dashboard sections">
         <p class="desk-label">Beauty Salon</p>
@@ -17,7 +17,7 @@
                 {% endif %}
             </a>
             <a class="desk-link {{ route == 'admin_services' ? 'is-on' : '' }}" href="{{ path('admin_services') }}">
-                <span class="desk-link-label"><i class="ti ti-sparkles"></i><span>Services</span></span>
+                <span class="desk-link-label"><i class="ti ti-scissors"></i><span>Services</span></span>
                 {% if counts.services is defined %}
                     <span class="desk-count">{{ counts.services }}</span>
                 {% endif %}

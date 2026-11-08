@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ActivityLog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,42 @@ class ActivityLogRepository extends ServiceEntityRepository
         parent::__construct($registry, ActivityLog::class);
     }
 
-//    /**
-//     * @return ActivityLog[] Returns an array of ActivityLog objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function createFilterQueryBuilder(array $filters): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('l')
+            ->orderBy('l.createdAt', 'DESC')
+            ->addOrderBy('l.id', 'DESC');
 
-//    public function findOneBySomeField($value): ?ActivityLog
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if (!empty($filters['event_type'])) {
+            $qb->andWhere('l.eventType = :eventType')
+               ->setParameter('eventType', (string) $filters['event_type']);
+        }
+
+        if (!empty($filters['performed_by'])) {
+            $qb->andWhere('l.performedBy = :performedBy')
+               ->setParameter('performedBy', (string) $filters['performed_by']);
+        }
+
+        return $qb;
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @param array<int, array<string, mixed>> $records
+     * @return array<int, array<string, mixed>>
+     */
+    public function findByFilters(array $filters, array $records = []): array
+    {
+        return array_values(array_filter($records, static function (array $row) use ($filters): bool {
+            if (!empty($filters['event_type']) && ($row['event_type'] ?? '') !== (string) $filters['event_type']) {
+                return false;
+            }
+
+            if (!empty($filters['performed_by']) && ($row['performed_by'] ?? '') !== (string) $filters['performed_by']) {
+                return false;
+            }
+
+            return true;
+        }));
+    }
 }
