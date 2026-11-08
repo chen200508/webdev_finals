@@ -83,6 +83,7 @@
         .reveal-visible .reveal-item:nth-child(5) { transition-delay: 0.25s; }
         .reveal-visible .reveal-item:nth-child(6) { transition-delay: 0.30s; }
     </style>
+    {% include 'partials/image_skeleton.html.twig' %}
     {% block stylesheets %}{% endblock %}
 </head>
 <body class="bg-[#FBF4DE] min-h-screen text-gray-800 font-body flex flex-col justify-between relative">
@@ -181,20 +182,33 @@
                 }
             });
 
-            // Target individual inner sections/blocks (avoid scaling outer page wrapper)
-            const revealElements = document.querySelectorAll('.reveal-on-scroll, main section > section');
-            revealElements.forEach(el => {
+            // Target individual inner sections/blocks (avoid scaling outer page wrapper or sections that already contain inner reveal blocks)
+            const candidateRevealElements = document.querySelectorAll('.reveal-on-scroll, main section > section');
+            const revealElements = [];
+            candidateRevealElements.forEach(el => {
+                if (!el.classList.contains('reveal-on-scroll') && el.querySelector('.reveal-on-scroll')) {
+                    return;
+                }
                 if (!el.classList.contains('reveal-on-scroll')) {
                     el.classList.add('reveal-on-scroll');
                 }
+                revealElements.push(el);
             });
+
+            const markSectionVisible = (el) => {
+                if (el.classList.contains('reveal-visible')) return;
+                el.classList.add('reveal-visible');
+                if (!el.querySelector('img')) {
+                    setTimeout(() => el.classList.add('reveal-shadow-settled'), 550);
+                }
+            };
 
             const checkInitialVisibility = () => {
                 const windowHeight = window.innerHeight;
                 revealElements.forEach(el => {
                     const rect = el.getBoundingClientRect();
                     if (rect.top <= windowHeight * 0.92 && rect.bottom >= 0) {
-                        el.classList.add('reveal-visible');
+                        markSectionVisible(el);
                     }
                 });
             };
@@ -203,7 +217,7 @@
                 const sectionObserver = new IntersectionObserver((entries, observer) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
-                            entry.target.classList.add('reveal-visible');
+                            markSectionVisible(entry.target);
                             observer.unobserve(entry.target);
                         }
                     });
@@ -215,7 +229,7 @@
 
                 revealElements.forEach(el => sectionObserver.observe(el));
             } else {
-                revealElements.forEach(el => el.classList.add('reveal-visible'));
+                revealElements.forEach(el => markSectionVisible(el));
             }
 
             checkInitialVisibility();

@@ -74,47 +74,44 @@
 
     <!-- Testimonials Section -->
     <section class="bg-[#FAF1D6]/60 py-16 px-4 reveal-on-scroll">
-        <div class="max-w-4xl mx-auto text-center mb-10">
+        <div class="max-w-4xl mx-auto text-center mb-12">
             <h2 class="text-3xl md:text-4xl font-heading font-bold text-[#C68E00] mb-3">Testimonials</h2>
             <p class="text-gray-700 text-sm md:text-base max-w-xl mx-auto">
                 See what our valued guests have to say about their transformations and experiences with us.
             </p>
         </div>
 
-        <div class="max-w-4xl mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-amber-100/80 relative">
-            <!-- Giant Decorative Quotation Marks -->
-            <span class="absolute -top-6 left-6 text-7xl font-serif text-[#C68E00] leading-none select-none">“</span>
-            <span class="absolute -bottom-10 right-6 text-7xl font-serif text-[#C68E00] leading-none select-none">”</span>
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {% for testimonial in testimonials %}
+                <div class="img-shadow-frame bg-white rounded-3xl p-7 md:p-8 shadow-sm border border-amber-100/80 relative flex flex-col justify-between text-left reveal-item" data-img-shadow-ready="false">
+                    <!-- Decorative Quotation Mark -->
+                    <span class="absolute top-4 right-6 text-5xl font-serif text-[#C68E00]/25 leading-none select-none" aria-hidden="true">“</span>
 
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
-                <!-- Left Side Client Avatars Cluster -->
-                <div class="md:col-span-4 flex flex-col items-center justify-center gap-3">
-                    <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-200 shadow-sm">
-                        <img src="{{ asset('images/demor_.webp') }}" loading="lazy" decoding="async" alt="Happy client" class="w-full h-full object-cover">
-                    </div>
-                    <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-[#C68E00] shadow-md -my-2 z-10">
-                        <img src="{{ asset('images/Bfacejpg.webp') }}" loading="lazy" decoding="async" alt="Client transformation" class="w-full h-full object-cover">
-                    </div>
-                    <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-200 shadow-sm">
-                        <img src="{{ asset('images/df.webp') }}" loading="lazy" decoding="async" alt="Grateful client" class="w-full h-full object-cover">
-                    </div>
-                </div>
-
-                <!-- Right Side Testimonials Content -->
-                <div class="md:col-span-8 space-y-6 text-left">
-                    {% for testimonial in testimonials %}
-                        {% if not loop.first %}
-                            <hr class="border-amber-100">
-                        {% endif %}
-                        <div>
-                            <h4 class="text-[#C68E00] font-heading font-bold text-sm mb-1">{{ testimonial.author }}</h4>
-                            <p class="text-gray-600 text-xs md:text-sm leading-relaxed">
-                                {{ testimonial.content }}
-                            </p>
+                    <div>
+                        <div class="flex items-center gap-1 text-[#C68E00] text-xs mb-4" aria-label="5 out of 5 stars">
+                            <i class="ti ti-star-filled"></i>
+                            <i class="ti ti-star-filled"></i>
+                            <i class="ti ti-star-filled"></i>
+                            <i class="ti ti-star-filled"></i>
+                            <i class="ti ti-star-filled"></i>
                         </div>
-                    {% endfor %}
+
+                        <p class="text-gray-600 text-xs md:text-sm leading-relaxed relative z-10">
+                            {{ testimonial.content }}
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3.5 mt-6 pt-5 border-t border-amber-100/80">
+                        <div class="img-shadow-frame w-12 h-12 rounded-full overflow-hidden border-2 border-[#C68E00] shadow-sm flex-shrink-0" data-img-shadow-ready="false">
+                            <img src="{{ asset(testimonial.image|default('images/demor_.webp')) }}" loading="lazy" decoding="async" alt="{{ testimonial.author }}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h4 class="text-[#C68E00] font-heading font-bold text-sm leading-snug">{{ testimonial.author }}</h4>
+                            <p class="text-[11px] text-gray-500 font-medium">{{ testimonial.role|default('Valued Salon Guest') }}</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            {% endfor %}
         </div>
     </section>
 

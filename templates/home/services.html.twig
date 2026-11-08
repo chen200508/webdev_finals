@@ -10,7 +10,7 @@
     </section>
 
     <!-- Wide Hero Banner Image -->
-    <section class="relative w-full">
+    <section class="relative w-full min-h-[260px] md:min-h-[420px] overflow-hidden reveal-on-scroll">
         <img src="{{ asset('images/makeup.webp') }}"
              alt="Services Banner"
              class="w-full h-auto object-cover block">
@@ -18,7 +18,7 @@
 
     <!-- Services and Prices Main Container -->
     <section class="bg-[#FAF1D6] py-16 px-4">
-        <div class="max-w-6xl mx-auto text-center mb-16">
+        <div class="max-w-6xl mx-auto text-center mb-16 reveal-on-scroll">
             <h2 class="text-3xl md:text-4xl font-heading font-bold text-[#C68E00] mb-3">Services and prices</h2>
             <p class="text-gray-700 text-sm md:text-base max-w-xl mx-auto">
                 Transparent pricing and exceptional service—discover the perfect pampering experience tailored just for you.
@@ -33,7 +33,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center reveal-on-scroll">
                     {% if isEven %}
                         <!-- Image Left -->
-                        <div class="w-full h-[360px] md:h-[420px] rounded-2xl overflow-hidden shadow-md">
+                        <div class="img-shadow-frame w-full h-[360px] md:h-[420px] rounded-2xl overflow-hidden shadow-md" data-img-shadow-ready="false">
                             <img src="{{ asset(cat.image) }}" loading="lazy" decoding="async" alt="{{ cat.name }}" class="w-full h-full object-cover">
                         </div>
                     {% endif %}
@@ -65,7 +65,7 @@
 
                     {% if not isEven %}
                         <!-- Image Right -->
-                        <div class="w-full h-[360px] md:h-[420px] rounded-2xl overflow-hidden shadow-md">
+                        <div class="img-shadow-frame w-full h-[360px] md:h-[420px] rounded-2xl overflow-hidden shadow-md" data-img-shadow-ready="false">
                             <img src="{{ asset(cat.image) }}" loading="lazy" decoding="async" alt="{{ cat.name }}" class="w-full h-full object-cover">
                         </div>
                     {% endif %}
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Embedded Book Appointment Card -->
-        <div id="book-appointment" class="max-w-5xl mx-auto mt-24 bg-white rounded-3xl p-6 md:p-8 shadow-lg overflow-hidden border border-amber-100 reveal-on-scroll">
+        <div id="book-appointment" class="img-shadow-frame max-w-5xl mx-auto mt-24 bg-white rounded-3xl p-6 md:p-8 shadow-lg overflow-hidden border border-amber-100 reveal-on-scroll" data-img-shadow-ready="false">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-0 rounded-2xl overflow-hidden">
                 <!-- Left Side Portrait Image -->
                 <div class="md:col-span-5 h-[350px] md:h-auto min-h-[450px]">

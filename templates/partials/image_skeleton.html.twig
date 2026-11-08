@@ -1,0 +1,778 @@
+{#
+ # Reusable Image Skeleton Loading Component
+ #
+ # Usage 1 (Global styles + auto-enhancement for all <img> elements, included once in layout):
+ #   {% include 'partials/image_skeleton.html.twig' %}
+ #
+ # Usage 2 (Explicit component rendering for a single image):
+ #   {% include 'partials/image_skeleton.html.twig' with {
+ #       src: asset('images/hero.webp'),
+ #       alt: 'Salon interior',
+ #       wrapper_class: 'w-full h-full rounded-xl',
+ #       img_class: 'w-full h-full object-cover rounded-xl',
+ #       loading: 'lazy'
+ #   } only %}
+ #}
+{% if src is defined %}
+    <div class="img-skeleton-wrapper {{ wrapper_class|default('w-full h-full') }}" data-img-state="loading">
+        <div class="img-skeleton-overlay" aria-hidden="true"></div>
+        <div class="img-skeleton-fallback" role="img" aria-label="{{ alt|default('Image unavailable') }}">
+            <i class="ti ti-photo-off img-skeleton-fallback-icon" aria-hidden="true"></i>
+        </div>
+        <img
+            src="{{ src }}"
+            alt="{{ alt|default('') }}"
+            class="img-skeleton-target {{ img_class|default('w-full h-full object-cover') }}"
+            {% if loading is defined %}loading="{{ loading }}"{% endif %}
+            decoding="{{ decoding|default('async') }}"
+        >
+    </div>
+{% else %}
+    <style>
+        .img-skeleton-wrapper {
+            position: relative;
+            display: block;
+            overflow: hidden;
+            background-color: #e5e7eb;
+            transform: translateZ(0);
+        }
+
+        .img-skeleton-wrapper.img-skeleton-inline {
+            display: inline-block;
+        }
+
+        /* Prevent collapse on fluid h-auto banners before intrinsic dimensions arrive */
+        .img-skeleton-wrapper[data-img-state="loading"].img-skeleton-fluid-height,
+        .img-skeleton-wrapper[data-img-state="not-loaded"].img-skeleton-fluid-height,
+        .img-skeleton-wrapper[data-img-state="error"].img-skeleton-fluid-height {
+            min-height: 220px;
+        }
+
+        /* 1. Placeholder background & 4. Rounded corners */
+        .img-skeleton-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background-color: #e5e7eb;
+            border-radius: inherit;
+            overflow: hidden;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: none;
+            transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 3. Subtle horizontal shimmer effect while loading */
+        .img-skeleton-wrapper[data-img-state="loading"] > .img-skeleton-overlay::after,
+        .img-skeleton-host[data-img-state="loading"] > .img-skeleton-overlay::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.45) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: imgSkeletonShimmer 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes imgSkeletonShimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* 5. Hide native broken image icon & 6. Smooth fade-in transition */
+        img.img-skeleton-target {
+            opacity: 0;
+            transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            will-change: opacity;
+        }
+
+        /* Suppress all image & container shadows until the image has loaded AND finished its entrance animation */
+        .img-shadow-frame,
+        .img-skeleton-wrapper,
+        .img-skeleton-host {
+            transition: box-shadow 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                        filter 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .img-shadow-frame:not([data-img-shadow-ready="true"]),
+        [data-img-shadow-ready="false"],
+        .reveal-on-scroll:not(.reveal-shadow-settled) .img-shadow-frame,
+        .img-skeleton-wrapper[data-img-state="not-loaded"],
+        .img-skeleton-wrapper[data-img-state="loading"],
+        .img-skeleton-wrapper[data-img-state="error"],
+        .img-skeleton-host[data-img-state="not-loaded"],
+        .img-skeleton-host[data-img-state="loading"],
+        .img-skeleton-host[data-img-state="error"] {
+            box-shadow: none !important;
+            filter: none !important;
+        }
+
+        /* Suppress dark backdrop shadow overlays over banner images until the image animation completes */
+        .img-shadow-overlay {
+            transition: background-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .img-shadow-overlay:not([data-img-shadow-ready="true"]),
+        .img-shadow-overlay[data-img-shadow-ready="false"] {
+            background-color: transparent !important;
+            background-image: none !important;
+        }
+
+        /* Hide browser broken-image border/alt text while loading or on error */
+        .img-skeleton-wrapper[data-img-state="not-loaded"] img.img-skeleton-target,
+        .img-skeleton-wrapper[data-img-state="loading"] img.img-skeleton-target,
+        .img-skeleton-wrapper[data-img-state="error"] img.img-skeleton-target,
+        .img-skeleton-host[data-img-state="not-loaded"] > img.img-skeleton-target,
+        .img-skeleton-host[data-img-state="loading"] > img.img-skeleton-target,
+        .img-skeleton-host[data-img-state="error"] > img.img-skeleton-target {
+            opacity: 0 !important;
+            color: transparent;
+        }
+
+        /* Successfully loaded state */
+        .img-skeleton-wrapper[data-img-state="loaded"],
+        .img-skeleton-host[data-img-state="loaded"] {
+            background-color: transparent;
+        }
+
+        .img-skeleton-wrapper[data-img-state="loaded"] > img.img-skeleton-target,
+        .img-skeleton-host[data-img-state="loaded"] > img.img-skeleton-target {
+            opacity: 1;
+        }
+
+        .img-skeleton-wrapper[data-img-state="loaded"] > .img-skeleton-overlay,
+        .img-skeleton-host[data-img-state="loaded"] > .img-skeleton-overlay,
+        .img-skeleton-wrapper[data-img-state="error"] > .img-skeleton-overlay,
+        .img-skeleton-host[data-img-state="error"] > .img-skeleton-overlay {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* 7. Loading failure fallback placeholder */
+        .img-skeleton-fallback {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background-color: #e5e7eb;
+            color: #9ca3af;
+            border-radius: inherit;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        .img-skeleton-fallback-icon {
+            font-size: clamp(1.1rem, 2.5vw, 2rem);
+            line-height: 1;
+        }
+
+        .img-skeleton-wrapper[data-img-state="error"] > .img-skeleton-fallback,
+        .img-skeleton-host[data-img-state="error"] > .img-skeleton-fallback {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+
+    <script type="module">
+        import { QueryClient, QueryObserver } from '{{ asset('vendor/@tanstack/query-core/query-core.index.js') }}';
+
+        (function () {
+            const CACHE_STORAGE_NAME = 'shai-salon-image-assets-v1';
+            const STALE_TIME_MS = 1000 * 60 * 60 * 24; // 24 hours fresh in TanStack Query
+            const GC_TIME_MS = 1000 * 60 * 60 * 24;    // 24 hours garbage collection time
+
+            // Initialize singleton TanStack QueryClient in browser memory (no Redis required)
+            const queryClient = window.salonImageQueryClient || new QueryClient({
+                defaultOptions: {
+                    queries: {
+                        staleTime: STALE_TIME_MS,
+                        gcTime: GC_TIME_MS,
+                        retry: 2,
+                        refetchOnWindowFocus: false,
+                        refetchOnReconnect: true,
+                    },
+                },
+            });
+            queryClient.mount();
+            window.salonImageQueryClient = queryClient;
+
+            // Map of canonical image URL -> active Blob ObjectURL so we reuse object URLs across the session
+            const blobUrlRegistry = window.__salonBlobUrlRegistry || new Map();
+            window.__salonBlobUrlRegistry = blobUrlRegistry;
+
+            function normalizeImageUrl(rawUrl) {
+                if (!rawUrl || rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) {
+                    return rawUrl || '';
+                }
+                try {
+                    return new URL(rawUrl, window.location.origin).href;
+                } catch (_err) {
+                    return rawUrl;
+                }
+            }
+
+            async function fetchAndCacheImageAsset(normalizedUrl, signal) {
+                if (!normalizedUrl || normalizedUrl.startsWith('data:') || normalizedUrl.startsWith('blob:')) {
+                    return {
+                        url: normalizedUrl,
+                        objectUrl: normalizedUrl,
+                        source: 'inline',
+                        cachedAt: Date.now(),
+                    };
+                }
+
+                // 1. Check in-session Blob URL registry first (0ms instant hit)
+                if (blobUrlRegistry.has(normalizedUrl)) {
+                    return {
+                        url: normalizedUrl,
+                        objectUrl: blobUrlRegistry.get(normalizedUrl),
+                        source: 'tanstack-memory',
+                        cachedAt: Date.now(),
+                    };
+                }
+
+                // 2. Check Browser Persistent Cache Storage API (persists across page reloads without Redis)
+                const hasCacheStorage = 'caches' in window && typeof window.caches?.open === 'function';
+                if (hasCacheStorage) {
+                    try {
+                        const cache = await window.caches.open(CACHE_STORAGE_NAME);
+                        const cachedResponse = await cache.match(normalizedUrl);
+                        if (cachedResponse && cachedResponse.ok) {
+                            const blob = await cachedResponse.blob();
+                            if (blob && blob.size > 0) {
+                                const objectUrl = URL.createObjectURL(blob);
+                                blobUrlRegistry.set(normalizedUrl, objectUrl);
+                                return {
+                                    url: normalizedUrl,
+                                    objectUrl,
+                                    size: blob.size,
+                                    mimeType: blob.type,
+                                    source: 'browser-cache-storage',
+                                    cachedAt: Date.now(),
+                                };
+                            }
+                        }
+                    } catch (_cacheReadErr) {
+                        // Fall through to network fetch if Cache Storage is restricted
+                    }
+                }
+
+                // 3. Fetch from network and store in both Browser Cache Storage & TanStack QueryCache
+                const response = await fetch(normalizedUrl, {
+                    signal,
+                    credentials: 'same-origin',
+                    cache: 'force-cache',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load image (${response.status}): ${normalizedUrl}`);
+                }
+
+                if (hasCacheStorage) {
+                    try {
+                        const cache = await window.caches.open(CACHE_STORAGE_NAME);
+                        await cache.put(normalizedUrl, response.clone());
+                    } catch (_cacheWriteErr) {
+                        // Ignore quota or opaque response errors
+                    }
+                }
+
+                const blob = await response.blob();
+                if (!blob || blob.size === 0) {
+                    throw new Error(`Empty image blob received for ${normalizedUrl}`);
+                }
+
+                const objectUrl = URL.createObjectURL(blob);
+                blobUrlRegistry.set(normalizedUrl, objectUrl);
+
+                return {
+                    url: normalizedUrl,
+                    objectUrl,
+                    size: blob.size,
+                    mimeType: blob.type,
+                    source: 'network',
+                    cachedAt: Date.now(),
+                };
+            }
+
+            function getImageQueryOptions(normalizedUrl) {
+                return {
+                    queryKey: ['salon-image-asset', normalizedUrl],
+                    queryFn: ({ signal }) => fetchAndCacheImageAsset(normalizedUrl, signal),
+                    staleTime: STALE_TIME_MS,
+                    gcTime: GC_TIME_MS,
+                };
+            }
+
+            // Expose helper API on window.salonImageCache for diagnostics, manual prefetching, or cache clearing
+            window.salonImageCache = {
+                queryClient,
+                QueryObserver,
+                fetchImage(url) {
+                    const normalizedUrl = normalizeImageUrl(url);
+                    return queryClient.fetchQuery(getImageQueryOptions(normalizedUrl));
+                },
+                prefetchImage(url) {
+                    const normalizedUrl = normalizeImageUrl(url);
+                    if (!normalizedUrl) return Promise.resolve();
+                    return queryClient.prefetchQuery(getImageQueryOptions(normalizedUrl));
+                },
+                prefetchImages(urls = []) {
+                    return Promise.allSettled(urls.map((u) => this.prefetchImage(u)));
+                },
+                getCachedStatus(url) {
+                    const normalizedUrl = normalizeImageUrl(url);
+                    return queryClient.getQueryState(['salon-image-asset', normalizedUrl]);
+                },
+                async clearCache() {
+                    blobUrlRegistry.forEach((objectUrl) => URL.revokeObjectURL(objectUrl));
+                    blobUrlRegistry.clear();
+                    queryClient.clear();
+                    if ('caches' in window) {
+                        await window.caches.delete(CACHE_STORAGE_NAME);
+                    }
+                },
+            };
+
+            const LAYOUT_CLASS_PATTERNS = [
+                /^w-/, /^h-/, /^min-w-/, /^min-h-/, /^max-w-/, /^max-h-/,
+                /^aspect-/, /^rounded/, /^flex-shrink/, /^shrink/, /^grow/, /^flex-grow/,
+                /^col-span-/, /^row-span-/, /^self-/, /^justify-self-/,
+                /^m[trblxy]?-/, /^-m[trblxy]?-/, /^mx-auto$/, /^block$/, /^inline-block$/,
+                /^reveal-item$/
+            ];
+
+            const SHADOW_CLASS_PATTERN = /(^|:)(drop-)?shadow(-sm|-md|-lg|-xl|-2xl|-inner)?$/;
+
+            function shouldMoveClassToWrapper(cls) {
+                const base = cls.split(':').pop();
+                return LAYOUT_CLASS_PATTERNS.some((pattern) => pattern.test(base));
+            }
+
+            function hasShadowClass(el) {
+                if (!el || !el.classList) return false;
+                if (el.classList.contains('img-shadow-frame')) return true;
+                return Array.from(el.classList).some((cls) => SHADOW_CLASS_PATTERN.test(cls));
+            }
+
+            function collectShadowTargets(container, img) {
+                const targets = new Set();
+                if (container) {
+                    targets.add(container);
+                }
+                if (img) {
+                    targets.add(img);
+                }
+
+                // Walk up to 3 ancestor levels to find image frames with shadow-* or .img-shadow-frame
+                let ancestor = container ? container.parentElement : (img ? img.parentElement : null);
+                let depth = 0;
+                while (ancestor && ancestor !== document.body && ancestor.tagName !== 'MAIN' && depth < 3) {
+                    // Stop walking up if this branch is hidden on current viewport (e.g. hidden md:block split panel on mobile)
+                    if (window.getComputedStyle(ancestor).display === 'none') {
+                        break;
+                    }
+                    if (hasShadowClass(ancestor)) {
+                        ancestor.classList.add('img-shadow-frame');
+                        targets.add(ancestor);
+                    }
+                    // Also check sibling dark backdrop overlays (e.g. Promo Banner or Hero overlay)
+                    if (depth === 0) {
+                        Array.from(ancestor.children).forEach((sibling) => {
+                            if (
+                                sibling !== container &&
+                                sibling !== img &&
+                                !sibling.classList.contains('img-skeleton-overlay') &&
+                                !sibling.classList.contains('img-skeleton-fallback') &&
+                                (sibling.classList.contains('img-shadow-overlay') ||
+                                 (sibling.classList.contains('absolute') && sibling.classList.contains('inset-0')))
+                            ) {
+                                sibling.classList.add('img-shadow-overlay');
+                                targets.add(sibling);
+                            }
+                        });
+                    }
+                    ancestor = ancestor.parentElement;
+                    depth++;
+                }
+
+                return Array.from(targets);
+            }
+
+            function suppressShadowsBeforeAnimation(container, img) {
+                const targets = collectShadowTargets(container, img);
+                targets.forEach((el) => {
+                    el.setAttribute('data-img-shadow-ready', 'false');
+                });
+            }
+
+            function waitForElementTransition(el, propName, fallbackMs) {
+                return new Promise((resolve) => {
+                    if (!el) {
+                        resolve();
+                        return;
+                    }
+                    let done = false;
+                    const finish = () => {
+                        if (done) return;
+                        done = true;
+                        el.removeEventListener('transitionend', onEnd);
+                        resolve();
+                    };
+                    const onEnd = (e) => {
+                        if (e.target === el && (!propName || e.propertyName === propName)) {
+                            finish();
+                        }
+                    };
+                    el.addEventListener('transitionend', onEnd);
+                    setTimeout(finish, fallbackMs);
+                });
+            }
+
+            function waitForRevealSectionAnimation(revealSection) {
+                return new Promise((resolve) => {
+                    if (!revealSection || revealSection.classList.contains('reveal-shadow-settled')) {
+                        resolve();
+                        return;
+                    }
+
+                    if (revealSection.classList.contains('reveal-visible')) {
+                        waitForElementTransition(revealSection, 'transform', 560).then(resolve);
+                        return;
+                    }
+
+                    const obs = new MutationObserver(() => {
+                        if (revealSection.classList.contains('reveal-visible')) {
+                            obs.disconnect();
+                            waitForElementTransition(revealSection, 'transform', 560).then(resolve);
+                        }
+                    });
+                    obs.observe(revealSection, { attributes: true, attributeFilter: ['class'] });
+                });
+            }
+
+            function revealShadowsAfterAnimation(container, img) {
+                const targets = collectShadowTargets(container, img);
+                const revealSection = (container || img)?.closest?.('.reveal-on-scroll');
+
+                const imageFadeDone = waitForElementTransition(img, 'opacity', 470);
+                const sectionRevealDone = waitForRevealSectionAnimation(revealSection);
+
+                Promise.all([imageFadeDone, sectionRevealDone]).then(() => {
+                    if (revealSection) {
+                        revealSection.classList.add('reveal-shadow-settled');
+                    }
+                    targets.forEach((el) => {
+                        el.setAttribute('data-img-shadow-ready', 'true');
+                    });
+                });
+            }
+
+            function markLoaded(container, img, source = 'native') {
+                if (img) {
+                    img.dataset.cacheSource = source;
+                }
+                container.setAttribute('data-img-state', 'loaded');
+                revealShadowsAfterAnimation(container, img);
+            }
+
+            function markError(container, img) {
+                if (img) {
+                    img.dataset.cacheSource = 'error';
+                }
+                container.setAttribute('data-img-state', 'error');
+            }
+
+            async function tryGetCachedObjectUrl(normalizedUrl) {
+                // 1. Check in-memory TanStack / Blob registry first
+                if (blobUrlRegistry.has(normalizedUrl)) {
+                    return {
+                        objectUrl: blobUrlRegistry.get(normalizedUrl),
+                        source: 'tanstack-memory',
+                    };
+                }
+
+                const existingData = queryClient.getQueryData(['salon-image-asset', normalizedUrl]);
+                if (existingData && existingData.objectUrl) {
+                    return {
+                        objectUrl: existingData.objectUrl,
+                        source: 'tanstack-memory',
+                    };
+                }
+
+                // 2. Check Browser Persistent Cache Storage without triggering a duplicate network request
+                if ('caches' in window && typeof window.caches?.open === 'function') {
+                    try {
+                        const cache = await window.caches.open(CACHE_STORAGE_NAME);
+                        const cachedResponse = await cache.match(normalizedUrl);
+                        if (cachedResponse && cachedResponse.ok) {
+                            const blob = await cachedResponse.blob();
+                            if (blob && blob.size > 0) {
+                                const objectUrl = URL.createObjectURL(blob);
+                                blobUrlRegistry.set(normalizedUrl, objectUrl);
+                                const payload = {
+                                    url: normalizedUrl,
+                                    objectUrl,
+                                    size: blob.size,
+                                    mimeType: blob.type,
+                                    source: 'browser-cache-storage',
+                                    cachedAt: Date.now(),
+                                };
+                                queryClient.setQueryData(['salon-image-asset', normalizedUrl], payload);
+                                return {
+                                    objectUrl,
+                                    source: 'browser-cache-storage',
+                                };
+                            }
+                        }
+                    } catch (_err) {
+                        // Ignore CacheStorage read restrictions
+                    }
+                }
+
+                return null;
+            }
+
+            function resolveImageWithTanStack(img, container) {
+                suppressShadowsBeforeAnimation(container, img);
+
+                const rawSrc = img.dataset.originalSrc || img.getAttribute('src') || '';
+                if (!rawSrc) {
+                    markError(container, img);
+                    return;
+                }
+
+                const normalizedUrl = normalizeImageUrl(rawSrc);
+                img.dataset.originalSrc = normalizedUrl;
+
+                // If native browser already finished loading before module initialized, reveal and seed TanStack cache
+                if (img.complete && img.naturalWidth > 0) {
+                    const existingData = queryClient.getQueryData(['salon-image-asset', normalizedUrl]);
+                    markLoaded(container, img, existingData ? existingData.source : 'browser-native');
+                    window.salonImageCache.prefetchImage(normalizedUrl);
+                    return;
+                }
+
+                container.setAttribute('data-img-state', 'loading');
+
+                // Bind native load/error listeners first so we never duplicate or abort an in-flight native download
+                const onNativeLoad = () => {
+                    img.removeEventListener('load', onNativeLoad);
+                    img.removeEventListener('error', onNativeError);
+                    const cachedState = queryClient.getQueryData(['salon-image-asset', normalizedUrl]);
+                    markLoaded(container, img, cachedState ? cachedState.source : 'network');
+                    // Store loaded image into TanStack Query + Browser CacheStorage for future visits
+                    window.salonImageCache.prefetchImage(normalizedUrl);
+                };
+
+                const onNativeError = () => {
+                    img.removeEventListener('load', onNativeLoad);
+                    img.removeEventListener('error', onNativeError);
+                    // On native error, let TanStack Query attempt its retry logic
+                    const observer = new QueryObserver(queryClient, getImageQueryOptions(normalizedUrl));
+                    const unsubscribe = observer.subscribe((result) => {
+                        if (result.status === 'success' && result.data?.objectUrl) {
+                            unsubscribe();
+                            img.addEventListener('load', () => markLoaded(container, img, result.data.source || 'tanstack-retry'), { once: true });
+                            img.addEventListener('error', () => markError(container, img), { once: true });
+                            img.src = result.data.objectUrl;
+                        } else if (result.status === 'error') {
+                            unsubscribe();
+                            markError(container, img);
+                        }
+                    });
+                };
+
+                img.addEventListener('load', onNativeLoad);
+                img.addEventListener('error', onNativeError);
+
+                // Check if TanStack memory or Browser CacheStorage already has this image; if so, serve from cache immediately
+                tryGetCachedObjectUrl(normalizedUrl).then((cached) => {
+                    if (!cached || !cached.objectUrl) {
+                        return;
+                    }
+                    if (container.getAttribute('data-img-state') === 'loaded') {
+                        img.dataset.cacheSource = cached.source;
+                        return;
+                    }
+                    if (img.complete && img.naturalWidth > 0) {
+                        img.removeEventListener('load', onNativeLoad);
+                        img.removeEventListener('error', onNativeError);
+                        markLoaded(container, img, cached.source);
+                        return;
+                    }
+                    if (img.src !== cached.objectUrl) {
+                        img.src = cached.objectUrl;
+                    }
+                });
+            }
+
+            function createOverlayElements(img) {
+                const overlay = document.createElement('div');
+                overlay.className = 'img-skeleton-overlay';
+                overlay.setAttribute('aria-hidden', 'true');
+
+                const fallback = document.createElement('div');
+                fallback.className = 'img-skeleton-fallback';
+                fallback.setAttribute('role', 'img');
+                fallback.setAttribute('aria-label', img.getAttribute('alt') || 'Image unavailable');
+                fallback.innerHTML = '<i class="ti ti-photo-off img-skeleton-fallback-icon" aria-hidden="true"></i>';
+
+                return { overlay, fallback };
+            }
+
+            function enhanceImage(img) {
+                if (!img || img.dataset.skeletonEnhanced === 'true' || img.hasAttribute('data-no-skeleton')) {
+                    return;
+                }
+
+                // For decorative background overlays (e.g. aria-hidden low-opacity page background), still cache via TanStack without wrapping in skeleton
+                if (img.getAttribute('aria-hidden') === 'true') {
+                    img.dataset.skeletonEnhanced = 'true';
+                    const rawBgSrc = img.getAttribute('src');
+                    if (rawBgSrc) {
+                        window.salonImageCache.fetchImage(rawBgSrc).then((data) => {
+                            if (data?.objectUrl && img.src !== data.objectUrl) {
+                                img.src = data.objectUrl;
+                            }
+                        }).catch(() => {});
+                    }
+                    return;
+                }
+
+                img.dataset.skeletonEnhanced = 'true';
+                img.classList.add('img-skeleton-target');
+
+                const existingWrapper = img.closest('.img-skeleton-wrapper');
+                if (existingWrapper) {
+                    resolveImageWithTanStack(img, existingWrapper);
+                    return;
+                }
+
+                const parent = img.parentElement;
+                if (!parent) {
+                    return;
+                }
+
+                const computedStyle = window.getComputedStyle(img);
+                const isAbsolute = img.classList.contains('absolute') || computedStyle.position === 'absolute';
+
+                // Case A: Image is absolutely positioned inside a relative container (e.g. Hero or Studio split card)
+                if (isAbsolute) {
+                    parent.classList.add('img-skeleton-host');
+                    parent.setAttribute('data-img-state', 'not-loaded');
+                    const { overlay, fallback } = createOverlayElements(img);
+                    parent.insertBefore(overlay, img);
+                    parent.insertBefore(fallback, img);
+                    resolveImageWithTanStack(img, parent);
+                    return;
+                }
+
+                // Case B: Standard/grid/flex image - wrap in .img-skeleton-wrapper preserving exact container dimensions
+                const wrapper = document.createElement('div');
+                wrapper.className = 'img-skeleton-wrapper';
+                wrapper.setAttribute('data-img-state', 'not-loaded');
+
+                const classesToCopy = [];
+                img.classList.forEach((cls) => {
+                    if (shouldMoveClassToWrapper(cls)) {
+                        classesToCopy.push(cls);
+                    }
+                });
+
+                classesToCopy.forEach((cls) => wrapper.classList.add(cls));
+
+                if (img.classList.contains('h-auto')) {
+                    wrapper.classList.add('img-skeleton-fluid-height');
+                }
+
+                // Ensure the inner <img> fills the wrapper cleanly
+                if (!img.classList.contains('w-full') && !img.classList.contains('w-auto')) {
+                    img.classList.add('w-full');
+                }
+                if (!img.classList.contains('h-full') && !img.classList.contains('h-auto')) {
+                    img.classList.add('h-full');
+                }
+
+                if (computedStyle.borderRadius && computedStyle.borderRadius !== '0px') {
+                    wrapper.style.borderRadius = computedStyle.borderRadius;
+                }
+
+                const { overlay, fallback } = createOverlayElements(img);
+                parent.insertBefore(wrapper, img);
+                wrapper.appendChild(overlay);
+                wrapper.appendChild(fallback);
+                wrapper.appendChild(img);
+
+                resolveImageWithTanStack(img, wrapper);
+            }
+
+            function initAllImages(root = document) {
+                root.querySelectorAll('img').forEach(enhanceImage);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => initAllImages());
+            } else {
+                initAllImages();
+            }
+
+            document.addEventListener('turbo:load', () => initAllImages());
+
+            // Warm up shared high-visibility salon assets during browser idle time
+            const warmSharedAssets = () => {
+                window.salonImageCache.prefetchImages([
+                    '{{ asset('images/logo.webp') }}',
+                    '{{ asset('images/hero.webp') }}',
+                    '{{ asset('images/Studio.webp') }}'
+                ]);
+            };
+
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(warmSharedAssets, { timeout: 2500 });
+            } else {
+                setTimeout(warmSharedAssets, 1200);
+            }
+
+            if ('MutationObserver' in window) {
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType !== 1) return;
+                            if (node.tagName === 'IMG') {
+                                enhanceImage(node);
+                            } else if (node.querySelectorAll) {
+                                initAllImages(node);
+                            }
+                        });
+                    });
+                });
+
+                if (document.body) {
+                    observer.observe(document.body, { childList: true, subtree: true });
+                } else {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        if (document.body) {
+                            observer.observe(document.body, { childList: true, subtree: true });
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
+{% endif %}
+

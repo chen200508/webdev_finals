@@ -23,12 +23,36 @@ class HomeControllerTest extends WebTestCase
             $this->assertResponseIsSuccessful();
             $content = (string) $client->getResponse()->getContent();
             $this->assertStringContainsString($expectedText, $content);
-            $this->assertStringNotContainsString('Get Started', $content);
+            $this->assertStringContainsString('Get Started', $content);
             $this->assertStringContainsString('Marcellus', $content);
             $this->assertStringContainsString('Raleway', $content);
             $this->assertStringNotContainsString('Roboto', $content);
             $this->assertStringContainsString('reveal-on-scroll', $content);
+            $this->assertStringContainsString('img-skeleton-wrapper', $content);
+            $this->assertStringContainsString('salonImageQueryClient', $content);
+            $this->assertStringContainsString('shai-salon-image-assets-v1', $content);
         }
+    }
+
+    public function testAuthPagesLoadWithSplitCardAndSkeletonCache(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/login');
+        $this->assertResponseIsSuccessful();
+        $loginContent = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Please sign in', $loginContent);
+        $this->assertStringContainsString('/assets/images/Studio-', $loginContent);
+        $this->assertStringContainsString('/assets/images/hero-', $loginContent);
+        $this->assertStringContainsString('salonImageQueryClient', $loginContent);
+
+        $client->request('GET', '/register');
+        $this->assertResponseIsSuccessful();
+        $registerContent = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Create Account', $registerContent);
+        $this->assertStringContainsString('/assets/images/Studio-', $registerContent);
+        $this->assertStringContainsString('/assets/images/hero-', $registerContent);
+        $this->assertStringContainsString('salonImageQueryClient', $registerContent);
     }
 
     public function testSlotsApiReturnsAvailableSlots(): void

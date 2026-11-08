@@ -58,13 +58,24 @@
 
                 <div>
                     {{ form_label(registrationForm.plainPassword, 'Password', {'label_attr': {'class': 'block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5'}}) }}
-                    {{ form_widget(registrationForm.plainPassword, {
-                        'attr': {
-                            'class': 'w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C68E00] focus:ring-2 focus:ring-[#C68E00]/20 outline-none text-sm text-gray-800',
-                            'placeholder': '••••••••',
-                            'autocomplete': 'new-password'
-                        }
-                    }) }}
+                    <div class="relative">
+                        {{ form_widget(registrationForm.plainPassword, {
+                            'id': 'registerPassword',
+                            'attr': {
+                                'class': 'w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C68E00] focus:ring-2 focus:ring-[#C68E00]/20 outline-none text-sm text-gray-800 pr-14',
+                                'placeholder': '••••••••',
+                                'autocomplete': 'new-password'
+                            }
+                        }) }}
+                        <button
+                            type="button"
+                            data-password-toggle="registerPassword"
+                            aria-label="Show password"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C68E00] hover:text-black"
+                        >
+                            Show
+                        </button>
+                    </div>
                     <div class="text-rose-600 text-xs mt-1">{{ form_errors(registrationForm.plainPassword) }}</div>
                 </div>
 

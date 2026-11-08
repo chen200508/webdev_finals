@@ -167,10 +167,20 @@ class SalonService
         return [
             [
                 'author' => 'Happy client',
+                'role' => 'Regular Salon Guest',
+                'image' => 'images/demor_.webp',
                 'content' => 'Visiting S Beauty Salon is always a highlight of my month! The team truly understands how to bring out your natural beauty, and every treatment leaves me feeling refreshed, confident, and pampered.',
             ],
             [
+                'author' => 'Client transformation',
+                'role' => 'Bridal & Styling Guest',
+                'image' => 'images/Bfacejpg.webp',
+                'content' => 'From the consultation to the final reveal, my transformation was beyond anything I imagined! Their attention to detail, luxury products, and warm atmosphere made me feel truly radiant.',
+            ],
+            [
                 'author' => 'Grateful client',
+                'role' => 'Skincare & Glam Guest',
+                'image' => 'images/df.webp',
                 'content' => 'Absolute perfection every single time! The staff is so talented and welcoming, and I always leave S Beauty Salon feeling like the best, most radiant version of myself.',
             ],
         ];

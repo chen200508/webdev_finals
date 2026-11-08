@@ -15,7 +15,7 @@
 
         <!-- 2. Main Salon Hero Image -->
         <div class="w-full max-w-7xl mx-auto px-4 mb-16 reveal-on-scroll">
-            <div class="w-full h-[380px] md:h-[550px] overflow-hidden shadow-sm">
+            <div class="img-shadow-frame w-full h-[380px] md:h-[550px] overflow-hidden shadow-sm" data-img-shadow-ready="false">
                 <img src="{{ asset('images/7.webp') }}"
                      alt="S Beauty Salon Interior"
                      class="w-full h-full object-cover">
@@ -52,7 +52,7 @@
         <div class="max-w-5xl mx-auto px-4 mb-20 reveal-on-scroll">
             <div class="grid md:grid-cols-2 gap-10 items-center">
                 <!-- Left Portrait Image -->
-                <div class="rounded-xl overflow-hidden shadow-md h-[400px] md:h-[480px]">
+                <div class="img-shadow-frame rounded-xl overflow-hidden shadow-md h-[400px] md:h-[480px]" data-img-shadow-ready="false">
                     <img src="{{ asset('images/Studio.webp') }}"
                          loading="lazy" decoding="async"
                          alt="S Beauty Salon Model"
@@ -104,7 +104,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
                 {% for member in teamMembers %}
                     <div class="text-center group reveal-item">
-                        <div class="w-full h-80 sm:h-84 md:h-96 mx-auto overflow-hidden mb-3">
+                        <div class="img-shadow-frame w-full h-80 sm:h-84 md:h-96 mx-auto overflow-hidden mb-3 shadow-sm" data-img-shadow-ready="false">
                             <img src="{{ asset(member.image) }}"
                                  loading="lazy" decoding="async"
                                  alt="{{ member.name }}"
@@ -131,9 +131,9 @@
         </div>
 
         <!-- 7. Promo Banner Section -->
-        <section class="relative w-full mb-16 reveal-on-scroll">
+        <section class="relative w-full min-h-[260px] md:min-h-[420px] overflow-hidden mb-16 reveal-on-scroll">
             <img src="{{ asset('images/cta.png') }}" loading="lazy" decoding="async" alt="Promo Banner" class="w-full h-auto object-cover block">
-            <div class="absolute inset-0 bg-black/45 flex items-center justify-center text-center p-8">
+            <div class="img-shadow-overlay absolute inset-0 bg-black/45 flex items-center justify-center text-center p-8" data-img-shadow-ready="false">
                 <div class="text-white max-w-2xl relative z-10">
                     <p class="text-3xl md:text-5xl font-serif tracking-wider font-light mb-2">
                         -25% Off
