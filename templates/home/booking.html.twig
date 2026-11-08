@@ -1,0 +1,396 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Truno Beauty Salon · Booking{% endblock %}
+
+{% block body %}
+<section id="booking_section" class="scroll-mt-16 section-reveal">
+    <div class="bg-[#FBF4DE] min-h-screen py-6 font-body">
+
+        <!-- Top Heading Title & Subtitle -->
+        <div class="text-center max-w-3xl mx-auto px-4 mb-8 reveal-on-scroll">
+            <h1 class="text-4xl md:text-5xl font-heading font-bold text-[#D49A26] tracking-wide mb-3">
+                Schedule Your Elegance Experience
+            </h1>
+            <p class="text-gray-600 text-xs md:text-sm leading-relaxed">
+                Complete your booking below. Choose your personalized treatment plan, select a preferred specialist, and find your perfect slot.
+            </p>
+            <div class="w-48 h-[2px] bg-[#D49A26]/40 mx-auto mt-4 relative">
+                <span class="absolute right-0 -top-1 w-2 h-2 rounded-full bg-[#D49A26]"></span>
+            </div>
+        </div>
+
+        <!-- Main Booking Layout Container -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 reveal-on-scroll">
+            <form id="bookingForm" method="POST" action="{{ path('app_booking') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('book_appointment') }}">
+                <input type="hidden" name="action" value="book_appointment">
+                <input type="hidden" id="input_idempotency_key" name="idempotency_key" value="">
+                <input type="hidden" id="input_service_id" name="service_id" value="1">
+                <input type="hidden" id="input_staff_id" name="staff_id" value="1">
+                <input type="hidden" id="input_appointment_date" name="appointment_date" value="2026-10-14">
+                <input type="hidden" id="input_start_time" name="start_time" value="10:30:00">
+
+                <div class="grid lg:grid-cols-12 gap-8 items-start">
+
+                    <!-- LEFT COLUMN: Step 1 & Step 2 -->
+                    <div class="lg:col-span-7 space-y-8">
+
+                        <!-- STEP 1: Select Your Service -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl md:text-2xl font-heading font-bold text-gray-900">
+                                    1. Select Your Service
+                                </h2>
+                                <span class="text-xs font-semibold text-[#D49A26]">Choose One</span>
+                            </div>
+
+                            <div class="space-y-4">
+                                {% for svc in featuredServices %}
+                                    {% set isSelected = loop.first %}
+                                    <div class="service-card {{ isSelected ? 'border-2 border-[#D49A26]' : 'border border-[#D49A26]/40 hover:border-[#D49A26]' }} bg-white rounded-2xl p-4 flex gap-4 shadow-sm relative cursor-pointer transition-all hover:shadow-md" data-service-id="{{ svc.id }}">
+                                        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0">
+                                            <img src="{{ asset(svc.image) }}" alt="{{ svc.name }}" class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="flex-grow flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex justify-between items-start">
+                                                    <h3 class="font-heading font-bold text-gray-900 text-base md:text-lg">{{ svc.name }}</h3>
+                                                    <span class="font-heading font-bold text-[#D49A26] text-base md:text-lg">₱{{ svc.price|number_format }}</span>
+                                                </div>
+                                                <p class="text-xs text-gray-500 leading-relaxed mt-1">
+                                                    {{ svc.description }}
+                                                </p>
+                                            </div>
+                                            <div class="text-xs text-gray-400 font-medium flex items-center gap-1 mt-2">
+                                                <i class="ti ti-clock text-[#D49A26]"></i> {{ svc.duration_minutes }} mins
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- STEP 2: Choose Specialist -->
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-heading font-bold text-gray-900 mb-4">
+                                2. Choose Specialist
+                            </h2>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {% for spec in specialists %}
+                                    {% set isSelected = loop.first %}
+                                    <div class="specialist-card {{ isSelected ? 'border-2 border-[#D49A26]' : 'border border-gray-200 hover:border-[#D49A26]' }} bg-white rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all shadow-sm" data-staff-id="{{ spec.id }}">
+                                        <div class="flex items-center gap-2.5">
+                                            <img src="{{ asset(spec.image) }}" alt="{{ spec.name }}" class="w-10 h-10 rounded-full object-cover border {{ isSelected ? 'border-[#D49A26]' : 'border-gray-200' }}">
+                                            <div>
+                                                <h4 class="font-heading font-bold text-xs md:text-sm text-gray-900 leading-tight">{{ spec.name }}</h4>
+                                                <p class="text-[10px] text-gray-500">{{ spec.title }}</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[11px] font-semibold text-gray-700 flex items-center gap-0.5"><i class="ti ti-star-filled text-amber-400 text-xs"></i> {{ spec.rating }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN: Step 3 & Step 4 (Card Container) -->
+                    <div class="lg:col-span-5">
+                        <div class="bg-white border-2 border-[#D49A26] rounded-3xl p-6 shadow-md space-y-6">
+
+                            <!-- STEP 3: Date & Time -->
+                            <div>
+                                <h2 class="text-xl font-heading font-bold text-gray-900 mb-3">
+                                    3. Date &amp; Time
+                                </h2>
+
+                                <!-- Month Picker Header -->
+                                <div class="flex items-center justify-between text-sm font-semibold text-[#D49A26] mb-3">
+                                    <span>October 2026</span>
+                                    <div class="flex items-center space-x-2 text-gray-400">
+                                        <button type="button" class="hover:text-[#D49A26]"><i class="ti ti-chevron-left"></i></button>
+                                        <button type="button" class="hover:text-[#D49A26]"><i class="ti ti-chevron-right"></i></button>
+                                    </div>
+                                </div>
+
+                                <!-- Dates Row (7 Days) -->
+                                <div class="grid grid-cols-7 gap-1.5 text-center mb-5">
+                                    <div class="date-pill p-2 rounded-xl border border-gray-200 cursor-pointer text-xs" data-date="2026-10-12">
+                                        <div class="text-[10px] text-gray-400">Mon</div>
+                                        <div class="font-bold text-gray-800">12</div>
+                                    </div>
+                                    <div class="date-pill p-2 rounded-xl border border-gray-200 cursor-pointer text-xs" data-date="2026-10-13">
+                                        <div class="text-[10px] text-gray-400">Tue</div>
+                                        <div class="font-bold text-gray-800">13</div>
+                                    </div>
+                                    <div class="date-pill p-2 rounded-xl bg-[#C68E00] text-white font-bold cursor-pointer text-xs shadow-sm" data-date="2026-10-14">
+                                        <div class="text-[10px] text-white/80">Wed</div>
+                                        <div class="font-bold">14</div>
+                                    </div>
+                                    <div class="date-pill p-2 rounded-xl border border-gray-200 cursor-pointer text-xs" data-date="2026-10-15">
+                                        <div class="text-[10px] text-gray-400">Thu</div>
+                                        <div class="font-bold text-gray-800">15</div>
+                                    </div>
+                                    <div class="date-pill p-2 rounded-xl border border-gray-200 cursor-pointer text-xs" data-date="2026-10-16">
+                                        <div class="text-[10px] text-gray-400">Fri</div>
+                                        <div class="font-bold text-gray-800">16</div>
+                                    </div>
+                                    <div class="date-pill p-2 rounded-xl border border-gray-200 cursor-pointer text-xs" data-date="2026-10-17">
+                                        <div class="text-[10px] text-gray-400">Sat</div>
+                                        <div class="font-bold text-gray-800">17</div>
+                                    </div>
+                                    <div class="date-pill p-2 rounded-xl border border-gray-200 cursor-pointer text-xs" data-date="2026-10-18">
+                                        <div class="text-[10px] text-gray-400">Sun</div>
+                                        <div class="font-bold text-gray-800">18</div>
+                                    </div>
+                                </div>
+
+                                <!-- Sessions Header -->
+                                <p class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2">
+                                    Available Sessions
+                                </p>
+
+                                <!-- Time Slots Grid -->
+                                <div class="grid grid-cols-3 gap-2" id="timeSlotsContainer">
+                                    {% for slot in initialSlots %}
+                                        {% set isOccupied = not slot.available %}
+                                        {% set isDefaultSelected = slot.time == '10:30:00' and not isOccupied %}
+                                        <button type="button"
+                                                class="time-slot px-2 py-2 text-xs font-semibold rounded-lg transition-all {{ isOccupied ? 'bg-gray-100 text-gray-400 line-through opacity-50 cursor-not-allowed pointer-events-none' : (isDefaultSelected ? 'bg-[#C68E00] text-white shadow-sm' : 'border border-gray-200 text-gray-700 hover:border-[#D49A26]') }}"
+                                                data-time="{{ slot.time }}"
+                                                {{ isOccupied ? 'disabled' : '' }}>
+                                            {{ slot.formatted }}
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- STEP 4: Contact Details -->
+                            <div class="border-t border-gray-100 pt-5">
+                                <h2 class="text-xl font-heading font-bold text-gray-900 mb-4">
+                                    4. Contact Details
+                                </h2>
+
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Full Name</label>
+                                        <input type="text" name="full_name" placeholder="e.g. Shaina Truno" required
+                                               pattern="[A-Za-z\s]+" title="Please enter only letters and spaces."
+                                               oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')"
+                                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-[#D49A26] focus:ring-2 focus:ring-[#D49A26]/20 outline-none text-xs text-gray-800">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Email Address</label>
+                                        <input type="email" name="email" placeholder="e.g. shaina@example.com" required
+                                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-[#D49A26] focus:ring-2 focus:ring-[#D49A26]/20 outline-none text-xs text-gray-800">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Phone Number</label>
+                                        <input type="tel" name="phone" placeholder="e.g. +63 912 345 6789" required
+                                               pattern="[\+]?[0-9\s\-]+" title="Please enter a valid phone number (digits, spaces, hyphens, and + allowed)."
+                                               oninput="this.value = this.value.replace(/[^0-9+\s-]/g, '')"
+                                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-[#D49A26] focus:ring-2 focus:ring-[#D49A26]/20 outline-none text-xs text-gray-800">
+                                    </div>
+
+                                    <button type="submit" id="submitBtn"
+                                            class="w-full bg-[#C68E00] hover:bg-[#b07e00] text-white font-heading font-semibold py-3.5 px-6 rounded-full transition-colors text-sm shadow-md flex items-center justify-center gap-2 mt-4">
+                                        <span>Confirm &amp; Reserve Session</span>
+                                        <i class="ti ti-arrow-right text-base"></i>
+                                    </button>
+
+                                    <p class="text-[10px] text-gray-400 text-center mt-2">
+                                        Free cancellation up to 24 hours before event
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const bookedSlotsSet = new Set();
+
+    function generateIdemKey() {
+        return 'idem_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    }
+
+    const idemInput = document.getElementById('input_idempotency_key');
+    if (idemInput) {
+        idemInput.value = generateIdemKey();
+    }
+
+    const bookingForm = document.getElementById('bookingForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const inputService = document.getElementById('input_service_id');
+    const inputStaff = document.getElementById('input_staff_id');
+    const inputDate = document.getElementById('input_appointment_date');
+    const inputTime = document.getElementById('input_start_time');
+
+    let isSubmitting = false;
+
+    function fetchAvailability() {
+        const staffId = inputStaff ? inputStaff.value : 1;
+        const date = inputDate ? inputDate.value : '2026-10-14';
+        const serviceId = inputService ? inputService.value : 1;
+
+        fetch(`{{ path('app_api_slots') }}?staff_id=${encodeURIComponent(staffId)}&date=${encodeURIComponent(date)}&service_id=${encodeURIComponent(serviceId)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.slots) {
+                    updateSlotButtons(data.slots);
+                }
+            })
+            .catch(err => console.error('Error fetching live availability:', err));
+    }
+
+    function updateSlotButtons(slots) {
+        const timeSlotsContainer = document.getElementById('timeSlotsContainer');
+        if (!timeSlotsContainer) return;
+
+        timeSlotsContainer.innerHTML = '';
+        let firstAvailableTime = null;
+
+        slots.forEach(slot => {
+            const isOccupied = !slot.available;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.dataset.time = slot.time;
+
+            if (isOccupied) {
+                btn.className = 'time-slot px-2 py-2 text-xs font-semibold rounded-lg bg-gray-100 text-gray-400 line-through opacity-50 cursor-not-allowed pointer-events-none';
+                btn.disabled = true;
+                btn.title = 'Session already booked for this date';
+            } else {
+                if (!firstAvailableTime) firstAvailableTime = slot.time;
+                const isSelected = (inputTime && inputTime.value === slot.time);
+                btn.className = `time-slot px-2 py-2 text-xs font-semibold rounded-lg transition-all ${
+                    isSelected ? 'bg-[#C68E00] text-white shadow-sm' : 'border border-gray-200 text-gray-700 hover:border-[#D49A26]'
+                }`;
+            }
+
+            btn.textContent = slot.formatted;
+
+            btn.addEventListener('click', () => {
+                if (btn.disabled || btn.classList.contains('pointer-events-none')) return;
+
+                document.querySelectorAll('#timeSlotsContainer .time-slot').forEach(s => {
+                    if (!s.disabled) {
+                        s.className = 'time-slot px-2 py-2 text-xs font-semibold rounded-lg border border-gray-200 text-gray-700 hover:border-[#D49A26]';
+                    }
+                });
+                btn.className = 'time-slot px-2 py-2 text-xs font-semibold rounded-lg bg-[#C68E00] text-white shadow-sm';
+                if (inputTime) inputTime.value = slot.time;
+            });
+
+            timeSlotsContainer.appendChild(btn);
+        });
+
+        const currentlySelectedBtn = timeSlotsContainer.querySelector(`.time-slot[data-time="${inputTime.value}"]:not([disabled])`);
+        if (!currentlySelectedBtn && firstAvailableTime) {
+            inputTime.value = firstAvailableTime;
+            const newSel = timeSlotsContainer.querySelector(`.time-slot[data-time="${firstAvailableTime}"]`);
+            if (newSel) {
+                newSel.className = 'time-slot px-2 py-2 text-xs font-semibold rounded-lg bg-[#C68E00] text-white shadow-sm';
+            }
+        }
+
+        if (submitBtn) {
+            if (!firstAvailableTime) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else if (!isSubmitting) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    }
+
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', (e) => {
+            const currentKey = `${inputStaff.value}_${inputDate.value}_${inputTime.value}_${inputService.value}`;
+
+            if (bookedSlotsSet.has(currentKey)) {
+                e.preventDefault();
+                if (window.showToast) {
+                    window.showToast("You have already reserved this exact slot. Please select another time or date.", "error", 2000);
+                }
+                return false;
+            }
+
+            if (isSubmitting) {
+                e.preventDefault();
+                if (window.showToast) {
+                    window.showToast("Booking request is processing. Please wait...", "error", 2000);
+                }
+                return false;
+            }
+
+            isSubmitting = true;
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            }
+
+            bookedSlotsSet.add(currentKey);
+        });
+    }
+
+    const serviceCards = document.querySelectorAll('.service-card');
+    serviceCards.forEach(card => {
+        card.addEventListener('click', () => {
+            serviceCards.forEach(c => {
+                c.classList.remove('border-2', 'border-[#D49A26]');
+                c.classList.add('border', 'border-[#D49A26]/40');
+            });
+            card.classList.remove('border', 'border-[#D49A26]/40');
+            card.classList.add('border-2', 'border-[#D49A26]');
+            if (inputService) inputService.value = card.dataset.serviceId;
+            fetchAvailability();
+        });
+    });
+
+    const specialistCards = document.querySelectorAll('.specialist-card');
+    specialistCards.forEach(card => {
+        card.addEventListener('click', () => {
+            specialistCards.forEach(c => {
+                c.classList.remove('border-2', 'border-[#D49A26]');
+                c.classList.add('border', 'border-gray-200');
+            });
+            card.classList.remove('border', 'border-gray-200');
+            card.classList.add('border-2', 'border-[#D49A26]');
+            if (inputStaff) inputStaff.value = card.dataset.staffId;
+            fetchAvailability();
+        });
+    });
+
+    const datePills = document.querySelectorAll('.date-pill');
+    datePills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            datePills.forEach(p => {
+                p.className = 'date-pill p-2 rounded-xl border border-gray-200 cursor-pointer text-xs';
+                const sub = p.querySelector('div:first-child');
+                if (sub) sub.className = 'text-[10px] text-gray-400';
+            });
+            pill.className = 'date-pill p-2 rounded-xl bg-[#C68E00] text-white font-bold cursor-pointer text-xs shadow-sm';
+            const sub = pill.querySelector('div:first-child');
+            if (sub) sub.className = 'text-[10px] text-white/80';
+            if (inputDate) inputDate.value = pill.dataset.date;
+            fetchAvailability();
+        });
+    });
+
+    fetchAvailability();
+});
+</script>
+{% endblock %}
+

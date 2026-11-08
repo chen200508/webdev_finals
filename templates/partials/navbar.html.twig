@@ -1,0 +1,39 @@
+{% set currentRoute = app.request.attributes.get('_route') %}
+{% set isHomeActive = currentRoute in ['app_root', 'app_home'] %}
+{% set isServicesActive = currentRoute == 'app_services' %}
+{% set isAboutActive = currentRoute == 'app_about' %}
+{% set isContactActive = currentRoute == 'app_contact' %}
+{% set isBookingActive = currentRoute == 'app_booking' %}
+
+<!-- Header Navigation -->
+<header class="sticky top-0 bg-[#FBF4DE]/95 backdrop-blur-md z-50 border-b border-[#C68E00]/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between relative">
+        <!-- Brand Logo -->
+        <a href="{{ path('app_home') }}" class="flex items-center gap-3 group">
+            <img src="{{ asset('images/secondary.webp') }}" alt="S Beauty Salon Logo" class="h-16 md:h-20 w-[180px] md:w-[220px] object-cover object-center">
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden md:flex items-center space-x-6 font-heading text-sm font-semibold absolute left-1/2 -translate-x-1/2">
+            <a href="{{ path('app_home') }}" id="nav_home" class="nav-link {{ isHomeActive ? 'text-[#C68E00] border-b-2 border-[#C68E00]' : 'text-gray-700 hover:text-[#C68E00]' }} pb-1 transition-colors">Home</a>
+            <a href="{{ path('app_services') }}" id="nav_services" class="nav-link {{ isServicesActive ? 'text-[#C68E00] border-b-2 border-[#C68E00]' : 'text-gray-700 hover:text-[#C68E00]' }} pb-1 transition-colors">Services</a>
+            <a href="{{ path('app_about') }}" id="nav_about" class="nav-link {{ isAboutActive ? 'text-[#C68E00] border-b-2 border-[#C68E00]' : 'text-gray-700 hover:text-[#C68E00]' }} pb-1 transition-colors">About Us</a>
+            <a href="{{ path('app_contact') }}" id="nav_contact" class="nav-link {{ isContactActive ? 'text-[#C68E00] border-b-2 border-[#C68E00]' : 'text-gray-700 hover:text-[#C68E00]' }} pb-1 transition-colors">Contact Us</a>
+            <a href="{{ path('app_booking') }}" id="nav_booking" class="nav-link {{ isBookingActive ? 'text-[#C68E00] border-b-2 border-[#C68E00]' : 'text-gray-700 hover:text-[#C68E00]' }} pb-1 transition-colors">Booking</a>
+        </nav>
+
+        <!-- Mobile Hamburger Button -->
+        <button id="mobileMenuBtn" type="button" aria-label="Toggle navigation menu" class="md:hidden text-gray-800 hover:text-[#C68E00] focus:outline-none p-2 rounded-lg transition-colors">
+            <i id="menuIcon" class="ti ti-menu-2 text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Navigation Menu Dropdown -->
+    <div id="mobileMenu" class="hidden md:hidden bg-[#FBF4DE] border-b border-[#C68E00]/20 px-4 pt-2 pb-6 space-y-2 font-heading text-base font-semibold shadow-lg">
+        <a href="{{ path('app_home') }}" id="mob_nav_home" class="mob-nav-link block py-2.5 px-4 rounded-lg transition-colors {{ isHomeActive ? 'text-[#C68E00] bg-amber-100/60' : 'text-gray-700 hover:text-[#C68E00] hover:bg-amber-50/50' }}">Home</a>
+        <a href="{{ path('app_services') }}" id="mob_nav_services" class="mob-nav-link block py-2.5 px-4 rounded-lg transition-colors {{ isServicesActive ? 'text-[#C68E00] bg-amber-100/60' : 'text-gray-700 hover:text-[#C68E00] hover:bg-amber-50/50' }}">Services</a>
+        <a href="{{ path('app_about') }}" id="mob_nav_about" class="mob-nav-link block py-2.5 px-4 rounded-lg transition-colors {{ isAboutActive ? 'text-[#C68E00] bg-amber-100/60' : 'text-gray-700 hover:text-[#C68E00] hover:bg-amber-50/50' }}">About Us</a>
+        <a href="{{ path('app_contact') }}" id="mob_nav_contact" class="mob-nav-link block py-2.5 px-4 rounded-lg transition-colors {{ isContactActive ? 'text-[#C68E00] bg-amber-100/60' : 'text-gray-700 hover:text-[#C68E00] hover:bg-amber-50/50' }}">Contact Us</a>
+        <a href="{{ path('app_booking') }}" id="mob_nav_booking" class="mob-nav-link block py-2.5 px-4 rounded-lg transition-colors {{ isBookingActive ? 'text-[#C68E00] bg-amber-100/60' : 'text-gray-700 hover:text-[#C68E00] hover:bg-amber-50/50' }}">Booking</a>
+    </div>
+</header>

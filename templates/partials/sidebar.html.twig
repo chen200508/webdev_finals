@@ -1,0 +1,21 @@
+{% set route = app.request.attributes.get('_route') %}
+
+{% macro item(url, icon, label, active) %}
+    <a href="{{ url }}"
+       class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-heading font-semibold transition-colors
+              {{ active ? 'bg-[#C68E00] text-white shadow' : 'text-gray-700 hover:bg-[#FBF4DE]' }}">
+        <i class="ti {{ icon }} text-lg"></i>{{ label }}
+    </a>
+{% endmacro %}
+
+<aside id="sidebar"
+       class="fixed md:sticky top-16 left-0 z-30 h-[calc(100vh-4rem)] w-64 bg-white border-r border-[#C68E00]/20
+              p-4 space-y-1 overflow-y-auto -translate-x-full md:translate-x-0 transition-transform">
+    <p class="px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">Menu</p>
+    {{ _self.item(path('app_dashboard'),       'ti-layout-dashboard', 'Overview',      route == 'app_dashboard') }}
+    {{ _self.item(path('admin_appointments'),  'ti-calendar-event',   'Appointments',  route == 'admin_appointments') }}
+    {{ _self.item(path('admin_services'),      'ti-sparkles',         'Services',      route == 'admin_services') }}
+    {{ _self.item(path('admin_customers'),     'ti-users',            'Customers',     route == 'admin_customers') }}
+    {{ _self.item(path('admin_users'),         'ti-user-shield',      'Users',         route == 'admin_users') }}
+    {{ _self.item(path('admin_activity_logs'), 'ti-activity',         'Activity Logs', route == 'admin_activity_logs') }}
+</aside>

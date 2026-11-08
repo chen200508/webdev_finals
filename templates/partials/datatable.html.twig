@@ -1,0 +1,276 @@
+{#
+  Centralized DataTable Component (`partials/datatable.html.twig`)
+  
+  Included once per dashboard page. Automatically initializes DataTables (v3.1.5)
+  on any table with `data-datatable` attribute, providing:
+  - Pagination (page size selector + page navigation)
+  - Global search input
+  - Optional column dropdown filters via `data-filter-columns='[{"index": 1, "label": "Category"}]'`
+  - Non-sortable/non-searchable action columns via `data-orderable="false"` on `<th>`
+#}
+<link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-3.1.5/datatables.min.css">
+<style>
+    /* Centralized Salon Theme Overrides for DataTables */
+    .dt-salon-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--table-row-border, #f3f4f6);
+        font-family: "Segoe UI", sans-serif;
+    }
+    .dt-salon-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+    }
+    .dt-salon-filter-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--main-muted, #4b5563);
+    }
+    .dt-salon-filter-select {
+        padding: 6px 12px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 10px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 13px;
+        font-family: "Segoe UI", sans-serif;
+        min-width: 150px;
+        cursor: pointer;
+    }
+    .dt-salon-filter-select:focus {
+        outline: none;
+        border-color: #C68E00;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    }
+    .dt-salon-reset-btn {
+        background: transparent;
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.4);
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: "Segoe UI", sans-serif;
+        transition: all 0.15s;
+    }
+    .dt-salon-reset-btn:hover {
+        background: #C68E00;
+        color: #fff;
+    }
+    .dt-container {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 14px;
+        color: var(--main-text, #1f2937);
+    }
+    .dt-container .dt-length,
+    .dt-container .dt-search,
+    .dt-container .dt-info,
+    .dt-container .dt-paging {
+        padding: 6px 0;
+        font-size: 13px;
+        color: var(--main-muted, #4b5563);
+    }
+    .dt-container .dt-search input,
+    .dt-container .dt-length select {
+        border: 1px solid var(--input-border, #d1d5db) !important;
+        border-radius: 10px !important;
+        padding: 6px 10px !important;
+        background: var(--input-bg, #fff) !important;
+        color: var(--input-text, #1f2937) !important;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 13px;
+        margin-left: 6px;
+    }
+    .dt-container .dt-length select {
+        margin-left: 0;
+        margin-right: 6px;
+    }
+    .dt-container .dt-search input:focus,
+    .dt-container .dt-length select:focus {
+        outline: none !important;
+        border-color: #C68E00 !important;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15) !important;
+    }
+    .dt-container .dt-paging .dt-paging-button {
+        border-radius: 8px !important;
+        padding: 4px 10px !important;
+        margin: 0 2px !important;
+        font-weight: 600;
+        border: 1px solid transparent !important;
+        color: var(--main-muted, #374151) !important;
+        background: transparent !important;
+    }
+    .dt-container .dt-paging .dt-paging-button.current,
+    .dt-container .dt-paging .dt-paging-button.current:hover {
+        background: #C68E00 !important;
+        color: #fff !important;
+        border-color: #C68E00 !important;
+    }
+    .dt-container .dt-paging .dt-paging-button:hover:not(.current):not(.disabled) {
+        background: rgba(198, 142, 0, 0.12) !important;
+        color: var(--main-text, #1c140c) !important;
+        border-color: rgba(198, 142, 0, 0.3) !important;
+    }
+    .dt-container table.dataTable thead th,
+    .dt-container table.dataTable thead td {
+        border-bottom: 1px solid var(--table-border, #e5e7eb) !important;
+        color: var(--main-sub, #6b7280);
+        font-weight: 600;
+    }
+    .dt-container table.dataTable tbody td {
+        border-top: 1px solid var(--table-row-border, #f3f4f6) !important;
+    }
+    .dt-container table.dataTable.no-footer {
+        border-bottom: 1px solid var(--table-border, #e5e7eb) !important;
+    }
+</style>
+
+<script src="https://cdn.datatables.net/v/dt/dt-3.1.5/datatables.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof DataTable === 'undefined') {
+            return;
+        }
+
+        document.querySelectorAll('table[data-datatable]').forEach((tableEl) => {
+            if (tableEl.dataset.dtInitialized === 'true') {
+                return;
+            }
+            tableEl.dataset.dtInitialized = 'true';
+
+            const pageLength = parseInt(tableEl.dataset.pageLength || '10', 10);
+            const emptyText = tableEl.dataset.emptyText || 'No records found.';
+            const searchPlaceholder = tableEl.dataset.searchPlaceholder || 'Search records...';
+
+            // Detect non-orderable columns from <th data-orderable="false">
+            const columnDefs = [];
+            tableEl.querySelectorAll('thead th').forEach((th, idx) => {
+                if (th.dataset.orderable === 'false') {
+                    columnDefs.push({ targets: idx, orderable: false, searchable: false });
+                }
+            });
+
+            const dt = new DataTable(tableEl, {
+                pageLength: pageLength,
+                lengthMenu: [5, 10, 25, 50, 100],
+                ordering: true,
+                searching: true,
+                paging: true,
+                info: true,
+                columnDefs: columnDefs,
+                language: {
+                    search: 'Search:',
+                    searchPlaceholder: searchPlaceholder,
+                    lengthMenu: 'Show _MENU_ entries',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
+                    infoEmpty: 'Showing 0 to 0 of 0 entries',
+                    emptyTable: emptyText,
+                    zeroRecords: 'No matching records found.'
+                }
+            });
+
+            // Build centralized column filters if configured via data-filter-columns
+            let filterConfig = [];
+            if (tableEl.dataset.filterColumns) {
+                try {
+                    filterConfig = JSON.parse(tableEl.dataset.filterColumns);
+                } catch (e) {
+                    console.error('Invalid data-filter-columns JSON:', e);
+                }
+            }
+
+            if (Array.isArray(filterConfig) && filterConfig.length > 0) {
+                const toolbar = document.createElement('div');
+                toolbar.className = 'dt-salon-toolbar';
+
+                const filtersWrap = document.createElement('div');
+                filtersWrap.className = 'dt-salon-filters';
+
+                const selects = [];
+
+                filterConfig.forEach((cfg) => {
+                    const colIdx = cfg.index;
+                    const labelText = cfg.label || 'Filter';
+                    const column = dt.column(colIdx);
+                    if (!column) return;
+
+                    const itemWrap = document.createElement('label');
+                    itemWrap.className = 'dt-salon-filter-item';
+                    itemWrap.textContent = labelText + ':';
+
+                    const select = document.createElement('select');
+                    select.className = 'dt-salon-filter-select';
+                    select.setAttribute('aria-label', 'Filter by ' + labelText);
+
+                    const allOpt = document.createElement('option');
+                    allOpt.value = '';
+                    allOpt.textContent = 'All ' + labelText;
+                    select.appendChild(allOpt);
+
+                    // Collect unique clean text values from cells in this column
+                    const values = new Set();
+                    if (Array.isArray(cfg.options) && cfg.options.length > 0) {
+                        cfg.options.forEach((opt) => values.add(String(opt).trim()));
+                    } else {
+                        column.nodes().forEach((cell) => {
+                            if (!cell) return;
+                            const filterVal = cell.dataset && cell.dataset.filterValue
+                                ? cell.dataset.filterValue.trim()
+                                : cell.textContent.replace(/\s+/g, ' ').trim();
+                            if (filterVal) {
+                                values.add(filterVal);
+                            }
+                        });
+                    }
+
+                    Array.from(values).sort().forEach((val) => {
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = val;
+                        select.appendChild(opt);
+                    });
+
+                    select.addEventListener('change', () => {
+                        const val = select.value;
+                        column.search(val ? val : '', { exact: false }).draw();
+                    });
+
+                    selects.push({ select, column });
+                    itemWrap.appendChild(select);
+                    filtersWrap.appendChild(itemWrap);
+                });
+
+                if (selects.length > 0) {
+                    const resetBtn = document.createElement('button');
+                    resetBtn.type = 'button';
+                    resetBtn.className = 'dt-salon-reset-btn';
+                    resetBtn.textContent = 'Reset filters';
+                    resetBtn.addEventListener('click', () => {
+                        selects.forEach(({ select, column }) => {
+                            select.value = '';
+                            column.search('');
+                        });
+                        dt.search('').draw();
+                    });
+                    filtersWrap.appendChild(resetBtn);
+
+                    toolbar.appendChild(filtersWrap);
+                    const dtContainer = tableEl.closest('.dt-container') || tableEl.parentElement;
+                    dtContainer.parentNode.insertBefore(toolbar, dtContainer);
+                }
+            }
+        });
+    });
+</script>
+

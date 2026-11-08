@@ -1,0 +1,17 @@
+@media (min-width: 1024px) {
+    .desk-frame {
+        display: grid;
+        grid-template-columns: 17rem minmax(0, 1fr);
+        min-height: 100vh;
+    }
+
+    .desk-sidebar {
+        display: flex;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        width: auto;
+        overflow-y: auto;
+    }
+}
+

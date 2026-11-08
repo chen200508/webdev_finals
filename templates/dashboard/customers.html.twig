@@ -1,0 +1,39 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Customers · S Beauty Salon{% endblock %}
+
+{% block content %}
+    <h1>Customers</h1>
+    <p class="lede">People who have booked at S Beauty Salon.</p>
+
+    <section class="card">
+        <div style="overflow-x:auto;">
+            <table
+                data-datatable
+                data-page-length="10"
+                data-search-placeholder="Search customers..."
+                data-empty-text="No customers yet."
+            >
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                        {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : ((customer.first_name is defined or customer.last_name is defined) ? ((customer.first_name ?? '') ~ ' ' ~ (customer.last_name ?? ''))|trim : '')) %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><strong>{{ customerName }}</strong></td>
+                            <td>{{ customer.email is defined ? customer.email : '' }}</td>
+                            <td>{{ customer.phone is defined ? customer.phone : '' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

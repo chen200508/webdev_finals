@@ -1,0 +1,23 @@
+{#
+  Centralized Main Content Head Component (`partials/dashboard_nav.html.twig`)
+  Included once at the top of the main content area in the root dashboard layout (`dashboard/layout.html.twig`).
+  Houses the mobile menu toggle, page breadcrumb/indicator, Tabler icon theme toggle button, and logout button.
+#}
+<header class="desk-main-head">
+    <div class="desk-main-head-left">
+        <label for="desk-nav" class="desk-menu" aria-label="Open menu">
+            <i class="ti ti-menu-2"></i>
+            <span>Menu</span>
+        </label>
+        <span class="desk-head-eyebrow">Admin Dashboard</span>
+    </div>
+    <div class="desk-main-head-actions">
+        <button type="button" class="desk-theme" id="switch-theme" aria-label="Toggle theme" title="Toggle theme">
+            <i class="ti ti-moon" id="theme-icon"></i>
+        </button>
+        <a class="desk-logout" href="{{ path('app_logout') }}">
+            <i class="ti ti-logout"></i>
+            <span>Log out</span>
+        </a>
+    </div>
+</header>

@@ -1,0 +1,455 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Overview · S Beauty Salon{% endblock %}
+
+{% block styles %}
+    .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
+    .kpi {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 22px;
+        background: var(--card-bg);
+        color: var(--main-text);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.02);
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .kpi-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .kpi-label { color: #C68E00; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .kpi-icon {
+        width: 42px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(198, 142, 0, 0.14);
+        border: 1px solid rgba(198, 142, 0, 0.3);
+        color: #C68E00;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+    .kpi strong { display: block; margin: 10px 0 6px; font-size: 40px; line-height: 1; color: var(--main-text); }
+    .kpi-desc { margin: 0 0 16px; color: var(--main-sub); font-size: 13px; font-family: "Segoe UI", sans-serif; }
+    .kpi-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; align-self: flex-start; background: #C68E00; color: #fff; border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 700; font-family: "Segoe UI", sans-serif; transition: background .15s; }
+    .kpi-action:hover { background: #a87700; }
+    .overview-grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 24px; }
+    .overview-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+    .chart-box { position: relative; width: 100%; height: 260px; display: flex; align-items: center; justify-content: center; }
+    .card { display: flex; flex-direction: column; justify-content: space-between; margin-top: 0; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .card-head-title { display: flex; align-items: center; gap: 12px; }
+    .card-head-icon {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: rgba(198, 142, 0, 0.14);
+        border: 1px solid rgba(198, 142, 0, 0.3);
+        color: #C68E00;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    .card-head h2 { margin: 0; font-size: 26px; color: var(--main-text); }
+    .card-sub { margin: 2px 0 0; color: var(--main-sub); font-size: 13px; font-family: "Segoe UI", sans-serif; }
+    .btn-link { display: inline-flex; align-items: center; gap: 6px; background: #1c140c; color: #D49A26; border: 1px solid #C68E00; border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 700; font-family: "Segoe UI", sans-serif; transition: all .15s; }
+    .btn-link:hover { background: #C68E00; color: #fff; }
+    th { padding: 10px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    td { padding: 12px; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .badge-1 { background: #fef3c7; color: #92400e; }
+    .badge-2 { background: #dbeafe; color: #1e40af; }
+    .badge-3 { background: #dcfce7; color: #166534; }
+    .badge-4 { background: #fee2e2; color: #991b1b; }
+    @media (max-width: 900px) {
+        .kpis, .overview-split { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block content %}
+    {% set statuses = {1: 'Pending', 2: 'Confirmed', 3: 'Completed', 4: 'Cancelled'} %}
+    {% set staffMap = {} %}
+    {% for member in staff|default([]) %}
+        {% set staffMap = staffMap|merge({(member.id): (member.first_name ~ ' ' ~ member.last_name)|trim}) %}
+    {% endfor %}
+
+    {# Compute status counts and service revenue for Chart.js #}
+    {% set statusCounts = {1: 0, 2: 0, 3: 0, 4: 0} %}
+    {% set serviceRevenue = {} %}
+    {% for appointment in appointments %}
+        {% set sid = appointment.status_id ?? 1 %}
+        {% set statusCounts = statusCounts|merge({(sid): (statusCounts[sid] ?? 0) + 1}) %}
+        {% set sname = appointment.service_name ?? 'Other' %}
+        {% set serviceRevenue = serviceRevenue|merge({(sname): (serviceRevenue[sname] ?? 0) + (appointment.price ?? 0)}) %}
+    {% endfor %}
+
+    <div id="overview">
+        <h1>Overview</h1>
+        <p class="lede">Summary of appointments, service catalog, and client records for S Beauty Salon.</p>
+
+        <div class="kpis">
+            <article class="kpi">
+                <div>
+                    <div class="kpi-top">
+                        <span class="kpi-label">Appointments</span>
+                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-calendar-event"></i></span>
+                    </div>
+                    <strong>{{ counts.bookings ?? appointments|length }}</strong>
+                    <p class="kpi-desc">Scheduled client bookings across all salon artists.</p>
+                </div>
+                <a class="kpi-action" href="{{ path('admin_appointments') }}">
+                    <span>Manage Appointments</span>
+                    <i class="ti ti-arrow-right"></i>
+                </a>
+            </article>
+
+            <article class="kpi">
+                <div>
+                    <div class="kpi-top">
+                        <span class="kpi-label">Services</span>
+                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-sparkles"></i></span>
+                    </div>
+                    <strong>{{ counts.services ?? services|length }}</strong>
+                    <p class="kpi-desc">Active treatments and packages in the salon catalog.</p>
+                </div>
+                <a class="kpi-action" href="{{ path('admin_services') }}">
+                    <span>Manage Services</span>
+                    <i class="ti ti-arrow-right"></i>
+                </a>
+            </article>
+
+            <article class="kpi">
+                <div>
+                    <div class="kpi-top">
+                        <span class="kpi-label">Customers</span>
+                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-users"></i></span>
+                    </div>
+                    <strong>{{ counts.clients ?? customers|length }}</strong>
+                    <p class="kpi-desc">Registered clients with contact and booking history.</p>
+                </div>
+                <a class="kpi-action" href="{{ path('admin_customers') }}">
+                    <span>View Customers</span>
+                    <i class="ti ti-arrow-right"></i>
+                </a>
+            </article>
+        </div>
+
+        <div class="overview-grid">
+            {# Analytics Charts Section #}
+            <div class="overview-split">
+                <section class="card">
+                    <div class="card-head">
+                        <div class="card-head-title">
+                            <span class="card-head-icon" aria-hidden="true"><i class="ti ti-chart-donut"></i></span>
+                            <div>
+                                <h2>Appointments by Status</h2>
+                                <p class="card-sub">Breakdown of pending, confirmed, completed, and cancelled bookings.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="statusChart" aria-label="Appointments by Status Chart" role="img"></canvas>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-head">
+                        <div class="card-head-title">
+                            <span class="card-head-icon" aria-hidden="true"><i class="ti ti-chart-bar"></i></span>
+                            <div>
+                                <h2>Service Pricing &amp; Revenue</h2>
+                                <p class="card-sub">Comparison of catalog prices (₱) across salon treatments.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="serviceChart" aria-label="Service Pricing Chart" role="img"></canvas>
+                    </div>
+                </section>
+            </div>
+
+            <section class="card">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <span class="card-head-icon" aria-hidden="true"><i class="ti ti-calendar-clock"></i></span>
+                        <div>
+                            <h2>Recent Appointments</h2>
+                            <p class="card-sub">Quick preview of upcoming and recent studio bookings.</p>
+                        </div>
+                    </div>
+                    <a class="btn-link" href="{{ path('admin_appointments') }}">
+                        <span>View all appointments</span>
+                        <i class="ti ti-arrow-right"></i>
+                    </a>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date &amp; Time</th>
+                                <th>Client</th>
+                                <th>Service</th>
+                                <th>Artist</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments|slice(0, 4) %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ appointment.appointment_date|date('M j, Y') }}</strong><br>
+                                        <span class="muted">{{ appointment.start_time|date('g:i A') }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ appointment.customer_name }}</strong><br>
+                                        <span class="muted">{{ appointment.email }}</span>
+                                    </td>
+                                    <td>{{ appointment.service_name }}</td>
+                                    <td>{{ staffMap[appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id) }}</td>
+                                    <td><strong>₱{{ appointment.price }}</strong></td>
+                                    <td>
+                                        <span class="badge badge-{{ appointment.status_id }}">
+                                            {{ statuses[appointment.status_id] ?? 'Pending' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr><td colspan="6">No appointments scheduled yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div class="overview-split">
+                <section class="card">
+                    <div>
+                        <div class="card-head">
+                            <div class="card-head-title">
+                                <span class="card-head-icon" aria-hidden="true"><i class="ti ti-list-details"></i></span>
+                                <div>
+                                    <h2>Service Catalog</h2>
+                                    <p class="card-sub">Featured treatments and pricing.</p>
+                                </div>
+                            </div>
+                            <a class="btn-link" href="{{ path('admin_services') }}">
+                                <span>Full catalog</span>
+                                <i class="ti ti-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Service</th>
+                                        <th>Duration</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services|slice(0, 4) %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ service.name }}</strong><br>
+                                                <span class="muted">{{ service.category_name }}</span>
+                                            </td>
+                                            <td>{{ service.duration_minutes }} mins</td>
+                                            <td><strong>₱{{ service.price }}</strong></td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="3">No services available.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div>
+                        <div class="card-head">
+                            <div class="card-head-title">
+                                <span class="card-head-icon" aria-hidden="true"><i class="ti ti-address-book"></i></span>
+                                <div>
+                                    <h2>Recent Customers</h2>
+                                    <p class="card-sub">Clients registered at the studio.</p>
+                                </div>
+                            </div>
+                            <a class="btn-link" href="{{ path('admin_customers') }}">
+                                <span>All customers</span>
+                                <i class="ti ti-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Phone</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for customer in customers|slice(0, 4) %}
+                                        {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : ((customer.first_name ?? '') ~ ' ' ~ (customer.last_name ?? ''))|trim) %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ customerName }}</strong><br>
+                                                <span class="muted">{{ customer.email ?? '' }}</span>
+                                            </td>
+                                            <td>{{ customer.phone ?? '' }}</td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="2">No customers yet.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof Chart === 'undefined') return;
+
+            const statusLabels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
+            const statusData = [
+                {{ statusCounts[1] ?? 0 }},
+                {{ statusCounts[2] ?? 0 }},
+                {{ statusCounts[3] ?? 0 }},
+                {{ statusCounts[4] ?? 0 }}
+            ];
+
+            const serviceLabels = [
+                {% for service in services %}
+                    {{ service.name|json_encode|raw }}{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+            const servicePrices = [
+                {% for service in services %}
+                    {{ service.price ?? 0 }}{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            function getThemeColors() {
+                const isDark = document.body.getAttribute('data-theme') === 'dark';
+                return {
+                    textColor: isDark ? '#f5efe6' : '#1f2937',
+                    mutedColor: isDark ? '#a89f91' : '#6b7280',
+                    gridColor: isDark ? '#332920' : '#e5e7eb'
+                };
+            }
+
+            let colors = getThemeColors();
+
+            const statusCtx = document.getElementById('statusChart');
+            const statusChart = statusCtx ? new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444'],
+                        borderColor: 'transparent',
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '64%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: colors.textColor,
+                                padding: 16,
+                                usePointStyle: true,
+                                font: { family: '"Segoe UI", sans-serif', size: 12, weight: '600' }
+                            }
+                        }
+                    }
+                }
+            }) : null;
+
+            const serviceCtx = document.getElementById('serviceChart');
+            const serviceChart = serviceCtx ? new Chart(serviceCtx, {
+                type: 'bar',
+                data: {
+                    labels: serviceLabels,
+                    datasets: [{
+                        label: 'Catalog Price (₱)',
+                        data: servicePrices,
+                        backgroundColor: 'rgba(198, 142, 0, 0.78)',
+                        borderColor: '#C68E00',
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        maxBarThickness: 44
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: colors.textColor,
+                                font: { family: '"Segoe UI", sans-serif', size: 12, weight: '600' }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: colors.mutedColor,
+                                font: { family: '"Segoe UI", sans-serif', size: 11 }
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: colors.mutedColor,
+                                font: { family: '"Segoe UI", sans-serif', size: 11 },
+                                callback: (val) => '₱' + val
+                            },
+                            grid: { color: colors.gridColor }
+                        }
+                    }
+                }
+            }) : null;
+
+            // Keep Chart.js labels and gridlines synced when user toggles light/dark theme
+            const themeBtn = document.getElementById('switch-theme');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    requestAnimationFrame(() => {
+                        const updated = getThemeColors();
+                        if (statusChart) {
+                            statusChart.options.plugins.legend.labels.color = updated.textColor;
+                            statusChart.update();
+                        }
+                        if (serviceChart) {
+                            serviceChart.options.plugins.legend.labels.color = updated.textColor;
+                            serviceChart.options.scales.x.ticks.color = updated.mutedColor;
+                            serviceChart.options.scales.y.ticks.color = updated.mutedColor;
+                            serviceChart.options.scales.y.grid.color = updated.gridColor;
+                            serviceChart.update();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}

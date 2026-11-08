@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard · S Beauty Salon{% endblock %}</title>
+    {# Centralized Tabler Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        :root {
+            --main-bg: #FBF4DE;
+            --main-head-bg: rgba(251, 244, 222, 0.92);
+            --main-text: #1f2937;
+            --main-muted: #4b5563;
+            --main-sub: #6b7280;
+            --card-bg: #ffffff;
+            --card-border: rgba(198, 142, 0, 0.25);
+            --table-border: #e5e7eb;
+            --table-row-border: #f3f4f6;
+            --input-bg: #ffffff;
+            --input-border: #d1d5db;
+            --input-text: #1f2937;
+        }
+
+        body[data-theme="dark"] {
+            --main-bg: #14100c;
+            --main-head-bg: rgba(20, 16, 12, 0.92);
+            --main-text: #f5efe6;
+            --main-muted: #d6cbbd;
+            --main-sub: #a89f91;
+            --card-bg: #1f1914;
+            --card-border: rgba(198, 142, 0, 0.35);
+            --table-border: #332920;
+            --table-row-border: #292119;
+            --input-bg: #14100c;
+            --input-border: #44372b;
+            --input-text: #f5efe6;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--main-bg);
+            color: var(--main-text);
+            font-family: Georgia, "Times New Roman", serif;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        a { color: inherit; text-decoration: none; }
+        .desk-nav-check { position: absolute; left: -999px; }
+        .desk-frame { min-height: 100vh; }
+
+        /* Fixed Sidebar (#1C140C) - never changes with theme toggle */
+        .desk-sidebar {
+            display: none;
+            flex-direction: column;
+            background: #1C140C !important;
+            color: #ffffff !important;
+        }
+        .desk-brand { display: flex; align-items: center; justify-content: center; height: 96px; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
+        .desk-logo { width: 150px; height: auto; display: block; }
+        .desk-nav-wrap { flex: 1; padding: 20px 12px; }
+        .desk-label { margin: 0 12px 8px; color: #C68E00; font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+        .desk-links { display: flex; flex-direction: column; gap: 4px; margin-bottom: 24px; }
+        .desk-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: #e5e7eb !important;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: "Segoe UI", sans-serif;
+            transition: background .15s, color .15s;
+        }
+        .desk-link-label { display: inline-flex; align-items: center; gap: 10px; }
+        .desk-link-label .ti { font-size: 18px; color: #C68E00; }
+        .desk-link:hover, .desk-link.is-on { background: rgba(255,255,255,.1) !important; color: #ffffff !important; }
+        .desk-count { color: #D49A26; font-size: 12px; }
+        .desk-foot { padding: 12px 16px 16px; border-top: 1px solid rgba(255,255,255,.08); }
+        .desk-address { margin: 0; color: #e7e5e4 !important; font-size: 12px; font-family: "Segoe UI", sans-serif; display: flex; align-items: center; }
+
+        /* Centralized Main Content & Header */
+        .desk-main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 100vh;
+            background: var(--main-bg);
+            color: var(--main-text);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .desk-main-head {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            width: 90%;
+            height: 96px;
+            margin: 0 auto;
+            padding: 0 20px;
+            background: var(--main-head-bg);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--card-border);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .desk-main-head-left { display: flex; align-items: center; gap: 12px; }
+        .desk-head-eyebrow {
+            margin: 0;
+            color: #C68E00;
+            font-size: 12px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: "Segoe UI", sans-serif;
+        }
+        .desk-main-head-actions { display: flex; align-items: center; gap: 10px; }
+        button.desk-theme {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: 1px solid #C68E00;
+            border-radius: 10px;
+            background: transparent;
+            color: #C68E00;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .desk-logout {
+            width: auto;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 14px;
+            border: 1px solid #C68E00;
+            border-radius: 10px;
+            background: transparent;
+            color: #C68E00;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: "Segoe UI", sans-serif;
+            transition: all .15s;
+        }
+        .desk-logout .ti { font-size: 16px; }
+        button.desk-theme:hover, .desk-logout:hover { background: #C68E00; color: #fff; }
+        .desk-menu {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border: 1px solid #C68E00;
+            border-radius: 999px;
+            color: #C68E00;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: "Segoe UI", sans-serif;
+            background: transparent;
+        }
+        .desk-backdrop { display: none; }
+        .page { width: 90%; max-width: none; margin: 0 auto; padding: 24px 20px 64px; }
+        .eyebrow { margin: 0; color: #C68E00; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+        h1, h2, h3, strong { color: var(--main-text); }
+        h1 { margin: 4px 0 0; font-size: 48px; }
+        .lede { color: var(--main-muted); font-family: "Segoe UI", sans-serif; font-size: 14px; margin-top: 6px; }
+        .card {
+            background: var(--card-bg);
+            color: var(--main-text);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 24px;
+            margin-top: 20px;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        table { width: 100%; border-collapse: collapse; font-family: "Segoe UI", sans-serif; font-size: 14px; color: var(--main-text); }
+        th { text-align: left; padding: 12px; color: var(--main-sub); font-weight: 600; border-bottom: 1px solid var(--table-border); }
+        td { padding: 14px 12px; border-top: 1px solid var(--table-row-border); vertical-align: middle; color: var(--main-text); }
+        .muted { color: var(--main-sub); font-size: 12px; }
+        .field, select, input[type="text"], input[type="number"], input[type="date"], input[type="time"] {
+            background: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--input-border);
+        }
+        label { color: var(--main-muted); }
+
+        #desk-nav:checked ~ .desk-frame .desk-sidebar { display: flex; position: fixed; z-index: 40; inset: 0 auto 0 0; width: min(18rem, 88vw); height: 100vh; overflow: auto; }
+        #desk-nav:checked ~ .desk-frame .desk-backdrop { display: block; position: fixed; z-index: 30; inset: 0; background: rgba(0,0,0,.45); }
+
+        @media (min-width: 1024px) {
+            .desk-menu { display: none; }
+            .desk-frame { display: grid; grid-template-columns: 17rem minmax(0, 1fr); }
+            .desk-sidebar { display: flex; position: sticky; top: 0; height: 100vh; overflow: auto; }
+        }
+        @media (max-width: 900px) {
+            h1 { font-size: 36px; }
+        }
+        {% block styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <input id="desk-nav" class="desk-nav-check" type="checkbox">
+    <div class="desk-frame">
+        <label for="desk-nav" class="desk-backdrop" aria-label="Close the menu"></label>
+
+        {% include 'partials/admin_sidebar.html.twig' %}
+
+        <div class="desk-main">
+            {% include 'partials/dashboard_nav.html.twig' %}
+
+            <div class="page">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    {% include 'partials/datatable.html.twig' %}
+
+    <script>
+        document.querySelectorAll('.desk-link, .desk-brand').forEach((link) => {
+            link.addEventListener('click', () => {
+                const nav = document.getElementById('desk-nav');
+                if (nav) nav.checked = false;
+            });
+        });
+
+        const themeButton = document.getElementById('switch-theme');
+        const themeIcon = document.getElementById('theme-icon');
+
+        function applyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            if (themeIcon) {
+                themeIcon.className = theme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+            }
+        }
+
+        const savedTheme = localStorage.getItem('salon-theme') || 'light';
+        applyTheme(savedTheme);
+
+        if (themeButton) {
+            themeButton.addEventListener('click', () => {
+                const current = document.body.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                applyTheme(next);
+                localStorage.setItem('salon-theme', next);
+            });
+        }
+    </script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

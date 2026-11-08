@@ -1,24 +1,235 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Truno Beauty Salon{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                primary: '#C68E00',
+                dark: '#000000',
+                bg: '#FBF4DE'
+              }
+            },
+            fontFamily: {
+              heading: ['Marcellus', 'serif'],
+              body: ['Raleway', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <style>
+        :root {
+            --brand-primary: #C68E00;
+            --brand-primary-rgb: 198, 142, 0;
+            --brand-dark: #000000;
+            --brand-bg: #FBF4DE;
+            --brand-card-bg: #FFFFFF;
+            --brand-text-main: #1F2937;
+            --brand-text-muted: #6B7280;
+        }
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--brand-bg);
+            color: var(--brand-text-main);
+        }
+        h1, h2, h3, h4, h5, h6, .font-heading {
+            font-family: 'Marcellus', serif;
+        }
+        .gold {
+            color: #C68E00;
+        }
+        .cream {
+            background-color: #FBF4DE;
+        }
+        #toastContainer {
+            z-index: 99999 !important;
+        }
+        .reveal-on-scroll {
+            transform: scale(0.92) translateY(24px);
+            transform-origin: center center;
+            transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+        .reveal-on-scroll.reveal-visible {
+            transform: scale(1) translateY(0) !important;
+        }
+        .reveal-on-scroll .reveal-item {
+            transform: scale(0.85) translateY(18px);
+            transform-origin: center center;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+        .reveal-on-scroll.reveal-visible .reveal-item {
+            transform: scale(1) translateY(0) !important;
+        }
+        .reveal-visible .reveal-item:nth-child(1) { transition-delay: 0.05s; }
+        .reveal-visible .reveal-item:nth-child(2) { transition-delay: 0.10s; }
+        .reveal-visible .reveal-item:nth-child(3) { transition-delay: 0.15s; }
+        .reveal-visible .reveal-item:nth-child(4) { transition-delay: 0.20s; }
+        .reveal-visible .reveal-item:nth-child(5) { transition-delay: 0.25s; }
+        .reveal-visible .reveal-item:nth-child(6) { transition-delay: 0.30s; }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="bg-[#FBF4DE] min-h-screen text-gray-800 font-body flex flex-col justify-between relative">
+    <!-- Top-Right Fixed Toast Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-[99999] flex flex-col space-y-3 max-w-sm pointer-events-none"></div>
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
+    {% include 'partials/navbar.html.twig' %}
 
-        {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
-    </head>
-    <body>
+    <script>
+        window.showToast = function(message, type = 'success', duration = 2500) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+
+            toast.className = `pointer-events-auto transform transition-all duration-300 ease-out translate-x-full opacity-0 p-4 rounded-xl shadow-xl font-heading text-sm font-semibold flex items-center justify-between gap-3 border ${
+                isSuccess
+                    ? 'bg-emerald-900 text-emerald-50 border-emerald-500/30'
+                    : 'bg-rose-900 text-rose-50 border-rose-500/30'
+            }`;
+
+            toast.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                    <i class="ti ${isSuccess ? 'ti-circle-check text-emerald-400 text-xl' : 'ti-alert-circle text-rose-400 text-xl'}"></i>
+                    <span>${message}</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-white/70 hover:text-white ml-2 text-base">&times;</button>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+                toast.classList.add('translate-x-0', 'opacity-100');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-0', 'opacity-100');
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuIcon = document.getElementById('menuIcon');
+
+            if (menuBtn && mobileMenu && menuIcon) {
+                menuBtn.addEventListener('click', () => {
+                    const isHidden = mobileMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        menuIcon.classList.remove('ti-menu-2');
+                        menuIcon.classList.add('ti-x');
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        menuIcon.classList.remove('ti-x');
+                        menuIcon.classList.add('ti-menu-2');
+                    }
+                });
+            }
+
+            document.querySelectorAll('[data-password-toggle]').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const passwordField = document.getElementById(toggle.dataset.passwordToggle);
+                    if (!passwordField) return;
+
+                    const isPasswordHidden = passwordField.type === 'password';
+                    passwordField.type = isPasswordHidden ? 'text' : 'password';
+                    toggle.textContent = isPasswordHidden ? 'Hide' : 'Show';
+                    toggle.setAttribute('aria-label', isPasswordHidden ? 'Hide password' : 'Show password');
+                });
+            });
+
+            document.querySelectorAll('.mob-nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        if (menuIcon) {
+                            menuIcon.classList.remove('ti-x');
+                            menuIcon.classList.add('ti-menu-2');
+                        }
+                    }
+                });
+            });
+
+            // Apply native lazy loading and async decoding to all below-the-fold images
+            document.querySelectorAll('main img').forEach((img, index) => {
+                if (!img.hasAttribute('decoding')) {
+                    img.setAttribute('decoding', 'async');
+                }
+                if (index > 0 && !img.hasAttribute('loading')) {
+                    img.setAttribute('loading', 'lazy');
+                }
+            });
+
+            // Target individual inner sections/blocks (avoid scaling outer page wrapper)
+            const revealElements = document.querySelectorAll('.reveal-on-scroll, main section > section');
+            revealElements.forEach(el => {
+                if (!el.classList.contains('reveal-on-scroll')) {
+                    el.classList.add('reveal-on-scroll');
+                }
+            });
+
+            const checkInitialVisibility = () => {
+                const windowHeight = window.innerHeight;
+                revealElements.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top <= windowHeight * 0.92 && rect.bottom >= 0) {
+                        el.classList.add('reveal-visible');
+                    }
+                });
+            };
+
+            if ('IntersectionObserver' in window) {
+                const sectionObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('reveal-visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, {
+                    root: null,
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -30px 0px'
+                });
+
+                revealElements.forEach(el => sectionObserver.observe(el));
+            } else {
+                revealElements.forEach(el => el.classList.add('reveal-visible'));
+            }
+
+            checkInitialVisibility();
+        });
+    </script>
+
+    {% include 'partials/flash.html.twig' %}
+
+    <main class="flex-grow">
         {% block body %}{% endblock %}
-    </body>
+    </main>
+
+    {% include 'partials/footer.html.twig' %}
+
+    {% block javascripts %}{% endblock %}
+</body>
 </html>

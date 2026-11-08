@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Truno Beauty Salon · Contact Us{% endblock %}
+
+{% block body %}
+<section id="contact_section" class="scroll-mt-16 section-reveal">
+    <div class="bg-[#FBF4DE] min-h-screen py-4 font-body">
+
+        <!-- Top Heading Title -->
+        <div class="text-center mb-6 md:mb-8 reveal-on-scroll">
+            <h1 class="text-4xl md:text-5xl font-heading font-bold text-[#D49A26] tracking-wide">
+                Contact &nbsp; Us
+            </h1>
+        </div>
+
+        <!-- Map Showcase Image -->
+        <section class="relative w-full mb-10 md:mb-14 reveal-on-scroll">
+            <img src="{{ asset('images/baslay location.webp') }}"
+                 alt="S Beauty Salon Location Map - Baslay, Dauin, Negros Oriental"
+                 class="w-full h-auto object-cover block">
+        </section>
+
+        <!-- 3-Column Contact Information Section -->
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 mb-16 reveal-on-scroll">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 text-center items-start">
+
+                <!-- 1. Address Column -->
+                <div class="flex flex-col items-center">
+                    <h2 class="text-xl md:text-2xl font-heading font-bold text-[#D49A26] mb-3">
+                        Address
+                    </h2>
+
+                    <div class="flex items-center justify-center space-x-2 text-gray-800 text-xs sm:text-sm font-semibold">
+                        <span>143 Dauin St.,Baslay</span>
+                        <i class="ti ti-map-pin-filled text-xl sm:text-2xl text-[#D49A26]"></i>
+                    </div>
+                </div>
+
+                <!-- 2. Email Column -->
+                <div class="flex flex-col items-center">
+                    <h2 class="text-xl md:text-2xl font-heading font-bold text-[#D49A26] mb-3">
+                        Email
+                    </h2>
+
+                    <div class="flex flex-col items-center text-gray-800 text-xs sm:text-sm font-semibold leading-tight">
+                        <span>trunobeautysalon143@gmail.com</span>
+                        <div class="inline-flex items-center space-x-1.5 text-[#D49A26] mt-1">
+                            <i class="ti ti-mail-filled text-xl sm:text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Phone Column -->
+                <div class="flex flex-col items-center">
+                    <h2 class="text-xl md:text-2xl font-heading font-bold text-[#D49A26] mb-3">
+                        Phone
+                    </h2>
+
+                    <div class="flex items-center justify-center space-x-2 text-gray-800 text-xs sm:text-sm font-semibold">
+                        <div class="text-right space-y-0.5">
+                            <p>246-917-5787</p>
+                            <p>123-456-7880</p>
+                        </div>
+                        <i class="ti ti-phone-filled text-xl sm:text-2xl text-[#D49A26]"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+

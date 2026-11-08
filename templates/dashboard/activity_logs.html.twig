@@ -1,0 +1,83 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Activity Logs · S Beauty Salon{% endblock %}
+
+{% block styles %}
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .badge-created { background: #fef3c7; color: #92400e; }
+    .badge-status { background: #dbeafe; color: #1e40af; }
+    .badge-completed { background: #dcfce7; color: #166534; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+    .badge-system { background: rgba(198, 142, 0, 0.14); color: #C68E00; border: 1px solid rgba(198, 142, 0, 0.3); }
+{% endblock %}
+
+{% block content %}
+    {% set eventLabels = {
+        'created': 'Booking Created',
+        'status_updated': 'Status Updated',
+        'completed': 'Session Completed',
+        'cancelled': 'Booking Cancelled',
+        'service_updated': 'Catalog Updated',
+        'user_login': 'User Login'
+    } %}
+
+    <h1>Activity Logs</h1>
+    <p class="lede">Audit trail of booking events, status changes, catalog updates, and administrator actions.</p>
+
+    <section class="card">
+        <div style="overflow-x:auto;">
+            <table
+                data-datatable
+                data-page-length="10"
+                data-search-placeholder="Search activity logs..."
+                data-empty-text="No activity logs recorded yet."
+                data-filter-columns='[{"index": 1, "label": "Event Type"}, {"index": 3, "label": "Performed By"}]'
+            >
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Event Type</th>
+                        <th>Details</th>
+                        <th>Performed By</th>
+                        <th>Transition</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                        {% set eventLabel = eventLabels[log.event_type] ?? log.event_type %}
+                        {% set badgeClass = log.event_type == 'created' ? 'badge-created'
+                            : (log.event_type == 'status_updated' ? 'badge-status'
+                            : (log.event_type == 'completed' ? 'badge-completed'
+                            : (log.event_type == 'cancelled' ? 'badge-cancelled' : 'badge-system'))) %}
+                        <tr>
+                            <td style="white-space: nowrap;">
+                                <strong>{{ log.created_at|date('M j, Y') }}</strong><br>
+                                <span class="muted">{{ log.created_at|date('g:i:s A') }}</span>
+                            </td>
+                            <td data-filter-value="{{ eventLabel }}">
+                                <span class="badge {{ badgeClass }}">{{ eventLabel }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ log.description }}</strong>
+                                {% if log.appointment_id %}
+                                    <br><span class="muted">Appointment #{{ log.appointment_id }}</span>
+                                {% endif %}
+                            </td>
+                            <td data-filter-value="{{ log.performed_by }}">
+                                <code>{{ log.performed_by }}</code>
+                            </td>
+                            <td style="white-space: nowrap;">
+                                {% if log.old_status %}
+                                    <span class="muted">{{ log.old_status }}</span> &rarr; <strong>{{ log.new_status }}</strong>
+                                {% else %}
+                                    <strong>{{ log.new_status }}</strong>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}
+

@@ -1,0 +1,135 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Users · S Beauty Salon{% endblock %}
+
+{% block styles %}
+    .add-grid { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr .8fr auto; gap: 10px; align-items: end; }
+    .field, select { width: 100%; padding: 8px 10px; border: 1px solid var(--input-border, #d1d5db); border-radius: 10px; font: inherit; }
+    button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 700; cursor: pointer; font-family: "Segoe UI", sans-serif; transition: all 0.15s; }
+    button:hover { background: #a87700; }
+    label { display: block; font-size: 12px; font-weight: 700; color: var(--main-muted, #4b5563); font-family: "Segoe UI", sans-serif; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: "Segoe UI", sans-serif; }
+    .badge-admin { background: rgba(198, 142, 0, 0.16); color: #92400e; border: 1px solid rgba(198, 142, 0, 0.35); }
+    .badge-staff { background: #dbeafe; color: #1e40af; }
+    .badge-customer { background: #f3f4f6; color: #374151; }
+    .badge-active { background: #dcfce7; color: #166534; }
+    .badge-inactive { background: #fee2e2; color: #991b1b; }
+
+    .btn-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 11px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(220, 38, 38, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.28);
+    }
+    .btn-delete:hover {
+        background: #dc2626;
+        color: #ffffff;
+    }
+
+    @media (max-width: 900px) { .add-grid { grid-template-columns: 1fr; } }
+{% endblock %}
+
+{% block content %}
+    {% set roleLabels = {
+        'ROLE_ADMIN': 'Administrator',
+        'ROLE_STAFF': 'Specialist / Staff',
+        'ROLE_CUSTOMER': 'Customer'
+    } %}
+
+    <h1>Users</h1>
+    <p class="lede">Manage system user accounts, access roles, and activation status.</p>
+
+    <section class="card">
+        <h2>Add a user account</h2>
+        <form method="post" action="{{ path('admin_user_create') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+            <div class="add-grid">
+                <label>Full Name
+                    <input class="field" name="name" required placeholder="e.g. Jane Doe">
+                </label>
+                <label>Email Address
+                    <input class="field" type="email" name="email" required placeholder="e.g. jane@salon.com">
+                </label>
+                <label>Role
+                    <select class="field" name="role">
+                        <option value="ROLE_CUSTOMER">Customer</option>
+                        <option value="ROLE_STAFF">Specialist / Staff</option>
+                        <option value="ROLE_ADMIN">Administrator</option>
+                    </select>
+                </label>
+                <label>Status
+                    <select class="field" name="is_active">
+                        <option value="1">Active</option>
+                        <option value="0">Deactivated</option>
+                    </select>
+                </label>
+                <button type="submit">Add User</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <div style="overflow-x:auto;">
+            <table
+                data-datatable
+                data-page-length="10"
+                data-search-placeholder="Search users..."
+                data-empty-text="No user accounts found."
+                data-filter-columns='[{"index": 2, "label": "Role"}, {"index": 3, "label": "Status", "options": ["Active", "Deactivated"]}]'
+            >
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Registered</th>
+                        <th data-orderable="false">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        {% set roleLabel = roleLabels[user.role] ?? user.role %}
+                        {% set statusLabel = user.is_active ? 'Active' : 'Deactivated' %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>
+                                <strong>{{ user.name }}</strong><br>
+                                <span class="muted">{{ user.email }}</span>
+                            </td>
+                            <td data-filter-value="{{ roleLabel }}">
+                                <span class="badge {{ user.role == 'ROLE_ADMIN' ? 'badge-admin' : (user.role == 'ROLE_STAFF' ? 'badge-staff' : 'badge-customer') }}">
+                                    {{ roleLabel }}
+                                </span>
+                            </td>
+                            <td data-filter-value="{{ statusLabel }}">
+                                <span class="badge {{ user.is_active ? 'badge-active' : 'badge-inactive' }}">
+                                    {{ statusLabel }}
+                                </span>
+                            </td>
+                            <td>{{ user.created_at|date('M j, Y') }}</td>
+                            <td>
+                                <form method="post" action="{{ path('admin_user_delete') }}" onsubmit="return confirm('Remove this user account?');" style="margin:0;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <button class="btn-delete" type="submit">
+                                        <i class="ti ti-trash"></i>
+                                        <span>Delete</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}
+

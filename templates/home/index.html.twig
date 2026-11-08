@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Truno Beauty Salon · Home{% endblock %}
+
+{% block body %}
+<section id="home_section" class="section-reveal">
+    <!-- Hero Section -->
+    <section class="overflow-hidden reveal-on-scroll">
+        <div class="text-4xl md:text-6xl font-extrabold tracking-[0.35em] text-[#C68E00] text-center py-6 font-heading uppercase drop-shadow-sm">BEAUTY SALON</div>
+        <div class="relative h-[520px] md:h-[600px]">
+            <img src="{{ asset('images/hero.webp') }}" alt="Salon interior" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/25"></div>
+        </div>
+    </section>
+
+    <!-- Elegance Text Section -->
+    <section class="cream py-20 px-6 text-center reveal-on-scroll">
+        <h2 class="font-heading gold text-3xl md:text-4xl font-bold max-w-3xl mx-auto leading-snug">
+            Elegance comes from being as beautiful inside as outside
+        </h2>
+        <p class="text-neutral-700 max-w-2xl mx-auto mt-6 text-[15px] leading-relaxed">
+            True radiance starts deep within your soul before it reaches the surface. Caring for yourself inside creates an unmistakable glow on the outside. Authentic beauty flourishes when inner confidence meets outer care.
+        </p>
+
+        <!-- Image Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-6xl mx-auto">
+            <img src="{{ asset('images/Bfacejpg.webp') }}" loading="lazy" decoding="async" class="w-full h-full object-cover rounded-md reveal-item" alt="Salon Image 1">
+            <img src="{{ asset('images/hair.webp') }}" loading="lazy" decoding="async" class="w-full h-full object-cover rounded-md reveal-item" alt="Salon Image 2">
+            <img src="{{ asset('images/nail.webp') }}" loading="lazy" decoding="async" class="w-full h-full object-cover rounded-md reveal-item" alt="Salon Image 3">
+            <img src="{{ asset('images/facw.webp') }}" loading="lazy" decoding="async" class="w-full h-full object-cover rounded-md reveal-item" alt="Salon Image 4">
+        </div>
+    </section>
+
+    <!-- Treatments and Prices Section -->
+    <section class="bg-[#FAF1D6] py-0 reveal-on-scroll">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 items-center">
+            <!-- Left Side Image -->
+            <div class="w-full h-[450px] md:h-[550px]">
+                <img src="{{ asset('images/images (6).webp') }}"
+                     loading="lazy" decoding="async"
+                     alt="Treatments and Prices"
+                     class="w-full h-full object-cover">
+            </div>
+
+            <!-- Right Side Menu Content -->
+            <div class="p-8 md:p-16 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-heading font-bold text-[#C68E00] mb-3">Treatments and prices</h2>
+                <p class="text-gray-700 text-sm md:text-base mb-8 max-w-md">
+                    Treat yourself to expert care and effortless style with our full suite of personalized salon services.
+                </p>
+
+                <!-- Price List with Dotted Leader Lines -->
+                <div class="space-y-4 max-w-md">
+                    {% for item in treatmentPrices %}
+                        <div class="flex items-baseline justify-between text-gray-800">
+                            <span class="font-heading font-semibold text-base md:text-lg text-neutral-800">{{ item.name }}</span>
+                            <span class="flex-1 border-b border-dotted border-[#C68E00]/60 mx-3"></span>
+                            <span class="text-gray-600 text-xs md:text-sm whitespace-nowrap">
+                                from <span class="font-bold text-[#C68E00] text-sm md:text-base">₱{{ item.starting_price|number_format }}</span>
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- View All Link -->
+                <div class="mt-8">
+                    <a href="{{ path('app_services') }}" class="text-[#C68E00] font-heading font-semibold text-sm underline hover:text-black transition-colors">
+                        View all
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="bg-[#FAF1D6]/60 py-16 px-4 reveal-on-scroll">
+        <div class="max-w-4xl mx-auto text-center mb-10">
+            <h2 class="text-3xl md:text-4xl font-heading font-bold text-[#C68E00] mb-3">Testimonials</h2>
+            <p class="text-gray-700 text-sm md:text-base max-w-xl mx-auto">
+                See what our valued guests have to say about their transformations and experiences with us.
+            </p>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-amber-100/80 relative">
+            <!-- Giant Decorative Quotation Marks -->
+            <span class="absolute -top-6 left-6 text-7xl font-serif text-[#C68E00] leading-none select-none">“</span>
+            <span class="absolute -bottom-10 right-6 text-7xl font-serif text-[#C68E00] leading-none select-none">”</span>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
+                <!-- Left Side Client Avatars Cluster -->
+                <div class="md:col-span-4 flex flex-col items-center justify-center gap-3">
+                    <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-200 shadow-sm">
+                        <img src="{{ asset('images/demor_.webp') }}" loading="lazy" decoding="async" alt="Happy client" class="w-full h-full object-cover">
+                    </div>
+                    <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-[#C68E00] shadow-md -my-2 z-10">
+                        <img src="{{ asset('images/Bfacejpg.webp') }}" loading="lazy" decoding="async" alt="Client transformation" class="w-full h-full object-cover">
+                    </div>
+                    <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-200 shadow-sm">
+                        <img src="{{ asset('images/df.webp') }}" loading="lazy" decoding="async" alt="Grateful client" class="w-full h-full object-cover">
+                    </div>
+                </div>
+
+                <!-- Right Side Testimonials Content -->
+                <div class="md:col-span-8 space-y-6 text-left">
+                    {% for testimonial in testimonials %}
+                        {% if not loop.first %}
+                            <hr class="border-amber-100">
+                        {% endif %}
+                        <div>
+                            <h4 class="text-[#C68E00] font-heading font-bold text-sm mb-1">{{ testimonial.author }}</h4>
+                            <p class="text-gray-600 text-xs md:text-sm leading-relaxed">
+                                {{ testimonial.content }}
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hair Steamer & Core Features Section -->
+    <section class="overflow-hidden reveal-on-scroll">
+        <!-- Hair Steamer Banner Graphic -->
+        <div class="relative w-full">
+            <img src="{{ asset('images/V1_webp.webp') }}"
+                 loading="lazy" decoding="async"
+                 alt="Professional Salon Hair Steamer"
+                 class="w-full h-auto object-cover block">
+        </div>
+
+        <!-- 3 Core Feature Highlights -->
+        <div class="bg-[#FAF1D6] py-14 px-6 border-t border-amber-200/40">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+                <!-- 1. Professional Care -->
+                <div class="flex flex-col items-center reveal-item">
+                    <div class="w-14 h-14 rounded-full border-2 border-[#C68E00] flex items-center justify-center mb-4 bg-amber-50 text-[#C68E00] shadow-sm">
+                        <i class="ti ti-sparkles text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-heading font-bold text-neutral-900 mb-2">Professional Care</h3>
+                    <p class="text-xs md:text-sm text-neutral-600 max-w-xs leading-relaxed">
+                        Expert attention tailored to your unique beauty and individual needs.
+                    </p>
+                </div>
+
+                <!-- 2. Premium Brands -->
+                <div class="flex flex-col items-center reveal-item">
+                    <div class="w-14 h-14 rounded-full border-2 border-[#C68E00] flex items-center justify-center mb-4 bg-amber-50 text-[#C68E00] shadow-sm">
+                        <i class="ti ti-droplet text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-heading font-bold text-neutral-900 mb-2">Premium brands</h3>
+                    <p class="text-xs md:text-sm text-neutral-600 max-w-xs leading-relaxed">
+                        Exclusively using top-tier, luxury products for flawless, lasting results.
+                    </p>
+                </div>
+
+                <!-- 3. Natural Cosmetic -->
+                <div class="flex flex-col items-center reveal-item">
+                    <div class="w-14 h-14 rounded-full border-2 border-[#C68E00] flex items-center justify-center mb-4 bg-amber-50 text-[#C68E00] shadow-sm">
+                        <i class="ti ti-plant-2 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-heading font-bold text-neutral-900 mb-2">Natural cosmetic</h3>
+                    <p class="text-xs md:text-sm text-neutral-600 max-w-xs leading-relaxed">
+                        Gentle, plant-based formulas that nourish your skin and embrace pure beauty.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+{% endblock %}

@@ -1,0 +1,41 @@
+<!-- Footer -->
+<footer class="bg-black text-white pt-12 pb-6 border-t border-[#C68E00]/30 mt-16">
+    <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+            <div class="flex items-center gap-3 mb-4">
+                <img src="{{ asset('images/Beauty Salon logo.webp') }}" alt="S Beauty Salon Logo" class="h-10 w-auto object-contain">
+            </div>
+            <p class="text-gray-400 text-xs leading-relaxed">
+                A premium beauty experience bringing together elegant aesthetics, luxury skincare, and expert stylists.
+            </p>
+        </div>
+        <div>
+            <h4 class="font-heading font-bold text-[#C68E00] text-sm uppercase tracking-wider mb-4">Quick Links</h4>
+            <ul class="space-y-2 text-xs text-gray-300 font-heading">
+                <li><a href="{{ path('app_home') }}" class="hover:text-[#C68E00]">Home</a></li>
+                <li><a href="{{ path('app_services') }}" class="hover:text-[#C68E00]">Services</a></li>
+                <li><a href="{{ path('app_about') }}" class="hover:text-[#C68E00]">About Us</a></li>
+                <li><a href="{{ path('app_booking') }}" class="hover:text-[#C68E00]">Booking</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-heading font-bold text-[#C68E00] text-sm uppercase tracking-wider mb-4">Services</h4>
+            <ul class="space-y-2 text-xs text-gray-300 font-heading">
+                <li>Makeup Artistry</li>
+                <li>Hair Styling &amp; Color</li>
+                <li>Nail Care &amp; Gel</li>
+                <li>Cosmetology &amp; Facial</li>
+                <li>SPA Procedures</li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-heading font-bold text-[#C68E00] text-sm uppercase tracking-wider mb-4">Contact Info</h4>
+            <p class="text-xs text-gray-300 leading-relaxed mb-2"><i class="ti ti-map-pin text-[#C68E00] mr-2"></i>143 Dauin St., Baslay</p>
+            <p class="text-xs text-gray-300 mb-2"><i class="ti ti-mail text-[#C68E00] mr-2"></i>trunobeautysalon143@gmail.com</p>
+            <p class="text-xs text-gray-300"><i class="ti ti-phone text-[#C68E00] mr-2"></i>246-917-5787</p>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 pt-6 border-t border-gray-800 text-center text-xs text-gray-500">
+        &copy; {{ 'now'|date('Y') }} Truno Beauty Salon. All rights reserved.
+    </div>
+</footer>

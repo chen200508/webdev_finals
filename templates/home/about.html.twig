@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Truno Beauty Salon · About Us{% endblock %}
+
+{% block body %}
+<section id="about_section" class="scroll-mt-16 section-reveal">
+    <div class="bg-[#FBF4DE] min-h-screen py-4 font-body">
+
+        <!-- 1. Top Heading Title -->
+        <div class="text-center mb-8 reveal-on-scroll">
+            <h1 class="text-5xl md:text-6xl font-heading font-bold text-[#D49A26] tracking-wide">
+                About &nbsp; Us
+            </h1>
+        </div>
+
+        <!-- 2. Main Salon Hero Image -->
+        <div class="w-full max-w-7xl mx-auto px-4 mb-16 reveal-on-scroll">
+            <div class="w-full h-[380px] md:h-[550px] overflow-hidden shadow-sm">
+                <img src="{{ asset('images/7.webp') }}"
+                     alt="S Beauty Salon Interior"
+                     class="w-full h-full object-cover">
+            </div>
+        </div>
+
+        <!-- 3. "We can create what you imagine" Section -->
+        <div class="max-w-5xl mx-auto px-6 mb-16 text-center reveal-on-scroll">
+            <h2 class="text-3xl md:text-4xl font-heading font-bold text-[#D49A26] mb-8">
+                We can create what you imagine
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-8 text-left text-sm md:text-base text-gray-800 leading-relaxed font-body">
+                <div class="space-y-4">
+                    <p>
+                        Bring your vision to life with personalized beauty treatments crafted by our expert team. From stunning hair styling to detailed nail care, we turn your ideas into reality.
+                    </p>
+                    <p>
+                        Where expert artistry meets high-end care. Relax and let our skilled specialists bring out your very best look.
+                    </p>
+                </div>
+                <div class="space-y-4">
+                    <p>
+                        Your beauty journey starts here—experience full-service care designed around your unique style and needs.
+                    </p>
+                    <p>
+                        where passion meets expertise. Whether you're refreshing your look or trying something bold and new, we are here to craft your perfect style.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Our Services / S Beauty Salon Section -->
+        <div class="max-w-5xl mx-auto px-4 mb-20 reveal-on-scroll">
+            <div class="grid md:grid-cols-2 gap-10 items-center">
+                <!-- Left Portrait Image -->
+                <div class="rounded-xl overflow-hidden shadow-md h-[400px] md:h-[480px]">
+                    <img src="{{ asset('images/Studio.webp') }}"
+                         loading="lazy" decoding="async"
+                         alt="S Beauty Salon Model"
+                         class="w-full h-full object-cover">
+                </div>
+
+                <!-- Right Text Content -->
+                <div class="space-y-5">
+                    <h2 class="text-3xl md:text-4xl font-heading font-bold text-[#D49A26]">
+                        Our Services / S Beauty Salon
+                    </h2>
+
+                    <div class="space-y-4 text-xs md:text-sm text-gray-800 leading-relaxed font-body">
+                        <p>
+                            <strong class="font-semibold text-gray-900">Signature Makeup Artistry:</strong> Expertly crafted looks-from bold, high-fashion glam to refined, timeless elegance tailored for any occasion.
+                        </p>
+                        <p>
+                            <strong class="font-semibold text-gray-900">Precision Hair Styling &amp; Color:</strong> Modern cuts, custom color transformations, and professional blowouts designed to suit your personal style.
+                        </p>
+                        <p>
+                            <strong class="font-semibold text-gray-900">Rejuvenating Skincare:</strong> Customized facial treatments and clinical prep designed to hydrate, restore, and give your skin a luminous glow.
+                        </p>
+                        <p>
+                            <strong class="font-semibold text-gray-900">Lash, Brow &amp; Nail Refinement:</strong> Meticulous grooming services focused on accentuating your natural features with precision and care.
+                        </p>
+                    </div>
+
+                    <div class="pt-2">
+                        <a href="{{ path('app_services') }}"
+                           class="inline-block bg-[#C68E00] hover:bg-[#b07e00] text-white font-heading font-semibold px-8 py-3 rounded-md transition-colors shadow-sm text-sm">
+                            Learn more
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Our Team Section -->
+        <div class="max-w-6xl mx-auto px-4 mb-20 reveal-on-scroll">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-heading font-bold text-[#D49A26]">
+                    Our Team
+                </h2>
+                <p class="text-xs md:text-sm text-gray-600 font-medium mt-1">
+                    Meet our professionals
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+                {% for member in teamMembers %}
+                    <div class="text-center group reveal-item">
+                        <div class="w-full h-80 sm:h-84 md:h-96 mx-auto overflow-hidden mb-3">
+                            <img src="{{ asset(member.image) }}"
+                                 loading="lazy" decoding="async"
+                                 alt="{{ member.name }}"
+                                 class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105">
+                        </div>
+                        <h3 class="text-base md:text-lg font-heading font-bold text-gray-900">{{ member.name }}</h3>
+                        <p class="text-xs text-gray-500 font-medium mb-2">{{ member.title }}</p>
+
+                        <!-- Social Icons -->
+                        <div class="flex items-center justify-center space-x-2 text-[#C68E00]">
+                            <a href="#" class="w-6 h-6 rounded-full bg-amber-100/70 hover:bg-[#C68E00] hover:text-white flex items-center justify-center text-xs transition-colors" aria-label="Facebook">
+                                <i class="ti ti-brand-facebook"></i>
+                            </a>
+                            <a href="#" class="w-6 h-6 rounded-full bg-amber-100/70 hover:bg-[#C68E00] hover:text-white flex items-center justify-center text-xs transition-colors" aria-label="Twitter/X">
+                                <i class="ti ti-brand-x"></i>
+                            </a>
+                            <a href="#" class="w-6 h-6 rounded-full bg-amber-100/70 hover:bg-[#C68E00] hover:text-white flex items-center justify-center text-xs transition-colors" aria-label="Instagram">
+                                <i class="ti ti-brand-instagram"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 7. Promo Banner Section -->
+        <section class="relative w-full mb-16 reveal-on-scroll">
+            <img src="{{ asset('images/cta.png') }}" loading="lazy" decoding="async" alt="Promo Banner" class="w-full h-auto object-cover block">
+            <div class="absolute inset-0 bg-black/45 flex items-center justify-center text-center p-8">
+                <div class="text-white max-w-2xl relative z-10">
+                    <p class="text-3xl md:text-5xl font-serif tracking-wider font-light mb-2">
+                        -25% Off
+                    </p>
+                    <h2 class="text-4xl md:text-6xl font-serif font-bold mb-8">
+                        Make up &amp; Nail care
+                    </h2>
+                    <a href="{{ path('app_booking') }}"
+                       class="inline-block bg-[#D49A26] hover:bg-[#b07e00] text-white font-heading font-semibold px-6 md:px-10 py-3 md:py-4 rounded-md transition-colors shadow-md text-sm md:text-lg">
+                        Book now
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</section>
+{% endblock %}
+

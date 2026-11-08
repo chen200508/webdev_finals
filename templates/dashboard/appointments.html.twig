@@ -1,0 +1,397 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Appointments · S Beauty Salon{% endblock %}
+
+{% block styles %}
+    td { vertical-align: middle; }
+    select, input { font: inherit; }
+    button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 6px 12px; font-weight: 700; cursor: pointer; font-family: "Segoe UI", sans-serif; transition: background 0.15s; }
+    button:hover { background: #a87700; }
+
+    /* Action Buttons Row */
+    .action-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 11px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: "Segoe UI", sans-serif;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-edit {
+        background: rgba(198, 142, 0, 0.12);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.35);
+    }
+    .btn-edit:hover {
+        background: #C68E00;
+        color: #ffffff;
+    }
+    .btn-delete {
+        background: rgba(220, 38, 38, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.28);
+    }
+    .btn-delete:hover {
+        background: #dc2626;
+        color: #ffffff;
+    }
+
+    /* Status Form in Table */
+    .status-form {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        white-space: nowrap;
+    }
+    .status-select {
+        padding: 5px 10px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 8px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 13px;
+    }
+
+    /* Edit Appointment Modal */
+    .salon-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .salon-modal-backdrop.is-open {
+        display: flex;
+    }
+    .salon-modal {
+        width: 100%;
+        max-width: 560px;
+        background: var(--card-bg, #ffffff);
+        color: var(--main-text, #1f2937);
+        border: 1px solid var(--card-border, rgba(198, 142, 0, 0.3));
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    }
+    .salon-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .salon-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 22px;
+    }
+    .salon-modal-title i {
+        color: #C68E00;
+        font-size: 24px;
+    }
+    .salon-modal-close {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--input-border, #d1d5db);
+        color: var(--main-muted, #4b5563);
+        padding: 0;
+        font-size: 18px;
+    }
+    .salon-modal-close:hover {
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        border-color: #C68E00;
+    }
+    .salon-modal-sub {
+        margin: -6px 0 18px;
+        font-size: 13px;
+        color: var(--main-sub, #6b7280);
+        font-family: "Segoe UI", sans-serif;
+    }
+    .edit-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .edit-grid .full-span {
+        grid-column: 1 / -1;
+    }
+    .field {
+        width: 100%;
+        margin-top: 6px;
+        padding: 9px 12px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 10px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 14px;
+        font-family: "Segoe UI", sans-serif;
+    }
+    .field:focus {
+        outline: none;
+        border-color: #C68E00;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    }
+    label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--main-muted, #4b5563);
+        font-family: "Segoe UI", sans-serif;
+    }
+    .salon-modal-foot {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid var(--table-border, #e5e7eb);
+    }
+    .btn-cancel {
+        background: transparent;
+        color: var(--main-muted, #4b5563);
+        border: 1px solid var(--input-border, #d1d5db);
+        padding: 8px 16px;
+    }
+    .btn-cancel:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--main-text, #1f2937);
+    }
+    .btn-save {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+    }
+
+    @media (max-width: 640px) {
+        .edit-grid { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block content %}
+    {% set statuses = {1: 'Pending', 2: 'Confirmed', 3: 'Completed', 4: 'Cancelled'} %}
+    {% set staffMap = {} %}
+    {% for member in staff|default([]) %}
+        {% set staffMap = staffMap|merge({(member.id): (member.first_name ~ ' ' ~ member.last_name)|trim}) %}
+    {% endfor %}
+
+    <h1>Appointments</h1>
+    <p class="lede">Manage scheduled appointments, update statuses, or edit booking details.</p>
+
+    <section class="card">
+        <div style="overflow-x:auto;">
+            <table
+                data-datatable
+                data-page-length="10"
+                data-search-placeholder="Search appointments..."
+                data-empty-text="No appointments on the book."
+                data-filter-columns='[{"index": 2, "label": "Service"}, {"index": 3, "label": "Artist"}, {"index": 5, "label": "Status", "options": ["Pending", "Confirmed", "Completed", "Cancelled"]}]'
+            >
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Client</th>
+                        <th>Service</th>
+                        <th>Artist</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th data-orderable="false">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                        {% set statusLabel = statuses[appointment.status_id] ?? 'Pending' %}
+                        {% set artistName = staffMap[appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id) %}
+                        <tr>
+                            <td style="white-space: nowrap;">
+                                <strong>{{ appointment.appointment_date|date('M j, Y') }}</strong><br>
+                                <span class="muted">{{ appointment.start_time|date('g:i A') }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ appointment.customer_name }}</strong><br>
+                                <span class="muted">{{ appointment.email }}</span>
+                            </td>
+                            <td data-filter-value="{{ appointment.service_name }}">{{ appointment.service_name }}</td>
+                            <td data-filter-value="{{ artistName }}">{{ artistName }}</td>
+                            <td style="white-space: nowrap;"><strong>₱{{ appointment.price }}</strong></td>
+                            <td data-filter-value="{{ statusLabel }}" data-search="{{ statusLabel }}">
+                                <form class="status-form" method="post" action="{{ path('admin_appointment_status') }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                    <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                    <select class="status-select" name="status_id" aria-label="Status for {{ appointment.customer_name }}">
+                                        {% for id, label in statuses %}
+                                            <option value="{{ id }}" {% if appointment.status_id == id %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit">Update</button>
+                                </form>
+                            </td>
+                            <td>
+                                <div class="action-group">
+                                    <button
+                                        type="button"
+                                        class="btn-action btn-edit"
+                                        data-edit-appointment
+                                        data-id="{{ appointment.id }}"
+                                        data-client="{{ appointment.customer_name }}"
+                                        data-staff-id="{{ appointment.staff_id }}"
+                                        data-service-id="{{ appointment.service_id }}"
+                                        data-date="{{ appointment.appointment_date }}"
+                                        data-time="{{ appointment.start_time|slice(0, 5) }}"
+                                        data-price="{{ appointment.price }}"
+                                    >
+                                        <i class="ti ti-edit"></i>
+                                        <span>Edit</span>
+                                    </button>
+
+                                    <form method="post" action="{{ path('admin_appointment_delete') }}" onsubmit="return confirm('Delete this appointment?');" style="margin:0;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                        <button class="btn-action btn-delete" type="submit">
+                                            <i class="ti ti-trash"></i>
+                                            <span>Delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {# Centralized Edit Appointment Modal #}
+    <div class="salon-modal-backdrop" id="editAppointmentModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editModalTitle">
+                    <i class="ti ti-calendar-Bolt ti-edit"></i>
+                    <span>Edit Appointment</span>
+                </h2>
+                <button type="button" class="salon-modal-close" id="closeEditModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub" id="editModalClientSub">Update booking details below.</p>
+
+            <form method="post" action="{{ path('admin_appointment_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" id="modalAppointmentId" value="">
+
+                <div class="edit-grid">
+                    <label class="full-span">Service
+                        <select class="field" name="service_id" id="modalServiceId" required>
+                            {% for service in services|default([]) %}
+                                <option value="{{ service.id }}">{{ service.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>Artist
+                        <select class="field" name="staff_id" id="modalStaffId" required>
+                            {% for member in staff|default([]) %}
+                                <option value="{{ member.id }}">{{ member.first_name }} {{ member.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>Price (₱)
+                        <input class="field" type="number" name="price" id="modalPrice" min="0" step="0.01" required>
+                    </label>
+
+                    <label>Date
+                        <input class="field" type="date" name="appointment_date" id="modalDate" required>
+                    </label>
+
+                    <label>Time
+                        <input class="field" type="time" name="start_time" id="modalTime" required>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" id="cancelEditModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save details</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('editAppointmentModal');
+        const closeBtn = document.getElementById('closeEditModal');
+        const cancelBtn = document.getElementById('cancelEditModal');
+        const idInput = document.getElementById('modalAppointmentId');
+        const serviceInput = document.getElementById('modalServiceId');
+        const staffInput = document.getElementById('modalStaffId');
+        const priceInput = document.getElementById('modalPrice');
+        const dateInput = document.getElementById('modalDate');
+        const timeInput = document.getElementById('modalTime');
+        const clientSub = document.getElementById('editModalClientSub');
+
+        function closeModal() {
+            if (modal) modal.classList.remove('is-open');
+        }
+
+        document.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('[data-edit-appointment]');
+            if (editBtn && modal) {
+                idInput.value = editBtn.dataset.id || '';
+                serviceInput.value = editBtn.dataset.serviceId || '';
+                staffInput.value = editBtn.dataset.staffId || '';
+                priceInput.value = editBtn.dataset.price || '';
+                dateInput.value = editBtn.dataset.date || '';
+                timeInput.value = editBtn.dataset.time || '';
+                if (clientSub) {
+                    clientSub.textContent = editBtn.dataset.client
+                        ? 'Updating booking for ' + editBtn.dataset.client
+                        : 'Update booking details below.';
+                }
+                modal.classList.add('is-open');
+            }
+        });
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    });
+</script>
+{% endblock %}

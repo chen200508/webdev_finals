@@ -1,0 +1,48 @@
+{% set route = app.request.attributes.get('_route') %}
+
+<aside class="desk-sidebar" aria-label="Beauty Salon">
+    <a class="desk-brand" href="{{ path('app_dashboard') }}">
+        <img class="desk-logo" src="{{ asset('images/secondary.webp') }}" alt="Beauty Salon">
+    </a>
+    <nav class="desk-nav-wrap" aria-label="Dashboard sections">
+        <p class="desk-label">Beauty Salon</p>
+        <div class="desk-links">
+            <a class="desk-link {{ route == 'app_dashboard' ? 'is-on' : '' }}" href="{{ path('app_dashboard') }}">
+                <span class="desk-link-label"><i class="ti ti-layout-dashboard"></i><span>Overview</span></span>
+            </a>
+            <a class="desk-link {{ route == 'admin_appointments' ? 'is-on' : '' }}" href="{{ path('admin_appointments') }}">
+                <span class="desk-link-label"><i class="ti ti-calendar-event"></i><span>Appointments</span></span>
+                {% if counts.bookings is defined %}
+                    <span class="desk-count">{{ counts.bookings }}</span>
+                {% endif %}
+            </a>
+            <a class="desk-link {{ route == 'admin_services' ? 'is-on' : '' }}" href="{{ path('admin_services') }}">
+                <span class="desk-link-label"><i class="ti ti-sparkles"></i><span>Services</span></span>
+                {% if counts.services is defined %}
+                    <span class="desk-count">{{ counts.services }}</span>
+                {% endif %}
+            </a>
+            <a class="desk-link {{ route == 'admin_customers' ? 'is-on' : '' }}" href="{{ path('admin_customers') }}">
+                <span class="desk-link-label"><i class="ti ti-users"></i><span>Customers</span></span>
+                {% if counts.clients is defined %}
+                    <span class="desk-count">{{ counts.clients }}</span>
+                {% endif %}
+            </a>
+            <a class="desk-link {{ route == 'admin_users' ? 'is-on' : '' }}" href="{{ path('admin_users') }}">
+                <span class="desk-link-label"><i class="ti ti-user-shield"></i><span>Users</span></span>
+                {% if counts.users is defined %}
+                    <span class="desk-count">{{ counts.users }}</span>
+                {% endif %}
+            </a>
+            <a class="desk-link {{ route == 'admin_activity_logs' ? 'is-on' : '' }}" href="{{ path('admin_activity_logs') }}">
+                <span class="desk-link-label"><i class="ti ti-activity"></i><span>Activity Logs</span></span>
+                {% if counts.logs is defined %}
+                    <span class="desk-count">{{ counts.logs }}</span>
+                {% endif %}
+            </a>
+        </div>
+    </nav>
+    <div class="desk-foot">
+        <p class="desk-address"><i class="ti ti-map-pin" style="color:#C68E00;margin-right:6px;"></i>143 Dauin St., Baslay</p>
+    </div>
+</aside>
