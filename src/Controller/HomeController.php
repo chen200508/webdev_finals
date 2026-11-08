@@ -103,16 +103,6 @@ class HomeController extends AbstractController
         ]);
     }
 
-    #[Route('/logout', name: 'app_logout', methods: ['GET', 'POST'])]
-    public function logout(Request $request): Response
-    {
-        if ($request->hasSession()) {
-            $request->getSession()->invalidate();
-        }
-
-        return $this->redirectToRoute('app_home');
-    }
-
     private function handleAppointmentSubmission(Request $request, string $redirectRoute): Response
     {
         if (!$this->isCsrfTokenValid('book_appointment', (string) $request->request->get('_token'))) {

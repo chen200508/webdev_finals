@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Truno Beauty Salon · Sign In{% endblock %}
+
+{% block body %}
+<section class="bg-[#FBF4DE] py-16 px-4 flex items-center justify-center min-h-[75vh]">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-lg border border-[#C68E00]/25 p-8 md:p-10">
+        <div class="text-center mb-8">
+            <span class="text-xs uppercase tracking-widest text-[#C68E00] font-bold font-heading">Welcome Back</span>
+            <h1 class="h3 text-3xl font-heading font-bold text-gray-900 mt-1">Please sign in</h1>
+            <p class="text-xs text-gray-500 mt-2">Enter your credentials to access your account</p>
+        </div>
+
+        <form method="post" class="space-y-5">
+            {% if error %}
+                <div class="alert alert-danger rounded-xl bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-xs font-semibold flex items-center gap-2">
+                    <i class="ti ti-alert-circle text-base"></i>
+                    <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+                </div>
+            {% endif %}
+
+            {% if app.user %}
+                <div class="mb-3 rounded-xl bg-amber-50 border border-[#C68E00]/30 text-gray-800 px-4 py-3 text-xs flex items-center justify-between">
+                    <span>You are logged in as <strong>{{ app.user.userIdentifier }}</strong></span>
+                    <a href="{{ logout_path() }}" class="text-[#C68E00] font-bold underline hover:text-black">Logout</a>
+                </div>
+            {% endif %}
+
+            <div>
+                <label for="inputEmail" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Email</label>
+                <input
+                    type="email"
+                    value="{{ last_username }}"
+                    name="email"
+                    id="inputEmail"
+                    class="form-control w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C68E00] focus:ring-2 focus:ring-[#C68E00]/20 outline-none text-sm text-gray-800"
+                    autocomplete="email"
+                    placeholder="e.g. example@email.com"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div>
+                <label for="inputPassword" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Password</label>
+                <div class="relative">
+                    <input
+                        type="password"
+                        name="password"
+                        id="inputPassword"
+                        class="form-control w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C68E00] focus:ring-2 focus:ring-[#C68E00]/20 outline-none text-sm text-gray-800 pr-14"
+                        autocomplete="current-password"
+                        placeholder="••••••••"
+                        required
+                    >
+                    <button
+                        type="button"
+                        data-password-toggle="inputPassword"
+                        aria-label="Show password"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C68E00] hover:text-black"
+                    >
+                        Show
+                    </button>
+                </div>
+            </div>
+
+            <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+
+            <div class="checkbox flex items-center justify-between text-xs text-gray-600">
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" name="_remember_me" class="rounded border-gray-300 text-[#C68E00] focus:ring-[#C68E00]">
+                    <span>Remember me</span>
+                </label>
+            </div>
+
+            <button class="btn btn-lg btn-primary w-full bg-[#C68E00] hover:bg-[#a87700] text-white font-heading font-bold text-sm py-3 px-6 rounded-xl transition-colors shadow-md cursor-pointer" type="submit">
+                Sign in
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}
