@@ -2,10 +2,11 @@
 
 {% block title %}Truno Beauty Salon · Sign In{% endblock %}
 
+{% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
 
 {% block body %}
-<section class="relative bg-[#FBF4DE] py-12 md:py-16 px-4 flex items-center justify-center min-h-[calc(100vh-5rem)] overflow-hidden">
+<section class="relative bg-[#FBF4DE] py-12 md:py-16 px-4 flex items-center justify-center min-h-screen overflow-hidden">
     <!-- Background Image with Lower Opacity -->
     <img
         src="{{ asset('images/hero.webp') }}"
@@ -43,13 +44,6 @@
                     <div class="alert alert-danger rounded-xl bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-xs font-semibold flex items-center gap-2">
                         <i class="ti ti-alert-circle text-base"></i>
                         <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
-                    </div>
-                {% endif %}
-
-                {% if app.user %}
-                    <div class="mb-3 rounded-xl bg-amber-50 border border-[#C68E00]/30 text-gray-800 px-4 py-3 text-xs flex items-center justify-between">
-                        <span>You are logged in as <strong>{{ app.user.userIdentifier }}</strong></span>
-                        <a href="{{ logout_path() }}" class="text-[#C68E00] font-bold underline hover:text-black">Logout</a>
                     </div>
                 {% endif %}
 

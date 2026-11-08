@@ -90,7 +90,9 @@
     <!-- Top-Right Fixed Toast Container -->
     <div id="toastContainer" class="fixed top-5 right-5 z-[99999] flex flex-col space-y-3 max-w-sm pointer-events-none"></div>
 
-    {% include 'partials/navbar.html.twig' %}
+    {% block navbar %}
+        {% include 'partials/navbar.html.twig' %}
+    {% endblock %}
 
     <script>
         window.showToast = function(message, type = 'success', duration = 2500) {

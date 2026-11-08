@@ -29,4 +29,13 @@ class SecurityController extends AbstractController
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
+
+    #[Route(path: '/404', name: 'app_not_found', methods: ['GET'])]
+    public function notFound(): Response
+    {
+        $response = $this->render('security/404.html.twig');
+        $response->setStatusCode(Response::HTTP_NOT_FOUND);
+
+        return $response;
+    }
 }

@@ -25,12 +25,8 @@
 
         <!-- Desktop Auth Action -->
         <div class="hidden md:flex items-center space-x-3 font-heading text-sm font-semibold">
-            {% if app.user %}
-                <a href="{{ path('app_logout') }}" class="px-4 py-2 rounded-xl border border-[#C68E00] text-[#C68E00] hover:bg-[#C68E00] hover:text-white transition-colors">Logout</a>
-            {% else %}
-                <a href="{{ path('app_login') }}" class="{{ currentRoute == 'app_login' ? 'text-[#C68E00] border-b-2 border-[#C68E00]' : 'text-gray-700 hover:text-[#C68E00]' }} px-2 py-1 transition-colors">Sign In</a>
-                <a href="{{ path('app_register') }}" class="px-4 py-2 rounded-xl {{ currentRoute == 'app_register' ? 'bg-[#a87700] text-white' : 'bg-[#C68E00] text-white hover:bg-[#a87700]' }} transition-colors shadow-sm">Get Started</a>
-            {% endif %}
+            <a href="{{ path('app_login') }}" class="{{ currentRoute == 'app_login' ? 'text-[#C68E00] border-b-2 border-[#C68E00]' : 'text-gray-700 hover:text-[#C68E00]' }} px-2 py-1 transition-colors">Sign In</a>
+            <a href="{{ path('app_register') }}" class="px-4 py-2 rounded-xl {{ currentRoute == 'app_register' ? 'bg-[#a87700] text-white' : 'bg-[#C68E00] text-white hover:bg-[#a87700]' }} transition-colors shadow-sm">Get Started</a>
         </div>
 
         <!-- Mobile Hamburger Button -->
@@ -47,12 +43,8 @@
         <a href="{{ path('app_contact') }}" id="mob_nav_contact" class="mob-nav-link block py-2.5 px-4 rounded-lg transition-colors {{ isContactActive ? 'text-[#C68E00] bg-amber-100/60' : 'text-gray-700 hover:text-[#C68E00] hover:bg-amber-50/50' }}">Contact Us</a>
         <a href="{{ path('app_booking') }}" id="mob_nav_booking" class="mob-nav-link block py-2.5 px-4 rounded-lg transition-colors {{ isBookingActive ? 'text-[#C68E00] bg-amber-100/60' : 'text-gray-700 hover:text-[#C68E00] hover:bg-amber-50/50' }}">Booking</a>
         <div class="pt-2 border-t border-[#C68E00]/20 flex flex-col space-y-2">
-            {% if app.user %}
-                <a href="{{ path('app_logout') }}" id="mob_nav_logout" class="mob-nav-link block py-2.5 px-4 rounded-lg text-center bg-rose-600 text-white hover:bg-rose-700 transition-colors">Logout</a>
-            {% else %}
-                <a href="{{ path('app_login') }}" id="mob_nav_login" class="mob-nav-link block py-2.5 px-4 rounded-lg text-center border border-[#C68E00] text-[#C68E00] hover:bg-amber-100/60 transition-colors">Sign In</a>
-                <a href="{{ path('app_register') }}" id="mob_nav_register" class="mob-nav-link block py-2.5 px-4 rounded-lg text-center bg-[#C68E00] text-white hover:bg-[#a87700] transition-colors">Get Started</a>
-            {% endif %}
+            <a href="{{ path('app_login') }}" id="mob_nav_login" class="mob-nav-link block py-2.5 px-4 rounded-lg text-center border border-[#C68E00] text-[#C68E00] hover:bg-amber-100/60 transition-colors">Sign In</a>
+            <a href="{{ path('app_register') }}" id="mob_nav_register" class="mob-nav-link block py-2.5 px-4 rounded-lg text-center bg-[#C68E00] text-white hover:bg-[#a87700] transition-colors">Get Started</a>
         </div>
     </div>
 </header>

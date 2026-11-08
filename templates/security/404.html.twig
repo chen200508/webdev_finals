@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Truno Beauty Salon · 404 Page Under Development{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body %}
+<section class="relative bg-[#FBF4DE] py-12 md:py-16 px-4 flex items-center justify-center min-h-screen overflow-hidden">
+    <!-- Background Image with Lower Opacity (Same as Login & Register) -->
+    <img
+        src="{{ asset('images/hero.webp') }}"
+        alt=""
+        aria-hidden="true"
+        class="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none select-none"
+    >
+    <div class="absolute inset-0 bg-[#FBF4DE]/50 pointer-events-none"></div>
+
+    <!-- Centralized Responsive Card Container -->
+    <div class="relative z-10 w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-[#C68E00]/25 overflow-hidden p-8 sm:p-10 md:p-14 text-center flex flex-col items-center">
+        <!-- Eyebrow & 404 Code -->
+        <span class="text-xs uppercase tracking-[0.25em] text-[#C68E00] font-bold font-heading">Error 404 · Access Restricted</span>
+        <h1 class="text-6xl sm:text-7xl md:text-8xl font-heading font-bold text-[#C68E00] leading-none mt-2">404</h1>
+
+        <!-- Heading & Message -->
+        <h2 class="text-2xl sm:text-3xl font-heading font-bold text-gray-900 mt-4">This Page is Under Development</h2>
+        <p class="text-xs sm:text-sm text-gray-600 mt-3 max-w-md leading-relaxed">
+            The <strong class="font-bold text-gray-900">User</strong> and <strong class="font-bold text-gray-900">Staff</strong> dashboards are currently under development and will be available soon. At this time, dashboard access is restricted to Administrator accounts only.
+        </p>
+
+        <!-- Action Button -->
+        <div class="mt-7 w-full sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+                href="{{ path('app_login') }}"
+                class="btn btn-lg btn-primary w-full sm:w-auto inline-flex items-center justify-center bg-[#C68E00] hover:bg-[#a87700] text-white font-heading font-bold text-sm py-3 px-8 rounded-xl transition-colors shadow-md cursor-pointer"
+            >
+                <span>Back to Login</span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

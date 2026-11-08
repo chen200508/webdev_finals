@@ -20,6 +20,7 @@ security:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\AppAuthenticator
+            access_denied_url: /404
             logout:
                 path: app_logout
                 # where to redirect after logout
@@ -41,8 +42,7 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/dashboard, roles: ROLE_ADMIN }
 
 when@test:
     security:
