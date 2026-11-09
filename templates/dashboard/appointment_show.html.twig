@@ -1,0 +1,1150 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Appointment #{{ appointment.id }} · S Beauty Salon{% endblock %}
+
+{% block styles %}
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #C68E00;
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 18px;
+        transition: color 0.15s, transform 0.15s;
+        text-decoration: none;
+    }
+    .btn-back:hover {
+        color: #a87700;
+        transform: translateX(-3px);
+    }
+
+    .detail-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .detail-title-group h1 {
+        margin: 4px 0 6px;
+        font-size: 28px;
+    }
+
+    .detail-actions-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* Badges */
+    .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-confirmed { background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-completed { background: rgba(59, 130, 246, 0.15); color: #1d4ed8; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .status-cancelled { background: rgba(239, 68, 68, 0.15); color: #b91c1c; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* Action Buttons */
+    .btn-detail-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: var(--font-admin);
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 0;
+        text-decoration: none;
+    }
+    .btn-create-main {
+        background: #C68E00;
+        color: #ffffff;
+    }
+    .btn-create-main:hover {
+        background: #a87700;
+    }
+    .btn-edit-main {
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.35);
+    }
+    .btn-edit-main:hover {
+        background: #C68E00;
+        color: #ffffff;
+    }
+    .btn-delete-main {
+        background: rgba(220, 38, 38, 0.1);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+    .btn-delete-main:hover {
+        background: #dc2626;
+        color: #ffffff;
+    }
+
+    /* Fast Status Update Form */
+    .status-form-main {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .status-select-main {
+        padding: 7px 12px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 10px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 13px;
+    }
+    .btn-status-update {
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.35);
+        padding: 7px 14px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .btn-status-update:hover {
+        background: #C68E00;
+        color: #ffffff;
+    }
+
+    /* Centralized Grid Layout */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1.2fr;
+        gap: 22px;
+        align-items: start;
+    }
+
+    .detail-card {
+        background: var(--card-bg, #ffffff);
+        color: var(--main-text, #1f2937);
+        border: 1px solid var(--card-border, rgba(198, 142, 0, 0.25));
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        margin-bottom: 22px;
+    }
+    .detail-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .table-section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+        border-bottom: 2px solid rgba(198, 142, 0, 0.3);
+    }
+    .table-section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--main-text, #1f2937);
+    }
+    .table-section-title i {
+        color: #C68E00;
+        font-size: 19px;
+    }
+
+    /* Section Card Action Buttons */
+    .btn-card-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: var(--font-admin);
+        background: rgba(198, 142, 0, 0.12);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.3);
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+    .btn-card-action:hover {
+        background: #C68E00;
+        color: #ffffff;
+    }
+    .btn-card-delete {
+        background: rgba(220, 38, 38, 0.08);
+        color: #dc2626;
+        border-color: rgba(220, 38, 38, 0.25);
+    }
+    .btn-card-delete:hover {
+        background: #dc2626;
+        color: #ffffff;
+    }
+
+    /* Clean Tables */
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-admin);
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    .detail-table th {
+        width: 38%;
+        min-width: 140px;
+        padding: 11px 14px;
+        color: var(--main-muted, #4b5563);
+        font-weight: 600;
+        font-size: 13px;
+        text-align: left;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+        background: rgba(0, 0, 0, 0.015);
+    }
+    .detail-table td {
+        padding: 11px 14px;
+        color: var(--main-text, #1f2937);
+        font-size: 14px;
+        text-align: right;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .detail-table tr:last-child th,
+    .detail-table tr:last-child td {
+        border-bottom: none;
+    }
+    .detail-table tr.total-row th {
+        color: #C68E00;
+        font-size: 14px;
+        font-weight: 700;
+        background: rgba(198, 142, 0, 0.08);
+        border-top: 1px solid rgba(198, 142, 0, 0.25);
+    }
+    .detail-table tr.total-row td {
+        background: rgba(198, 142, 0, 0.08);
+        border-top: 1px solid rgba(198, 142, 0, 0.25);
+    }
+    .total-amount-highlight {
+        font-size: 20px;
+        font-weight: 800;
+        color: #C68E00;
+    }
+
+    body[data-theme="dark"] .detail-table th {
+        background: rgba(255, 255, 255, 0.02);
+    }
+    body[data-theme="dark"] .detail-table tr.total-row th,
+    body[data-theme="dark"] .detail-table tr.total-row td {
+        background: rgba(198, 142, 0, 0.15);
+    }
+
+    /* Modal Backdrop & Dialog */
+    .salon-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .salon-modal-backdrop.is-open {
+        display: flex;
+    }
+    .salon-modal {
+        width: 100%;
+        max-width: 560px;
+        background: var(--card-bg, #ffffff);
+        color: var(--main-text, #1f2937);
+        border: 1px solid var(--card-border, rgba(198, 142, 0, 0.3));
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    }
+    .salon-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .salon-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 21px;
+    }
+    .salon-modal-title i {
+        color: #C68E00;
+        font-size: 24px;
+    }
+    .salon-modal-close {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--input-border, #d1d5db);
+        color: var(--main-muted, #4b5563);
+        padding: 0;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    .salon-modal-close:hover {
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        border-color: #C68E00;
+    }
+    .salon-modal-sub {
+        font-size: 13px;
+        color: var(--main-sub, #6b7280);
+        margin-top: -8px;
+        margin-bottom: 18px;
+    }
+    .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .modal-grid .full-span {
+        grid-column: 1 / -1;
+    }
+    .field {
+        width: 100%;
+        margin-top: 5px;
+        padding: 9px 12px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 10px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 14px;
+        font-family: var(--font-admin);
+        box-sizing: border-box;
+    }
+    .field:focus {
+        outline: none;
+        border-color: #C68E00;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    }
+    label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--main-muted, #4b5563);
+        font-family: var(--font-admin);
+    }
+    .salon-modal-foot {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--table-border, #e5e7eb);
+    }
+    .btn-cancel {
+        background: transparent;
+        color: var(--main-muted, #4b5563);
+        border: 1px solid var(--input-border, #d1d5db);
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .btn-save {
+        background: #C68E00;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-save:hover { background: #a87700; }
+
+    @media (max-width: 860px) {
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block content %}
+    {% set statuses = {1: 'Pending', 2: 'Confirmed', 3: 'Completed', 4: 'Cancelled'} %}
+    {% set statusLabel = statuses[appointment.status_id] ?? 'Pending' %}
+
+    <a href="{{ path('admin_appointments') }}" class="btn-back">
+        <i class="ti ti-arrow-left"></i>
+        <span>Back to Appointments</span>
+    </a>
+
+    <div class="detail-head">
+        <div class="detail-title-group">
+            <p class="eyebrow">Appointment Details</p>
+            <h1>Appointment #{{ appointment.id }}</h1>
+            <p class="lede">
+                Scheduled for <strong>{{ appointment.customer_name }}</strong> on {{ appointment.appointment_date|date('l, F j, Y') }} at {{ appointment.start_time|date('g:i A') }}
+            </p>
+        </div>
+
+        <div class="detail-actions-group">
+            <span class="badge-status status-{{ statusLabel|lower }}">
+                <i class="ti ti-circle-filled" style="font-size: 8px;"></i>
+                <span>{{ statusLabel }}</span>
+            </span>
+
+            {# Quick Status Update Form #}
+            <form class="status-form-main" method="post" action="{{ path('admin_appointment_status') }}" style="margin:0;">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                <select class="status-select-main" name="status_id" aria-label="Status for appointment #{{ appointment.id }}">
+                    {% for id, label in statuses %}
+                        <option value="{{ id }}" {% if appointment.status_id == id %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn-status-update" type="submit">Update</button>
+            </form>
+
+            {# Schedule New Appointment (Create) #}
+            <button type="button" class="btn-detail-action btn-create-main" id="openCreateModal">
+                <i class="ti ti-calendar-plus"></i>
+                <span>Schedule New Appointment</span>
+            </button>
+
+            {# Edit Button (Update) #}
+            <button type="button" class="btn-detail-action btn-edit-main" id="openEditModal">
+                <i class="ti ti-edit"></i>
+                <span>Edit Appointment</span>
+            </button>
+
+            {# Delete Button (Delete) #}
+            <form method="post" action="{{ path('admin_appointment_delete') }}" onsubmit="return confirm('Permanently delete appointment #{{ appointment.id }} for {{ appointment.customer_name }}?');" style="margin:0;">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                <button class="btn-detail-action btn-delete-main" type="submit">
+                    <i class="ti ti-trash"></i>
+                    <span>Delete</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {# Centralized Clean Tables Grid #}
+    <div class="detail-grid">
+        {# Left Column: Client, Service & Notes #}
+        <div>
+            {# 1. Client Information Table (Clean table, no avatar) #}
+            <div class="detail-card">
+                <div class="table-section-head">
+                    <h2 class="table-section-title">
+                        <i class="ti ti-user"></i>
+                        <span>Client Information</span>
+                    </h2>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="muted" style="font-size:12px; font-weight:700;">Customer #{{ appointment.customer_id|default('—') }}</span>
+                        <button type="button" class="btn-card-action" id="openEditClientModal" title="Edit client details">
+                            <i class="ti ti-edit"></i>
+                            <span>Edit Client</span>
+                        </button>
+                    </div>
+                </div>
+
+                <table class="detail-table">
+                    <tbody>
+                        <tr>
+                            <th>Customer #</th>
+                            <td>Customer #{{ appointment.customer_id|default('—') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Full Name</th>
+                            <td><strong>{{ appointment.customer_name }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Email Address</th>
+                            <td>{{ appointment.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Contact Phone</th>
+                            <td>{{ appointment.phone|default('N/A') }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {# 2. Treatment & Service Table #}
+            <div class="detail-card">
+                <div class="table-section-head">
+                    <h2 class="table-section-title">
+                        <i class="ti ti-scissors"></i>
+                        <span>Treatment &amp; Service</span>
+                    </h2>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="muted" style="font-size:12px; font-weight:700;">Service #{{ appointment.service_id }}</span>
+                        <button type="button" class="btn-card-action" id="openEditServiceModal" title="Edit treatment & service">
+                            <i class="ti ti-edit"></i>
+                            <span>Edit Service</span>
+                        </button>
+                    </div>
+                </div>
+
+                <table class="detail-table">
+                    <tbody>
+                        <tr>
+                            <th>Service #</th>
+                            <td>Service #{{ appointment.service_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Service Name</th>
+                            <td><strong>{{ appointment.service_name }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Estimated Duration</th>
+                            <td>{{ appointment.duration_minutes }} minutes</td>
+                        </tr>
+                        <tr>
+                            <th>Assigned Stylist / Artist</th>
+                            <td>{{ appointment.staff_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Catalog Rate</th>
+                            <td>₱{{ appointment.price|number_format(2) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {# 3. Customer Notes & Special Requests Table #}
+            <div class="detail-card">
+                <div class="table-section-head">
+                    <h2 class="table-section-title">
+                        <i class="ti ti-notes"></i>
+                        <span>Customer Notes &amp; Special Requests</span>
+                    </h2>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button type="button" class="btn-card-action" id="openEditNotesModal" title="Edit notes">
+                            <i class="ti ti-edit"></i>
+                            <span>Edit Notes</span>
+                        </button>
+                        {% if appointment.customer_notes is defined and appointment.customer_notes|trim != '' %}
+                            <form method="post" action="{{ path('admin_appointment_update') }}" style="margin:0;" onsubmit="return confirm('Clear special styling notes?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                <input type="hidden" name="customer_notes" value="">
+                                <button type="submit" class="btn-card-action btn-card-delete" title="Clear notes">
+                                    <i class="ti ti-eraser"></i>
+                                    <span>Clear</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <table class="detail-table">
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="text-align: left; line-height: 1.6; padding: 14px;">
+                                {% if appointment.customer_notes is defined and appointment.customer_notes|trim != '' %}
+                                    {{ appointment.customer_notes }}
+                                {% else %}
+                                    <span style="color:var(--main-sub,#6b7280);font-style:italic;">No special styling notes, allergies, or custom requests recorded for this booking.</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Right Column: Schedule & Billing Summary #}
+        <div>
+            {# 4. Schedule & Timing Table #}
+            <div class="detail-card">
+                <div class="table-section-head">
+                    <h2 class="table-section-title">
+                        <i class="ti ti-calendar-time"></i>
+                        <span>Schedule &amp; Timing</span>
+                    </h2>
+                    <button type="button" class="btn-card-action" id="openEditScheduleModal" title="Reschedule appointment">
+                        <i class="ti ti-calendar"></i>
+                        <span>Reschedule</span>
+                    </button>
+                </div>
+
+                <table class="detail-table">
+                    <tbody>
+                        <tr>
+                            <th>Date</th>
+                            <td>{{ appointment.appointment_date|date('M j, Y') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Day of Week</th>
+                            <td>{{ appointment.appointment_date|date('l') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Start Time</th>
+                            <td>{{ appointment.start_time|date('g:i A') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Estimated End Time</th>
+                            <td>
+                                {% if appointment.end_time is defined and appointment.end_time != '' %}
+                                    {{ appointment.end_time|date('g:i A') }}
+                                {% else %}
+                                    {{ appointment.start_time|date_modify('+' ~ appointment.duration_minutes ~ ' minutes')|date('g:i A') }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total Duration</th>
+                            <td>{{ appointment.duration_minutes }} mins</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {# 5. Billing & Fee Summary Table #}
+            <div class="detail-card">
+                <div class="table-section-head">
+                    <h2 class="table-section-title">
+                        <i class="ti ti-receipt"></i>
+                        <span>Billing &amp; Fee Summary</span>
+                    </h2>
+                    <button type="button" class="btn-card-action" id="openEditFeeModal" title="Edit fee">
+                        <i class="ti ti-edit"></i>
+                        <span>Edit Fee</span>
+                    </button>
+                </div>
+
+                <table class="detail-table">
+                    <tbody>
+                        <tr>
+                            <th>Service Fee</th>
+                            <td>₱{{ appointment.price|number_format(2) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Taxes &amp; Salon Surcharge</th>
+                            <td>Included</td>
+                        </tr>
+                        <tr class="total-row">
+                            <th>Total Due</th>
+                            <td><span class="total-amount-highlight">₱{{ appointment.price|number_format(2) }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# ---------------- MODALS SECTION ---------------- #}
+
+    {# Modal 1: Edit Client Information #}
+    <div class="salon-modal-backdrop" id="editClientModal" role="dialog" aria-modal="true" aria-labelledby="editClientTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editClientTitle">
+                    <i class="ti ti-user"></i>
+                    <span>Edit Client Information</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="editClientModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Updates client records and automatically syncs with the users database account.</p>
+
+            <form method="post" action="{{ path('admin_customer_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="customer_id" value="{{ appointment.customer_id }}">
+
+                <div class="modal-grid">
+                    <label class="full-span">Full Name
+                        <input class="field" type="text" name="name" value="{{ appointment.customer_name }}" placeholder="e.g. Ana Reyes" required>
+                    </label>
+
+                    <label class="full-span">Email Address
+                        <input class="field" type="email" name="email" value="{{ appointment.email }}" placeholder="e.g. ana@example.com" required>
+                    </label>
+
+                    <label class="full-span">Contact Phone
+                        <input class="field" type="text" name="phone" value="{{ appointment.phone|default('') }}" placeholder="e.g. +63 917 111 2222">
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="editClientModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save Client</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal 2: Edit Treatment & Service #}
+    <div class="salon-modal-backdrop" id="editServiceModal" role="dialog" aria-modal="true" aria-labelledby="editServiceTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editServiceTitle">
+                    <i class="ti ti-scissors"></i>
+                    <span>Edit Treatment &amp; Service</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="editServiceModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Update service catalog selection, artist assignment, and rate.</p>
+
+            <form method="post" action="{{ path('admin_appointment_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+
+                <div class="modal-grid">
+                    <label class="full-span">Service
+                        <select class="field" name="service_id" id="quickServiceSelect" required>
+                            {% for s in services|default([]) %}
+                                <option value="{{ s.id }}" data-price="{{ s.price|default(0) }}" {% if appointment.service_id == s.id %}selected{% endif %}>
+                                    {{ s.name }} (₱{{ s.price|default(0)|number_format(2) }} · {{ s.duration_minutes }} mins)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="full-span">Assigned Stylist / Artist
+                        <select class="field" name="staff_id" required>
+                            {% for member in staff|default([]) %}
+                                <option value="{{ member.id }}" {% if appointment.staff_id == member.id %}selected{% endif %}>
+                                    {{ member.first_name }} {{ member.last_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="full-span">Catalog Rate (₱)
+                        <input class="field" type="number" name="price" id="quickServicePrice" min="0" step="0.01" value="{{ appointment.price }}" required>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="editServiceModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save Service</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal 3: Edit Customer Notes #}
+    <div class="salon-modal-backdrop" id="editNotesModal" role="dialog" aria-modal="true" aria-labelledby="editNotesTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editNotesTitle">
+                    <i class="ti ti-notes"></i>
+                    <span>Customer Notes &amp; Special Requests</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="editNotesModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Add or modify allergies, styling specifications, and booking requests.</p>
+
+            <form method="post" action="{{ path('admin_appointment_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+
+                <div class="modal-grid">
+                    <label class="full-span">Special Notes &amp; Requests
+                        <textarea class="field" name="customer_notes" rows="4" placeholder="Enter special styling requests, allergies, or notes...">{{ appointment.customer_notes|default('') }}</textarea>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="editNotesModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save Notes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal 4: Reschedule (Schedule & Timing) #}
+    <div class="salon-modal-backdrop" id="editScheduleModal" role="dialog" aria-modal="true" aria-labelledby="editScheduleTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editScheduleTitle">
+                    <i class="ti ti-calendar-time"></i>
+                    <span>Reschedule Appointment</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="editScheduleModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Adjust the appointment date and starting time.</p>
+
+            <form method="post" action="{{ path('admin_appointment_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+
+                <div class="modal-grid">
+                    <label>Date
+                        <input class="field" type="date" name="appointment_date" value="{{ appointment.appointment_date }}" required>
+                    </label>
+
+                    <label>Start Time
+                        <input class="field" type="time" name="start_time" value="{{ appointment.start_time|slice(0, 5) }}" required>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="editScheduleModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-calendar"></i>
+                        <span>Update Schedule</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal 5: Edit Billing & Fee #}
+    <div class="salon-modal-backdrop" id="editFeeModal" role="dialog" aria-modal="true" aria-labelledby="editFeeTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editFeeTitle">
+                    <i class="ti ti-receipt"></i>
+                    <span>Edit Billing &amp; Fee Summary</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="editFeeModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Modify service fee and total amount due.</p>
+
+            <form method="post" action="{{ path('admin_appointment_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+
+                <div class="modal-grid">
+                    <label class="full-span">Service Fee (₱)
+                        <input class="field" type="number" name="price" min="0" step="0.01" value="{{ appointment.price }}" required>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="editFeeModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save Fee</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal 6: Schedule New Appointment (Create) #}
+    <div class="salon-modal-backdrop" id="scheduleAppointmentModal" role="dialog" aria-modal="true" aria-labelledby="createModalTitle">
+        <div class="salon-modal" style="max-width: 600px;">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="createModalTitle">
+                    <i class="ti ti-calendar-plus"></i>
+                    <span>Schedule New Appointment</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="scheduleAppointmentModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Create a new booking and automatically register client if new.</p>
+
+            <form method="post" action="{{ path('admin_appointment_create') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+
+                <div class="modal-grid">
+                    <label class="full-span">Client
+                        <select class="field" name="customer_id" id="newAppointmentCustomerSelect">
+                            <option value="0">+ Add New Client</option>
+                            {% for cust in customers|default([]) %}
+                                <option value="{{ cust.id }}">
+                                    {{ cust.first_name }} {{ cust.last_name }} ({{ cust.email }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <div id="newClientFieldsGroup" class="full-span modal-grid" style="grid-column: 1 / -1; gap: 10px;">
+                        <label>Client Full Name
+                            <input class="field" type="text" name="new_customer_name" placeholder="e.g. Jane Doe">
+                        </label>
+                        <label>Client Email
+                            <input class="field" type="email" name="new_customer_email" placeholder="e.g. jane@example.com">
+                        </label>
+                        <label class="full-span">Client Phone
+                            <input class="field" type="text" name="new_customer_phone" placeholder="e.g. +63 912 345 6789">
+                        </label>
+                    </div>
+
+                    <label class="full-span">Service
+                        <select class="field" name="service_id" id="newAppointmentServiceSelect" required>
+                            {% for s in services|default([]) %}
+                                <option value="{{ s.id }}" data-price="{{ s.price|default(0) }}">
+                                    {{ s.name }} (₱{{ s.price|default(0)|number_format(2) }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>Artist / Stylist
+                        <select class="field" name="staff_id" required>
+                            {% for member in staff|default([]) %}
+                                <option value="{{ member.id }}">{{ member.first_name }} {{ member.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>Price (₱)
+                        <input class="field" type="number" name="price" id="newAppointmentPrice" min="0" step="0.01" value="1200.00" required>
+                    </label>
+
+                    <label>Date
+                        <input class="field" type="date" name="appointment_date" value="{{ 'now'|date('Y-m-d') }}" required>
+                    </label>
+
+                    <label>Time
+                        <input class="field" type="time" name="start_time" value="10:00" required>
+                    </label>
+
+                    <label class="full-span">Notes
+                        <textarea class="field" name="customer_notes" rows="2" placeholder="Special requests or styling notes..."></textarea>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="scheduleAppointmentModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-calendar-plus"></i>
+                        <span>Schedule Appointment</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal 7: Full Edit Appointment #}
+    <div class="salon-modal-backdrop" id="editAppointmentModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editModalTitle">
+                    <i class="ti ti-edit"></i>
+                    <span>Edit Appointment #{{ appointment.id }}</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="editAppointmentModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Update booking details, assigned stylist, or schedule.</p>
+
+            <form method="post" action="{{ path('admin_appointment_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+
+                <div class="modal-grid">
+                    <label class="full-span">Client
+                        <select class="field" name="customer_id" id="editCustomerId">
+                            {% for cust in customers|default([]) %}
+                                <option value="{{ cust.id }}" {% if appointment.customer_id == cust.id %}selected{% endif %}>
+                                    {{ cust.first_name }} {{ cust.last_name }} ({{ cust.email }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="full-span">Service
+                        <select class="field" name="service_id" id="editServiceId" required>
+                            {% for s in services|default([]) %}
+                                <option value="{{ s.id }}" data-price="{{ s.price|default(0) }}" {% if appointment.service_id == s.id %}selected{% endif %}>
+                                    {{ s.name }} (₱{{ s.price|default(0)|number_format(2) }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>Artist / Stylist
+                        <select class="field" name="staff_id" id="editStaffId" required>
+                            {% for member in staff|default([]) %}
+                                <option value="{{ member.id }}" {% if appointment.staff_id == member.id %}selected{% endif %}>
+                                    {{ member.first_name }} {{ member.last_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label>Price (₱)
+                        <input class="field" type="number" name="price" id="editPrice" min="0" step="0.01" value="{{ appointment.price }}" required>
+                    </label>
+
+                    <label>Date
+                        <input class="field" type="date" name="appointment_date" id="editDate" value="{{ appointment.appointment_date }}" required>
+                    </label>
+
+                    <label>Time
+                        <input class="field" type="time" name="start_time" id="editTime" value="{{ appointment.start_time|slice(0, 5) }}" required>
+                    </label>
+
+                    <label class="full-span">Status
+                        <select class="field" name="status_id" id="editStatusId" required>
+                            {% for id, label in statuses %}
+                                <option value="{{ id }}" {% if appointment.status_id == id %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="full-span">Notes
+                        <textarea class="field" name="customer_notes" id="editNotes" rows="2">{{ appointment.customer_notes|default('') }}</textarea>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="editAppointmentModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Universal modal opener and closer helper
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('is-open');
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.remove('is-open');
+        }
+
+        // Close triggers by data-close
+        document.querySelectorAll('[data-close]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-close');
+                if (targetId) closeModal(targetId);
+            });
+        });
+
+        // Click outside backdrop to close
+        document.querySelectorAll('.salon-modal-backdrop').forEach(backdrop => {
+            backdrop.addEventListener('click', (e) => {
+                if (e.target === backdrop) {
+                    backdrop.classList.remove('is-open');
+                }
+            });
+        });
+
+        // Esc key closes any open modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.salon-modal-backdrop.is-open').forEach(m => m.classList.remove('is-open'));
+            }
+        });
+
+        // Button binders
+        const openers = [
+            { btn: 'openCreateModal', modal: 'scheduleAppointmentModal' },
+            { btn: 'openEditModal', modal: 'editAppointmentModal' },
+            { btn: 'openEditClientModal', modal: 'editClientModal' },
+            { btn: 'openEditServiceModal', modal: 'editServiceModal' },
+            { btn: 'openEditNotesModal', modal: 'editNotesModal' },
+            { btn: 'openEditScheduleModal', modal: 'editScheduleModal' },
+            { btn: 'openEditFeeModal', modal: 'editFeeModal' },
+        ];
+
+        openers.forEach(({ btn, modal }) => {
+            const el = document.getElementById(btn);
+            if (el) {
+                el.addEventListener('click', () => openModal(modal));
+            }
+        });
+
+        // Dynamic price update for Full Edit modal
+        const serviceSelect = document.getElementById('editServiceId');
+        const priceInput = document.getElementById('editPrice');
+        if (serviceSelect && priceInput) {
+            serviceSelect.addEventListener('change', () => {
+                const opt = serviceSelect.options[serviceSelect.selectedIndex];
+                if (opt && opt.dataset.price) {
+                    priceInput.value = parseFloat(opt.dataset.price).toFixed(2);
+                }
+            });
+        }
+
+        // Dynamic price update for Quick Service modal
+        const quickServiceSelect = document.getElementById('quickServiceSelect');
+        const quickServicePrice = document.getElementById('quickServicePrice');
+        if (quickServiceSelect && quickServicePrice) {
+            quickServiceSelect.addEventListener('change', () => {
+                const opt = quickServiceSelect.options[quickServiceSelect.selectedIndex];
+                if (opt && opt.dataset.price) {
+                    quickServicePrice.value = parseFloat(opt.dataset.price).toFixed(2);
+                }
+            });
+        }
+
+        // Dynamic price update for Schedule New Appointment modal
+        const newServiceSelect = document.getElementById('newAppointmentServiceSelect');
+        const newPriceInput = document.getElementById('newAppointmentPrice');
+        if (newServiceSelect && newPriceInput) {
+            newServiceSelect.addEventListener('change', () => {
+                const opt = newServiceSelect.options[newServiceSelect.selectedIndex];
+                if (opt && opt.dataset.price) {
+                    newPriceInput.value = parseFloat(opt.dataset.price).toFixed(2);
+                }
+            });
+        }
+
+        // Toggle new client fields in Schedule New Appointment modal
+        const newCustSelect = document.getElementById('newAppointmentCustomerSelect');
+        const newClientFields = document.getElementById('newClientFieldsGroup');
+        if (newCustSelect && newClientFields) {
+            newCustSelect.addEventListener('change', () => {
+                newClientFields.style.display = (newCustSelect.value === '0') ? 'grid' : 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}

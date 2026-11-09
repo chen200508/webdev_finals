@@ -304,6 +304,24 @@ class SalonService
                     ]
                 );
                 $customerId = (int) $this->connection->lastInsertId();
+
+                // Ensure customer is present in users table
+                $existingUserId = $this->connection->fetchOne('SELECT id FROM users WHERE email = :email LIMIT 1', ['email' => $email]);
+                if ($existingUserId === false) {
+                    $this->connection->executeStatement(
+                        'INSERT INTO users (name, email, password_hash, role, is_active, created_at, updated_at) VALUES (:name, :email, :hash, :role, 1, NOW(), NOW())',
+                        [
+                            'name' => trim(($firstName !== '' ? $firstName : 'Guest') . ' ' . ($lastName !== '' ? $lastName : 'Client')),
+                            'email' => $email !== '' ? $email : 'guest@example.com',
+                            'hash' => password_hash('password', PASSWORD_BCRYPT),
+                            'role' => 'ROLE_CUSTOMER',
+                        ]
+                    );
+                    $newUserId = (int) $this->connection->lastInsertId();
+                    $this->connection->executeStatement('UPDATE customers SET user_id = :userId WHERE id = :id', ['userId' => $newUserId, 'id' => $customerId]);
+                } else {
+                    $this->connection->executeStatement('UPDATE customers SET user_id = :userId WHERE id = :id', ['userId' => (int) $existingUserId, 'id' => $customerId]);
+                }
             }
 
             $serviceRow = $this->connection->fetchAssociative(

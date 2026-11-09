@@ -3,11 +3,56 @@
 {% block title %}Users · S Beauty Salon{% endblock %}
 
 {% block styles %}
-    .add-grid { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr .8fr auto; gap: 10px; align-items: end; }
-    .field, select { width: 100%; padding: 8px 10px; border: 1px solid var(--input-border, #d1d5db); border-radius: 10px; font: inherit; }
+    td { vertical-align: middle; }
+    select, input { font: inherit; }
     button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 700; cursor: pointer; font-family: var(--font-admin); transition: all 0.15s; }
     button:hover { background: #a87700; }
     label { display: block; font-size: 12px; font-weight: 700; color: var(--main-muted, #4b5563); font-family: var(--font-admin); }
+
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .btn-create-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: #C68E00;
+        color: #fff;
+        border: 0;
+        border-radius: 10px;
+        padding: 9px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: var(--font-admin);
+        transition: background 0.15s, transform 0.1s;
+    }
+    .btn-create-user:hover {
+        background: #a87700;
+        transform: translateY(-1px);
+    }
+
+    .field, select {
+        width: 100%;
+        margin-top: 5px;
+        padding: 9px 12px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 10px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 14px;
+        font-family: var(--font-admin);
+    }
+    .field:focus, select:focus {
+        outline: none;
+        border-color: #C68E00;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    }
 
     .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: var(--font-admin); }
     .badge-admin { background: rgba(198, 142, 0, 0.16); color: #92400e; border: 1px solid rgba(198, 142, 0, 0.35); }
@@ -16,6 +61,30 @@
     .badge-active { background: #dcfce7; color: #166534; }
     .badge-inactive { background: #fee2e2; color: #991b1b; }
 
+    .action-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 11px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(198, 142, 0, 0.12);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.35);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-edit:hover {
+        background: #C68E00;
+        color: #ffffff;
+    }
     .btn-delete {
         display: inline-flex;
         align-items: center;
@@ -27,13 +96,120 @@
         background: rgba(220, 38, 38, 0.08);
         color: #dc2626;
         border: 1px solid rgba(220, 38, 38, 0.28);
+        cursor: pointer;
+        transition: all 0.15s;
     }
     .btn-delete:hover {
         background: #dc2626;
         color: #ffffff;
     }
 
-    @media (max-width: 900px) { .add-grid { grid-template-columns: 1fr; } }
+    /* Modals */
+    .salon-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .salon-modal-backdrop.is-open {
+        display: flex;
+    }
+    .salon-modal {
+        width: 100%;
+        max-width: 520px;
+        background: var(--card-bg, #ffffff);
+        color: var(--main-text, #1f2937);
+        border: 1px solid var(--card-border, rgba(198, 142, 0, 0.3));
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    }
+    .salon-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .salon-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 20px;
+    }
+    .salon-modal-title i {
+        color: #C68E00;
+        font-size: 22px;
+    }
+    .salon-modal-close {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--input-border, #d1d5db);
+        color: var(--main-muted, #4b5563);
+        padding: 0;
+        font-size: 18px;
+    }
+    .salon-modal-close:hover {
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        border-color: #C68E00;
+    }
+    .salon-modal-sub {
+        margin: -6px 0 16px;
+        font-size: 13px;
+        color: var(--main-sub, #6b7280);
+        font-family: var(--font-admin);
+    }
+    .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .modal-grid .full-span {
+        grid-column: 1 / -1;
+    }
+    .salon-modal-foot {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--table-border, #e5e7eb);
+    }
+    .btn-cancel {
+        background: transparent;
+        color: var(--main-muted, #4b5563);
+        border: 1px solid var(--input-border, #d1d5db);
+        padding: 8px 16px;
+    }
+    .btn-cancel:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--main-text, #1f2937);
+    }
+    .btn-save {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+    }
+
+    @media (max-width: 640px) {
+        .modal-grid { grid-template-columns: 1fr; }
+    }
 {% endblock %}
 
 {% block content %}
@@ -43,37 +219,16 @@
         'ROLE_CUSTOMER': 'Customer'
     } %}
 
-    <h1>Users</h1>
-    <p class="lede">Manage system user accounts, access roles, and activation status.</p>
-
-    <section class="card">
-        <h2>Add a user account</h2>
-        <form method="post" action="{{ path('admin_user_create') }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
-            <div class="add-grid">
-                <label>Full Name
-                    <input class="field" name="name" required placeholder="e.g. Jane Doe">
-                </label>
-                <label>Email Address
-                    <input class="field" type="email" name="email" required placeholder="e.g. jane@salon.com">
-                </label>
-                <label>Role
-                    <select class="field" name="role">
-                        <option value="ROLE_CUSTOMER">Customer</option>
-                        <option value="ROLE_STAFF">Specialist / Staff</option>
-                        <option value="ROLE_ADMIN">Administrator</option>
-                    </select>
-                </label>
-                <label>Status
-                    <select class="field" name="is_active">
-                        <option value="1">Active</option>
-                        <option value="0">Deactivated</option>
-                    </select>
-                </label>
-                <button type="submit">Add User</button>
-            </div>
-        </form>
-    </section>
+    <div class="page-head">
+        <div>
+            <h1>Users</h1>
+            <p class="lede">Manage system user accounts, access roles, and activation status.</p>
+        </div>
+        <button type="button" class="btn-create-user" id="openAddUserModal">
+            <i class="ti ti-user-plus"></i>
+            <span>Add a user account</span>
+        </button>
+    </div>
 
     <section class="card">
         {% include 'partials/datatable_filter.html.twig' with {
@@ -103,19 +258,46 @@
                         {% set statusLabel = user.is_active ? 'Active' : 'Deactivated' %}
                         <tr>
                             <td>{{ user.id }}</td>
-                            <td>{{ user.name }} ({{ user.email }})</td>
-                            <td data-filter-value="{{ roleLabel }}">{{ roleLabel }}</td>
-                            <td data-filter-value="{{ statusLabel }}">{{ statusLabel }}</td>
+                            <td>
+                                <div><strong>{{ user.name }}</strong></div>
+                                <div style="font-size:12px;color:var(--main-sub,#6b7280);">{{ user.email }}</div>
+                            </td>
+                            <td data-filter-value="{{ roleLabel }}">
+                                <span class="badge {% if user.role == 'ROLE_ADMIN' %}badge-admin{% elseif user.role == 'ROLE_STAFF' %}badge-staff{% else %}badge-customer{% endif %}">
+                                    {{ roleLabel }}
+                                </span>
+                            </td>
+                            <td data-filter-value="{{ statusLabel }}">
+                                <span class="badge {{ user.is_active ? 'badge-active' : 'badge-inactive' }}">
+                                    {{ statusLabel }}
+                                </span>
+                            </td>
                             <td>{{ user.created_at|date('M j, Y') }}</td>
                             <td>
-                                <form method="post" action="{{ path('admin_user_delete') }}" onsubmit="return confirm('Remove this user account?');" style="margin:0;">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
-                                    <input type="hidden" name="user_id" value="{{ user.id }}">
-                                    <button class="btn-delete" type="submit">
-                                        <i class="ti ti-trash"></i>
-                                        <span>Delete</span>
+                                <div class="action-group">
+                                    <button
+                                        type="button"
+                                        class="btn-edit"
+                                        data-edit-user
+                                        data-id="{{ user.id }}"
+                                        data-name="{{ user.name }}"
+                                        data-email="{{ user.email }}"
+                                        data-role="{{ user.role }}"
+                                        data-active="{{ user.is_active ? '1' : '0' }}"
+                                    >
+                                        <i class="ti ti-edit"></i>
+                                        <span>Edit</span>
                                     </button>
-                                </form>
+
+                                    <form method="post" action="{{ path('admin_user_delete') }}" onsubmit="return confirm('Remove user account for {{ user.name }}?');" style="margin:0;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <button class="btn-delete" type="submit">
+                                            <i class="ti ti-trash"></i>
+                                            <span>Delete</span>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}
@@ -123,5 +305,180 @@
             </table>
         </div>
     </section>
+
+    {# ADD USER ACCOUNT MODAL #}
+    <div class="salon-modal-backdrop" id="addUserModal" role="dialog" aria-modal="true" aria-labelledby="addUserModalTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="addUserModalTitle">
+                    <i class="ti ti-user-plus"></i>
+                    <span>Add a user account</span>
+                </h2>
+                <button type="button" class="salon-modal-close" id="closeAddUserModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Create a new user account with role access and status.</p>
+
+            <form method="post" action="{{ path('admin_user_create') }}" id="addUserForm">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+
+                <div class="modal-grid">
+                    <label class="full-span">Full Name
+                        <input class="field" type="text" name="name" id="addUserName" required placeholder="e.g. Jane Doe">
+                    </label>
+
+                    <label class="full-span">Email Address
+                        <input class="field" type="email" name="email" id="addUserEmail" required placeholder="e.g. jane@salon.com">
+                    </label>
+
+                    <label>Role
+                        <select class="field" name="role" id="addUserRole">
+                            <option value="ROLE_CUSTOMER" selected>Customer</option>
+                            <option value="ROLE_STAFF">Specialist / Staff</option>
+                            <option value="ROLE_ADMIN">Administrator</option>
+                        </select>
+                    </label>
+
+                    <label>Status
+                        <select class="field" name="is_active" id="addUserStatus">
+                            <option value="1" selected>Active</option>
+                            <option value="0">Deactivated</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" id="cancelAddUserModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-user-plus"></i>
+                        <span>Add User</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# EDIT USER ACCOUNT MODAL #}
+    <div class="salon-modal-backdrop" id="editUserModal" role="dialog" aria-modal="true" aria-labelledby="editUserModalTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editUserModalTitle">
+                    <i class="ti ti-edit"></i>
+                    <span>Edit User Account</span>
+                </h2>
+                <button type="button" class="salon-modal-close" id="closeEditUserModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub" id="editUserSub">Update user role and account status.</p>
+
+            <form method="post" action="{{ path('admin_user_update') }}" id="editUserForm">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="user_id" id="editUserId" value="">
+
+                <div class="modal-grid">
+                    <label class="full-span">User Name
+                        <input class="field" type="text" id="editUserName" disabled style="opacity: 0.8; cursor: not-allowed;">
+                    </label>
+
+                    <label class="full-span">Email Address
+                        <input class="field" type="email" id="editUserEmail" disabled style="opacity: 0.8; cursor: not-allowed;">
+                    </label>
+
+                    <label>Role
+                        <select class="field" name="role" id="editUserRole" required>
+                            <option value="ROLE_CUSTOMER">Customer</option>
+                            <option value="ROLE_STAFF">Specialist / Staff</option>
+                            <option value="ROLE_ADMIN">Administrator</option>
+                        </select>
+                    </label>
+
+                    <label>Status
+                        <select class="field" name="is_active" id="editUserStatus" required>
+                            <option value="1">Active</option>
+                            <option value="0">Deactivated</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" id="cancelEditUserModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}
 
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addModal = document.getElementById('addUserModal');
+        const openAddBtn = document.getElementById('openAddUserModal');
+        const closeAddBtn = document.getElementById('closeAddUserModal');
+        const cancelAddBtn = document.getElementById('cancelAddUserModal');
+
+        const editModal = document.getElementById('editUserModal');
+        const closeEditBtn = document.getElementById('closeEditUserModal');
+        const cancelEditBtn = document.getElementById('cancelEditUserModal');
+        const editIdInput = document.getElementById('editUserId');
+        const editNameInput = document.getElementById('editUserName');
+        const editEmailInput = document.getElementById('editUserEmail');
+        const editRoleSelect = document.getElementById('editUserRole');
+        const editStatusSelect = document.getElementById('editUserStatus');
+        const editSub = document.getElementById('editUserSub');
+
+        function closeAllModals() {
+            if (addModal) addModal.classList.remove('is-open');
+            if (editModal) editModal.classList.remove('is-open');
+        }
+
+        if (openAddBtn) {
+            openAddBtn.addEventListener('click', () => {
+                closeAllModals();
+                if (addModal) addModal.classList.add('is-open');
+            });
+        }
+
+        if (closeAddBtn) closeAddBtn.addEventListener('click', closeAllModals);
+        if (cancelAddBtn) cancelAddBtn.addEventListener('click', closeAllModals);
+
+        if (closeEditBtn) closeEditBtn.addEventListener('click', closeAllModals);
+        if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeAllModals);
+
+        document.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('[data-edit-user]');
+            if (editBtn && editModal) {
+                closeAllModals();
+                editIdInput.value = editBtn.dataset.id || '';
+                editNameInput.value = editBtn.dataset.name || '';
+                editEmailInput.value = editBtn.dataset.email || '';
+                editRoleSelect.value = editBtn.dataset.role || 'ROLE_CUSTOMER';
+                editStatusSelect.value = editBtn.dataset.active || '1';
+
+                if (editSub) {
+                    editSub.textContent = 'Updating account settings for ' + (editBtn.dataset.name || 'user');
+                }
+
+                editModal.classList.add('is-open');
+            }
+        });
+
+        [addModal, editModal].forEach((m) => {
+            if (m) {
+                m.addEventListener('click', (e) => {
+                    if (e.target === m) closeAllModals();
+                });
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAllModals();
+        });
+    });
+</script>
+{% endblock %}

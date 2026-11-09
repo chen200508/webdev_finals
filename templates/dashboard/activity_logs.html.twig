@@ -9,6 +9,9 @@
     .badge-completed { background: #dcfce7; color: #166534; }
     .badge-cancelled { background: #fee2e2; color: #991b1b; }
     .badge-system { background: rgba(198, 142, 0, 0.14); color: #C68E00; border: 1px solid rgba(198, 142, 0, 0.3); }
+    .badge-admin { background: rgba(198, 142, 0, 0.16); color: #92400e; border: 1px solid rgba(198, 142, 0, 0.35); }
+    .badge-staff { background: #dbeafe; color: #1e40af; }
+    .badge-customer { background: #f3f4f6; color: #374151; }
 {% endblock %}
 
 {% block content %}
@@ -24,6 +27,9 @@
         'user_created': 'User Created',
         'user_updated': 'User Updated',
         'user_deleted': 'User Removed',
+        'customer_created': 'Customer Created',
+        'customer_updated': 'Customer Updated',
+        'customer_deleted': 'Customer Removed',
         'user_login': 'User Login',
         'user_logout': 'User Logout'
     } %}
@@ -65,7 +71,22 @@
                             <td style="white-space: nowrap;" data-order="{{ log.id }}">{{ log.created_at|date('M j, Y g:i:s A') }}</td>
                             <td data-filter-value="{{ eventLabel }}">{{ eventLabel }}</td>
                             <td>{{ log.description }}{% if log.appointment_id %} (Appointment #{{ log.appointment_id }}){% endif %}</td>
-                            <td data-filter-value="{{ log.performed_by }}">{{ log.performed_by }}</td>
+                            <td data-filter-value="{{ log.performed_by }} {{ log.performer_name|default('') }}">
+                                {% set role = log.performer_role|default('') %}
+                                {% set roleClass = role == 'ROLE_ADMIN' ? 'badge-admin' : (role == 'ROLE_STAFF' ? 'badge-staff' : 'badge-customer') %}
+                                {% set roleText = role == 'ROLE_ADMIN' ? 'Admin' : (role == 'ROLE_STAFF' ? 'Staff' : 'Customer') %}
+                                <div style="font-weight: 700; color: var(--main-text, #1f2937); font-size: 13px;">
+                                    {{ log.performer_name|default(log.performed_by) }}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
+                                    {% if role %}
+                                        <span class="badge {{ roleClass }}" style="font-size: 11px; padding: 1px 7px;">{{ roleText }}</span>
+                                    {% endif %}
+                                    {% if log.performed_by and (log.performer_name is not defined or log.performer_name != log.performed_by) %}
+                                        <span class="muted" style="font-size: 12px;">{{ log.performed_by }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
                             <td style="white-space: nowrap;">{% if log.old_status %}{{ log.old_status }} -> {{ log.new_status }}{% else %}{{ log.new_status }}{% endif %}</td>
                         </tr>
                     {% endfor %}

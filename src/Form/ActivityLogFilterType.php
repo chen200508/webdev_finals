@@ -18,10 +18,34 @@ class ActivityLogFilterType extends AbstractType
             $form = $event->getForm();
 
             $actorChoices = [];
+
+            // Add registered users dynamically
+            $users = (array) ($options['users'] ?? []);
+            foreach ($users as $u) {
+                $role = (string) ($u['role'] ?? 'ROLE_CUSTOMER');
+                $roleLabel = $role === 'ROLE_ADMIN' ? 'Admin' : ($role === 'ROLE_STAFF' ? 'Staff' : 'Customer');
+                $name = trim((string) ($u['name'] ?? ''));
+                $email = trim((string) ($u['email'] ?? ''));
+
+                if ($name !== '' && $name !== $email) {
+                    $label = sprintf('%s (%s) · %s', $name, $email, $roleLabel);
+                } else {
+                    $label = sprintf('%s · %s', $email, $roleLabel);
+                }
+                $actorChoices[$label] = $email;
+            }
+
+            // Also include any actor present in logs not yet in choices
             foreach ($options['logs'] as $log) {
                 $actor = (string) ($log['performed_by'] ?? '');
-                if ($actor !== '') {
-                    $actorChoices[$actor] = $actor;
+                if ($actor !== '' && !in_array($actor, $actorChoices, true)) {
+                    $performerName = (string) ($log['performer_name'] ?? '');
+                    if ($performerName !== '' && $performerName !== $actor) {
+                        $label = sprintf('%s (%s)', $performerName, $actor);
+                    } else {
+                        $label = $actor;
+                    }
+                    $actorChoices[$label] = $actor;
                 }
             }
 
@@ -42,6 +66,9 @@ class ActivityLogFilterType extends AbstractType
                         'User Created' => 'user_created',
                         'User Updated' => 'user_updated',
                         'User Removed' => 'user_deleted',
+                        'Customer Created' => 'customer_created',
+                        'Customer Updated' => 'customer_updated',
+                        'Customer Removed' => 'customer_deleted',
                         'User Login' => 'user_login',
                         'User Logout' => 'user_logout',
                     ],
@@ -79,9 +106,11 @@ class ActivityLogFilterType extends AbstractType
             'method' => 'GET',
             'csrf_protection' => false,
             'logs' => [],
+            'users' => [],
         ]);
 
         $resolver->setAllowedTypes('logs', 'array');
+        $resolver->setAllowedTypes('users', 'array');
     }
 
     public function getBlockPrefix(): string

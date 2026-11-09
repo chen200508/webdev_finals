@@ -29,8 +29,9 @@ class ActivityLogRepository extends ServiceEntityRepository
         }
 
         if (!empty($filters['performed_by'])) {
-            $qb->andWhere('l.performedBy = :performedBy')
-               ->setParameter('performedBy', (string) $filters['performed_by']);
+            $qb->andWhere('l.performedBy = :performedBy OR l.performedBy LIKE :likePerformer')
+               ->setParameter('performedBy', (string) $filters['performed_by'])
+               ->setParameter('likePerformer', '%' . (string) $filters['performed_by'] . '%');
         }
 
         return $qb;
@@ -48,8 +49,13 @@ class ActivityLogRepository extends ServiceEntityRepository
                 return false;
             }
 
-            if (!empty($filters['performed_by']) && ($row['performed_by'] ?? '') !== (string) $filters['performed_by']) {
-                return false;
+            if (!empty($filters['performed_by'])) {
+                $target = strtolower((string) $filters['performed_by']);
+                $actualEmail = strtolower((string) ($row['performed_by'] ?? ''));
+                $actualName = strtolower((string) ($row['performer_name'] ?? ''));
+                if ($actualEmail !== $target && $actualName !== $target && !str_contains($actualEmail, $target) && !str_contains($actualName, $target)) {
+                    return false;
+                }
             }
 
             return true;

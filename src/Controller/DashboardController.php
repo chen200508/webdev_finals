@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Form\ActivityLogFilterType;
 use App\Form\AppointmentFilterType;
+use App\Form\AppointmentFormType;
 use App\Form\CustomerFilterType;
 use App\Form\ServiceFilterType;
 use App\Form\ServiceFormType;
@@ -48,12 +49,20 @@ class DashboardController extends AbstractController
         $allAppointments = $this->admin->getAllAppointments();
         $services = $this->admin->getAllServices();
         $staff = $this->admin->getStaff();
+        $customers = $this->admin->getAllCustomers();
 
         $filterForm = $this->createForm(AppointmentFilterType::class, null, [
             'services' => $services,
             'staff' => $staff,
         ]);
         $filterForm->handleRequest($request);
+
+        $appointmentForm = $this->createForm(AppointmentFormType::class, null, [
+            'services' => $services,
+            'staff' => $staff,
+            'customers' => $customers,
+            'action' => $this->generateUrl('admin_appointment_create'),
+        ]);
 
         $filters = $filterForm->isSubmitted() ? (array) $filterForm->getData() : $request->query->all();
 
@@ -62,7 +71,39 @@ class DashboardController extends AbstractController
             'appointments' => $appointmentRepository->findByFilters($filters, $allAppointments),
             'services' => $services,
             'staff' => $staff,
+            'customers' => $customers,
             'filterForm' => $filterForm->createView(),
+            'appointmentForm' => $appointmentForm->createView(),
+        ]);
+    }
+
+    #[Route('/appointments/{id}', name: 'admin_appointment_show', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[Route('/appointment/{id}', name: 'admin_appointment_show_alias', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function showAppointment(int $id): Response
+    {
+        $appointment = $this->admin->getAppointmentById($id);
+        if (!$appointment) {
+            throw $this->createNotFoundException(sprintf('Appointment #%d not found.', $id));
+        }
+
+        $services = $this->admin->getAllServices();
+        $staff = $this->admin->getStaff();
+        $customers = $this->admin->getAllCustomers();
+
+        $appointmentForm = $this->createForm(AppointmentFormType::class, null, [
+            'services' => $services,
+            'staff' => $staff,
+            'customers' => $customers,
+            'action' => $this->generateUrl('admin_appointment_create'),
+        ]);
+
+        return $this->render('dashboard/appointment_show.html.twig', [
+            'counts' => $this->getCounts(),
+            'appointment' => $appointment,
+            'services' => $services,
+            'staff' => $staff,
+            'customers' => $customers,
+            'appointmentForm' => $appointmentForm->createView(),
         ]);
     }
 
@@ -133,9 +174,11 @@ class DashboardController extends AbstractController
     public function activityLogs(Request $request, ActivityLogRepository $activityLogRepository): Response
     {
         $allLogs = $this->admin->getActivityLogs();
+        $allUsers = $this->admin->getAllUsers();
 
         $filterForm = $this->createForm(ActivityLogFilterType::class, null, [
             'logs' => $allLogs,
+            'users' => $allUsers,
         ]);
         $filterForm->handleRequest($request);
 
@@ -179,20 +222,146 @@ class DashboardController extends AbstractController
         return $this->back($r);
     }
 
+    #[Route('/appointment/create', name: 'admin_appointment_create', methods: ['POST'])]
+    public function createAppointment(Request $r): Response
+    {
+        $customers = $this->admin->getAllCustomers();
+        $services = $this->admin->getAllServices();
+        $staff = $this->admin->getStaff();
+
+        $form = $this->createForm(AppointmentFormType::class, null, [
+            'customers' => $customers,
+            'services' => $services,
+            'staff' => $staff,
+        ]);
+        $form->handleRequest($r);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = (array) $form->getData();
+            $date = $data['appointment_date'] instanceof \DateTimeInterface
+                ? $data['appointment_date']->format('Y-m-d')
+                : (string) ($data['appointment_date'] ?? date('Y-m-d'));
+
+            $ok = $this->admin->createAppointment(
+                (int) ($data['customer_id'] ?? 0),
+                (string) ($data['new_customer_name'] ?? ''),
+                (string) ($data['new_customer_email'] ?? ''),
+                (string) ($data['new_customer_phone'] ?? ''),
+                (int) ($data['staff_id'] ?? 1),
+                (int) ($data['service_id'] ?? 1),
+                $date,
+                (string) ($data['start_time'] ?? '10:00:00'),
+                (float) ($data['price'] ?? 0),
+                (int) ($data['status_id'] ?? 1),
+                (string) ($data['customer_notes'] ?? '')
+            );
+
+            $ok ? $this->addFlash('success', 'New appointment scheduled successfully.')
+                : $this->addFlash('error', 'Failed to schedule appointment.');
+
+            return $this->back($r);
+        }
+
+        $this->checkCsrf($r);
+        $ok = $this->admin->createAppointment(
+            (int) $r->request->get('customer_id', 0),
+            trim((string) $r->request->get('new_customer_name', '')),
+            trim((string) $r->request->get('new_customer_email', '')),
+            trim((string) $r->request->get('new_customer_phone', '')),
+            (int) $r->request->get('staff_id', 1),
+            (int) $r->request->get('service_id', 1),
+            (string) $r->request->get('appointment_date', date('Y-m-d')),
+            (string) $r->request->get('start_time', '10:00:00'),
+            (float) $r->request->get('price', 0),
+            (int) $r->request->get('status_id', 1),
+            trim((string) $r->request->get('customer_notes', ''))
+        );
+
+        $ok ? $this->addFlash('success', 'New appointment scheduled successfully.')
+            : $this->addFlash('error', 'Failed to schedule appointment.');
+
+        return $this->back($r);
+    }
+
     #[Route('/appointment/update', name: 'admin_appointment_update', methods: ['POST'])]
     public function updateAppointment(Request $r): Response
     {
         $this->checkCsrf($r);
+        $statusId = $r->request->has('status_id') && $r->request->get('status_id') !== '' ? (int) $r->request->get('status_id') : null;
+        $customerId = $r->request->has('customer_id') && $r->request->get('customer_id') !== '' ? (int) $r->request->get('customer_id') : null;
+        $notes = $r->request->has('customer_notes') ? trim((string) $r->request->get('customer_notes')) : null;
+
         $ok = $this->admin->updateAppointment(
             (int) $r->request->get('appointment_id', 0),
             (int) $r->request->get('staff_id', 1),
             (string) $r->request->get('appointment_date', date('Y-m-d')),
             (string) $r->request->get('start_time', '10:30:00'),
             (int) $r->request->get('service_id', 1),
-            (float) $r->request->get('price', 0)
+            (float) $r->request->get('price', 0),
+            $statusId,
+            $customerId,
+            $notes
         );
         $ok ? $this->addFlash('success', 'Appointment details updated.')
             : $this->addFlash('error', 'Failed to update appointment (slot may already be taken).');
+
+        return $this->back($r);
+    }
+
+    #[Route('/customer/create', name: 'admin_customer_create', methods: ['POST'])]
+    public function createCustomer(Request $r): Response
+    {
+        $this->checkCsrf($r);
+        $firstName = trim((string) $r->request->get('first_name', ''));
+        $lastName = trim((string) $r->request->get('last_name', ''));
+        $name = trim((string) $r->request->get('name', ''));
+        if ($firstName === '' && $name !== '') {
+            $parts = explode(' ', $name, 2);
+            $firstName = $parts[0];
+            $lastName = $parts[1] ?? 'Client';
+        }
+
+        $email = trim((string) $r->request->get('email', ''));
+        $phone = trim((string) $r->request->get('phone', ''));
+
+        $id = $this->admin->createCustomer($firstName, $lastName, $email, $phone);
+        $id > 0
+            ? $this->addFlash('success', 'Customer profile created and synchronized with users.')
+            : $this->addFlash('error', 'Failed to create customer profile.');
+
+        return $this->back($r);
+    }
+
+    #[Route('/customer/update', name: 'admin_customer_update', methods: ['POST'])]
+    public function updateCustomer(Request $r): Response
+    {
+        $this->checkCsrf($r);
+        $firstName = $r->request->has('first_name') ? trim((string) $r->request->get('first_name')) : null;
+        $lastName = $r->request->has('last_name') ? trim((string) $r->request->get('last_name')) : null;
+        $name = trim((string) $r->request->get('name', ''));
+
+        $ok = $this->admin->updateCustomer(
+            (int) $r->request->get('customer_id', 0),
+            $name,
+            trim((string) $r->request->get('email', '')),
+            trim((string) $r->request->get('phone', '')),
+            $firstName,
+            $lastName
+        );
+
+        $ok ? $this->addFlash('success', 'Client information updated and synced with user account.')
+            : $this->addFlash('error', 'Failed to update client information.');
+
+        return $this->back($r);
+    }
+
+    #[Route('/customer/delete', name: 'admin_customer_delete', methods: ['POST'])]
+    public function deleteCustomer(Request $r): Response
+    {
+        $this->checkCsrf($r);
+        $ok = $this->admin->deleteCustomer((int) $r->request->get('customer_id', 0));
+        $ok ? $this->addFlash('success', 'Customer profile removed.')
+            : $this->addFlash('error', 'Failed to remove customer.');
 
         return $this->back($r);
     }

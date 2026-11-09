@@ -11,8 +11,6 @@ final class AppointmentsController extends AbstractController
     #[Route('/appointments', name: 'app_appointments')]
     public function index(): Response
     {
-        return $this->render('appointments/index.html.twig', [
-            'controller_name' => 'AppointmentsController',
-        ]);
+        return $this->redirectToRoute('admin_appointments');
     }
 }

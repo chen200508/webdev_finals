@@ -2,9 +2,279 @@
 
 {% block title %}Customers · S Beauty Salon{% endblock %}
 
+{% block styles %}
+    td { vertical-align: middle; }
+    select, input { font: inherit; }
+    button { font-family: var(--font-admin); }
+
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .btn-create-customer {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #C68E00;
+        color: #ffffff;
+        border: 0;
+        border-radius: 10px;
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: var(--font-admin);
+        transition: background 0.15s, transform 0.1s;
+    }
+    .btn-create-customer:hover {
+        background: #a87700;
+        transform: translateY(-1px);
+    }
+
+    .badge-bookings {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: var(--font-admin);
+        background: rgba(198, 142, 0, 0.12);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.28);
+    }
+
+    .action-group {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 11px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: var(--font-admin);
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 0;
+        text-decoration: none;
+    }
+    .btn-view {
+        background: rgba(37, 99, 235, 0.1);
+        color: #2563eb;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+    }
+    .btn-view:hover {
+        background: #2563eb;
+        color: #ffffff;
+    }
+    .btn-edit {
+        background: rgba(198, 142, 0, 0.12);
+        color: #C68E00;
+        border: 1px solid rgba(198, 142, 0, 0.35);
+    }
+    .btn-edit:hover {
+        background: #C68E00;
+        color: #ffffff;
+    }
+    .btn-delete {
+        background: rgba(220, 38, 38, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.28);
+    }
+    .btn-delete:hover {
+        background: #dc2626;
+        color: #ffffff;
+    }
+
+    /* Modals */
+    .salon-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .salon-modal-backdrop.is-open {
+        display: flex;
+    }
+    .salon-modal {
+        width: 100%;
+        max-width: 520px;
+        background: var(--card-bg, #ffffff);
+        color: var(--main-text, #1f2937);
+        border: 1px solid var(--card-border, rgba(198, 142, 0, 0.3));
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    }
+    .salon-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .salon-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 21px;
+    }
+    .salon-modal-title i {
+        color: #C68E00;
+        font-size: 24px;
+    }
+    .salon-modal-close {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid var(--input-border, #d1d5db);
+        color: var(--main-muted, #4b5563);
+        padding: 0;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    .salon-modal-close:hover {
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        border-color: #C68E00;
+    }
+    .salon-modal-sub {
+        font-size: 13px;
+        color: var(--main-sub, #6b7280);
+        margin-top: -8px;
+        margin-bottom: 18px;
+    }
+    .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .modal-grid .full-span {
+        grid-column: 1 / -1;
+    }
+    .field {
+        width: 100%;
+        margin-top: 5px;
+        padding: 9px 12px;
+        border: 1px solid var(--input-border, #d1d5db);
+        border-radius: 10px;
+        background: var(--input-bg, #fff);
+        color: var(--input-text, #1f2937);
+        font-size: 14px;
+        font-family: var(--font-admin);
+        box-sizing: border-box;
+    }
+    .field:focus {
+        outline: none;
+        border-color: #C68E00;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    }
+    label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--main-muted, #4b5563);
+        font-family: var(--font-admin);
+    }
+    .salon-modal-foot {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--table-border, #e5e7eb);
+    }
+    .btn-cancel {
+        background: transparent;
+        color: var(--main-muted, #4b5563);
+        border: 1px solid var(--input-border, #d1d5db);
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .btn-save {
+        background: #C68E00;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-save:hover { background: #a87700; }
+
+    /* Clean detail table inside View modal (no avatar) */
+    .view-detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-admin);
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .view-detail-table th {
+        width: 36%;
+        padding: 10px 12px;
+        color: var(--main-muted, #4b5563);
+        font-weight: 600;
+        font-size: 13px;
+        text-align: left;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+        background: rgba(0, 0, 0, 0.015);
+    }
+    .view-detail-table td {
+        padding: 10px 12px;
+        color: var(--main-text, #1f2937);
+        font-size: 14px;
+        text-align: right;
+        border-bottom: 1px solid var(--table-border, #e5e7eb);
+    }
+    .view-detail-table tr:last-child th,
+    .view-detail-table tr:last-child td {
+        border-bottom: none;
+    }
+{% endblock %}
+
 {% block content %}
-    <h1>Customers</h1>
-    <p class="lede">People who have booked at S Beauty Salon.</p>
+    <div class="page-head">
+        <div>
+            <h1>Customers</h1>
+            <p class="lede">People who have booked at S Beauty Salon.</p>
+        </div>
+        <button type="button" class="btn-create-customer" id="openAddCustomerModal">
+            <i class="ti ti-user-plus"></i>
+            <span>Add Customer</span>
+        </button>
+    </div>
 
     <section class="card">
         {% include 'partials/datatable_filter.html.twig' with {
@@ -20,24 +290,342 @@
             >
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th style="width: 50px;">#</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th style="width: 110px;">Bookings</th>
+                        <th style="width: 190px; text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for customer in customers %}
-                        {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : ((customer.first_name is defined or customer.last_name is defined) ? ((customer.first_name ?? '') ~ ' ' ~ (customer.last_name ?? ''))|trim : '')) %}
+                        {% set firstName = customer.first_name|default('') %}
+                        {% set lastName = customer.last_name|default('') %}
+                        {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : (firstName ~ ' ' ~ lastName)|trim) %}
+                        {% set totalBookings = customer.total_bookings|default(0) %}
                         <tr>
                             <td>{{ loop.index }}</td>
-                            <td>{{ customerName }}</td>
-                            <td>{{ customer.email is defined ? customer.email : '' }}</td>
-                            <td>{{ customer.phone is defined ? customer.phone : '' }}</td>
+                            <td><strong>{{ customerName }}</strong></td>
+                            <td>{{ customer.email|default('') }}</td>
+                            <td>{{ customer.phone|default('—') }}</td>
+                            <td>
+                                <span class="badge-bookings">
+                                    <i class="ti ti-calendar-event"></i>
+                                    <span>{{ totalBookings }} {{ totalBookings == 1 ? 'booking' : 'bookings' }}</span>
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div class="action-group">
+                                    {# View Action Button #}
+                                    <button
+                                        type="button"
+                                        class="btn-action btn-view btn-view-customer"
+                                        data-id="{{ customer.id }}"
+                                        data-name="{{ customerName }}"
+                                        data-first="{{ firstName }}"
+                                        data-last="{{ lastName }}"
+                                        data-email="{{ customer.email|default('') }}"
+                                        data-phone="{{ customer.phone|default('') }}"
+                                        data-bookings="{{ totalBookings }}"
+                                        title="View customer details"
+                                    >
+                                        <i class="ti ti-eye"></i>
+                                        <span>View</span>
+                                    </button>
+
+                                    {# Edit Action Button #}
+                                    <button
+                                        type="button"
+                                        class="btn-action btn-edit btn-edit-customer"
+                                        data-id="{{ customer.id }}"
+                                        data-first="{{ firstName }}"
+                                        data-last="{{ lastName }}"
+                                        data-name="{{ customerName }}"
+                                        data-email="{{ customer.email|default('') }}"
+                                        data-phone="{{ customer.phone|default('') }}"
+                                        title="Edit customer details"
+                                    >
+                                        <i class="ti ti-edit"></i>
+                                        <span>Edit</span>
+                                    </button>
+
+                                    {# Delete Action Button #}
+                                    <form
+                                        method="post"
+                                        action="{{ path('admin_customer_delete') }}"
+                                        onsubmit="return confirm('Permanently remove customer {{ customerName }}? All associated appointments will be deleted or unlinked.');"
+                                        style="margin: 0;"
+                                    >
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                                        <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                                        <button class="btn-action btn-delete" type="submit" title="Delete customer">
+                                            <i class="ti ti-trash"></i>
+                                            <span>Delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </section>
+
+    {# Modal 1: Add Customer #}
+    <div class="salon-modal-backdrop" id="addCustomerModal" role="dialog" aria-modal="true" aria-labelledby="addCustomerTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="addCustomerTitle">
+                    <i class="ti ti-user-plus"></i>
+                    <span>Add Customer</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="addCustomerModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Create customer profile. An account will also automatically appear in the users tab.</p>
+
+            <form method="post" action="{{ path('admin_customer_create') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+
+                <div class="modal-grid">
+                    <label>First Name
+                        <input class="field" type="text" name="first_name" placeholder="e.g. Jane" required>
+                    </label>
+
+                    <label>Last Name
+                        <input class="field" type="text" name="last_name" placeholder="e.g. Doe" required>
+                    </label>
+
+                    <label class="full-span">Email Address
+                        <input class="field" type="email" name="email" placeholder="e.g. jane@salon.com" required>
+                    </label>
+
+                    <label class="full-span">Contact Phone
+                        <input class="field" type="text" name="phone" placeholder="e.g. +63 917 111 2222">
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="addCustomerModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-user-plus"></i>
+                        <span>Add Customer</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal 2: View Customer Details #}
+    <div class="salon-modal-backdrop" id="viewCustomerModal" role="dialog" aria-modal="true" aria-labelledby="viewCustomerTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="viewCustomerTitle">
+                    <i class="ti ti-user"></i>
+                    <span>Customer Details</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="viewCustomerModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Overview of client contact details and booking record.</p>
+
+            <table class="view-detail-table">
+                <tbody>
+                    <tr>
+                        <th>Customer #</th>
+                        <td id="viewCustId">—</td>
+                    </tr>
+                    <tr>
+                        <th>Full Name</th>
+                        <td><strong id="viewCustName">—</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Email Address</th>
+                        <td id="viewCustEmail">—</td>
+                    </tr>
+                    <tr>
+                        <th>Contact Phone</th>
+                        <td id="viewCustPhone">—</td>
+                    </tr>
+                    <tr>
+                        <th>Total Bookings</th>
+                        <td id="viewCustBookings">—</td>
+                    </tr>
+                    <tr>
+                        <th>Users Tab Sync</th>
+                        <td><span style="color:#047857; font-weight:700;"><i class="ti ti-check"></i> Present in Users (ROLE_CUSTOMER)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="salon-modal-foot">
+                <a href="{{ path('admin_appointments') }}" id="viewCustAppointmentsBtn" class="btn-action btn-view" style="padding: 8px 14px;">
+                    <i class="ti ti-calendar-event"></i>
+                    <span>View Appointments</span>
+                </a>
+                <button type="button" class="btn-save" id="viewToEditBtn">
+                    <i class="ti ti-edit"></i>
+                    <span>Edit Profile</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# Modal 3: Edit Customer #}
+    <div class="salon-modal-backdrop" id="editCustomerModal" role="dialog" aria-modal="true" aria-labelledby="editCustomerTitle">
+        <div class="salon-modal">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="editCustomerTitle">
+                    <i class="ti ti-edit"></i>
+                    <span>Edit Customer</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="editCustomerModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p class="salon-modal-sub">Updates client records and automatically synchronizes with user login account.</p>
+
+            <form method="post" action="{{ path('admin_customer_update') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
+                <input type="hidden" name="customer_id" id="editCustomerId" value="0">
+
+                <div class="modal-grid">
+                    <label>First Name
+                        <input class="field" type="text" name="first_name" id="editCustomerFirst" required>
+                    </label>
+
+                    <label>Last Name
+                        <input class="field" type="text" name="last_name" id="editCustomerLast" required>
+                    </label>
+
+                    <label class="full-span">Email Address
+                        <input class="field" type="email" name="email" id="editCustomerEmail" required>
+                    </label>
+
+                    <label class="full-span">Contact Phone
+                        <input class="field" type="text" name="phone" id="editCustomerPhone">
+                    </label>
+                </div>
+
+                <div class="salon-modal-foot">
+                    <button type="button" class="btn-cancel" data-close="editCustomerModal">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="ti ti-device-floppy"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('is-open');
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.remove('is-open');
+        }
+
+        // Close buttons
+        document.querySelectorAll('[data-close]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-close');
+                if (targetId) closeModal(targetId);
+            });
+        });
+
+        // Click outside backdrop
+        document.querySelectorAll('.salon-modal-backdrop').forEach(backdrop => {
+            backdrop.addEventListener('click', (e) => {
+                if (e.target === backdrop) backdrop.classList.remove('is-open');
+            });
+        });
+
+        // ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.salon-modal-backdrop.is-open').forEach(m => m.classList.remove('is-open'));
+            }
+        });
+
+        // Open Add Customer Modal
+        const addBtn = document.getElementById('openAddCustomerModal');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => openModal('addCustomerModal'));
+        }
+
+        // Wire View Customer Modal
+        let activeCustomerData = null;
+        document.querySelectorAll('.btn-view-customer').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-id') || '';
+                const name = btn.getAttribute('data-name') || '';
+                const first = btn.getAttribute('data-first') || '';
+                const last = btn.getAttribute('data-last') || '';
+                const email = btn.getAttribute('data-email') || '';
+                const phone = btn.getAttribute('data-phone') || 'N/A';
+                const bookings = btn.getAttribute('data-bookings') || '0';
+
+                activeCustomerData = { id, name, first, last, email, phone };
+
+                document.getElementById('viewCustId').textContent = 'Customer #' + id;
+                document.getElementById('viewCustName').textContent = name;
+                document.getElementById('viewCustEmail').textContent = email;
+                document.getElementById('viewCustPhone').textContent = phone;
+                document.getElementById('viewCustBookings').textContent = bookings + (bookings === '1' ? ' booking' : ' bookings');
+
+                const apptBtn = document.getElementById('viewCustAppointmentsBtn');
+                if (apptBtn) {
+                    apptBtn.href = "{{ path('admin_appointments') }}?keyword=" + encodeURIComponent(email);
+                }
+
+                openModal('viewCustomerModal');
+            });
+        });
+
+        // Wire Edit Customer Modal
+        function populateEditModal(data) {
+            document.getElementById('editCustomerId').value = data.id || '0';
+            document.getElementById('editCustomerFirst').value = data.first || '';
+            document.getElementById('editCustomerLast').value = data.last || '';
+            document.getElementById('editCustomerEmail').value = data.email || '';
+            document.getElementById('editCustomerPhone').value = data.phone || '';
+            openModal('editCustomerModal');
+        }
+
+        document.querySelectorAll('.btn-edit-customer').forEach(btn => {
+            btn.addEventListener('click', () => {
+                populateEditModal({
+                    id: btn.getAttribute('data-id'),
+                    first: btn.getAttribute('data-first'),
+                    last: btn.getAttribute('data-last'),
+                    name: btn.getAttribute('data-name'),
+                    email: btn.getAttribute('data-email'),
+                    phone: btn.getAttribute('data-phone')
+                });
+            });
+        });
+
+        // Switch from View to Edit
+        const viewToEditBtn = document.getElementById('viewToEditBtn');
+        if (viewToEditBtn) {
+            viewToEditBtn.addEventListener('click', () => {
+                closeModal('viewCustomerModal');
+                if (activeCustomerData) {
+                    populateEditModal(activeCustomerData);
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
