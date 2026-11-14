@@ -138,7 +138,7 @@
             const target = e.target;
             if (target && target.matches && (target.matches('.status-select') || target.closest('.status-form select'))) {
                 window.startPageLoading();
-                target.disabled = true;
+                target.style.pointerEvents = 'none';
                 target.style.opacity = '0.6';
 
                 // Add inline spinner next to select

@@ -195,7 +195,7 @@
         border-color: #C68E00;
         box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
     }
-    label {
+    .salon-modal label, .form-grid label {
         display: block;
         font-size: 12px;
         font-weight: 700;
@@ -321,10 +321,7 @@
                         {% set appEndTime = appointment.end_time is defined and appointment.end_time != '' ? appointment.end_time : '' %}
                         <tr>
                             <td style="white-space: nowrap;">{{ appointment.appointment_date|date('M j, Y') }} {{ appointment.start_time|date('g:i A') }}</td>
-                            <td>
-                                <div><strong>{{ appointment.customer_name }}</strong></div>
-                                <div style="font-size:12px;color:var(--main-sub,#6b7280);">{{ appointment.email }}</div>
-                            </td>
+                            <td data-filter-value="{{ appointment.customer_name }}" data-search="{{ appointment.customer_name }} {{ appointment.email }}">{{ appointment.customer_name }}</td>
                             <td data-filter-value="{{ appointment.service_name }}">{{ appointment.service_name }}</td>
                             <td data-filter-value="{{ artistName }}">{{ artistName }}</td>
                             <td style="white-space: nowrap;">₱{{ appointment.price }}</td>

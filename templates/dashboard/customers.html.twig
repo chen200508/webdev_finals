@@ -194,7 +194,7 @@
         border-color: #C68E00;
         box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
     }
-    label {
+    .salon-modal label, .field-group label {
         display: block;
         font-size: 12px;
         font-weight: 700;
@@ -306,15 +306,10 @@
                         {% set totalBookings = customer.total_bookings|default(0) %}
                         <tr>
                             <td>{{ loop.index }}</td>
-                            <td><strong>{{ customerName }}</strong></td>
-                            <td>{{ customer.email|default('') }}</td>
+                            <td>{{ customerName }}</td>
+                            <td>{{ customer.email|default('—') }}</td>
                             <td>{{ customer.phone|default('—') }}</td>
-                            <td>
-                                <span class="badge-bookings">
-                                    <i class="ti ti-calendar-event"></i>
-                                    <span>{{ totalBookings }} {{ totalBookings == 1 ? 'booking' : 'bookings' }}</span>
-                                </span>
-                            </td>
+                            <td>{{ totalBookings }} {{ totalBookings == 1 ? 'booking' : 'bookings' }}</td>
                             <td style="text-align: right;">
                                 <div class="action-group">
                                     {# View Action Button #}

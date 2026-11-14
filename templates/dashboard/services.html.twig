@@ -95,7 +95,7 @@
         background: #dc2626;
         color: #ffffff;
     }
-    label {
+    .salon-modal label, .field-group label {
         display: block;
         font-size: 12px;
         font-weight: 700;
@@ -248,7 +248,7 @@
                             <td data-filter-value="{{ categoryLabel }}">{{ categoryLabel }}</td>
                             <td>{% if minutes != '' %}{{ minutes }} mins{% endif %}</td>
                             <td>₱{{ service.price is defined ? service.price : '' }}</td>
-                            <td>{{ serviceDesc }}</td>
+                            <td class="dt-truncate" title="{{ serviceDesc }}">{{ serviceDesc }}</td>
                             <td>
                                 <div class="action-group">
                                     <button

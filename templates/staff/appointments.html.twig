@@ -195,7 +195,7 @@
         border-color: #C68E00;
         box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
     }
-    label {
+    .salon-modal label, .form-group label {
         display: block;
         font-size: 12px;
         font-weight: 600;
@@ -328,18 +328,17 @@
                         {% set statusLabel = statuses[sId] ?? 'Pending' %}
                         <tr>
                             <td style="white-space: nowrap;">
-                                <strong>{{ app.appointment_date|date('M j, Y') }}</strong> {{ app.start_time|date('g:i A') }}
+                                {{ app.appointment_date|date('M j, Y') }} {{ app.start_time|date('g:i A') }}
                             </td>
-                            <td>
-                                <div><strong>{{ app.customer_name }}</strong></div>
-                                <div style="font-size:12px;color:var(--main-sub,#6b7280);">{{ app.email|default(app.phone|default('')) }}</div>
+                            <td data-filter-value="{{ app.customer_name }}" data-search="{{ app.customer_name }} {{ app.email|default(app.phone|default('')) }}">
+                                {{ app.customer_name }}
                             </td>
                             <td data-filter-value="{{ app.service_name }}">{{ app.service_name }}</td>
-                            <td>
+                            <td data-filter-value="{{ isOwner ? ('You (' ~ staffMember.first_name ~ ')') : (app.staff_name|default('Staff #' ~ app.staff_id)) }}">
                                 {% if isOwner %}
-                                    <span class="badge badge-mine" style="font-size: 11px;"><i class="ti ti-user-check"></i> You ({{ staffMember.first_name }})</span>
+                                    <span style="color: #C68E00;">You ({{ staffMember.first_name }})</span>
                                 {% else %}
-                                    <span class="muted" style="font-size: 12px;"><i class="ti ti-user"></i> {{ app.staff_name|default('Staff #' ~ app.staff_id) }}</span>
+                                    <span>{{ app.staff_name|default('Staff #' ~ app.staff_id) }}</span>
                                 {% endif %}
                             </td>
                             <td style="white-space: nowrap;">₱{{ (app.price|default(0))|number_format(2) }}</td>

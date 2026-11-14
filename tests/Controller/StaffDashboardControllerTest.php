@@ -190,4 +190,69 @@ class StaffDashboardControllerTest extends WebTestCase
         $content = (string) $client->getResponse()->getContent();
         $this->assertStringContainsString('New password must be at least 6 characters long', $content);
     }
+
+    public function testStaffUpdateAppointmentStatusToCompletedUpdatesTableAndOverview(): void
+    {
+        $client = static::createClient();
+        $staff = $this->getStaffUser();
+        $client->loginUser($staff);
+
+        $crawler = $client->request('GET', '/staff/appointments');
+        $this->assertResponseIsSuccessful();
+        $csrfToken = (string) $crawler->filter('input[name="_token"]')->first()->attr('value');
+
+        // Chantelle (staff_id 1) owns appointment #1
+        $client->request('POST', '/staff/appointment/status', [
+            '_token' => $csrfToken,
+            'appointment_id' => 1,
+            'status_id' => 3, // Completed
+        ]);
+
+        $this->assertResponseRedirects();
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+        $tableHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('status-completed', $tableHtml);
+        $this->assertStringContainsString('Completed', $tableHtml);
+
+        // Verify Overview shows completed sessions
+        $client->request('GET', '/staff');
+        $this->assertResponseIsSuccessful();
+        $overviewHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Completed Sessions', $overviewHtml);
+        $this->assertStringContainsString('badge-3', $overviewHtml);
+    }
+
+    public function testStaffUpdateAppointmentDetailsToCompletedUpdatesTableAndOverview(): void
+    {
+        $client = static::createClient();
+        $staff = $this->getStaffUser();
+        $client->loginUser($staff);
+
+        $crawler = $client->request('GET', '/staff/appointments');
+        $csrfToken = (string) $crawler->filter('input[name="_token"]')->first()->attr('value');
+
+        // Edit appointment #1 via modal update to status 3
+        $client->request('POST', '/staff/appointment/update', [
+            '_token' => $csrfToken,
+            'appointment_id' => 1,
+            'service_id' => 1,
+            'appointment_date' => '2026-10-27',
+            'start_time' => '09:00:00',
+            'price' => 2500,
+            'status_id' => 3, // Completed
+        ]);
+
+        $this->assertResponseRedirects();
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+        $tableHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('status-completed', $tableHtml);
+
+        // Verify Overview
+        $client->request('GET', '/staff');
+        $this->assertResponseIsSuccessful();
+        $overviewHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Completed Sessions', $overviewHtml);
+    }
 }

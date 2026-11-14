@@ -1,27 +1,42 @@
 {#
-  Centralized Symfony Form Filter Bar for Admin DataTables (`partials/datatable_filter.html.twig`)
+  Centralized Modern Symfony Form Filter Bar for Admin DataTables (`partials/datatable_filter.html.twig`)
   Expects:
   - `filterForm`: FormView instance created from a Filter FormType in `src/Form/`
   - `resetPath`: URL to reset all active filters
 #}
 {% if filterForm is defined %}
+    {% set hasActiveFilter = false %}
+    {% for child in filterForm %}
+        {% if child.vars.name != 'filter' and child.vars.name != '_token' and child.vars.value is not empty %}
+            {% set hasActiveFilter = true %}
+        {% endif %}
+    {% endfor %}
+
     {{ form_start(filterForm, {'attr': {'class': 'dt-salon-toolbar', 'novalidate': 'novalidate'}}) }}
         <div class="dt-salon-filters">
-            {% for child in filterForm %}
-                {% if child.vars.name != 'filter' and child.vars.name != '_token' %}
-                    <label class="dt-salon-filter-item">
-                        <span>{{ child.vars.label }}:</span>
-                        {{ form_widget(child, {'attr': {'class': 'dt-salon-filter-select'}}) }}
-                    </label>
-                {% endif %}
-            {% endfor %}
+            <div class="dt-salon-filter-fields">
+                {% for child in filterForm %}
+                    {% if child.vars.name != 'filter' and child.vars.name != '_token' %}
+                        <div class="dt-salon-filter-item">
+                            <span class="dt-salon-filter-label">{{ child.vars.label }}</span>
+                            {{ form_widget(child, {'attr': {
+                                'class': 'dt-salon-filter-select',
+                                'onchange': ('choice' in (child.vars.block_prefixes|default([])) ? 'this.form.submit()' : '')
+                            }}) }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
             {% if filterForm.filter is defined %}
                 {{ form_widget(filterForm.filter, {'attr': {'class': 'dt-salon-filter-btn'}}) }}
             {% endif %}
 
-            {% if resetPath is defined %}
-                <a href="{{ resetPath }}" class="dt-salon-reset-btn">Reset filters</a>
+            {% if hasActiveFilter and resetPath is defined %}
+                <a href="{{ resetPath }}" class="dt-salon-reset-btn" title="Clear all active filters">
+                    <i class="ti ti-x"></i>
+                    <span>Clear filters</span>
+                </a>
             {% endif %}
         </div>
     {{ form_end(filterForm, {'render_rest': false}) }}

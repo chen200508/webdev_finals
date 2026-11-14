@@ -17,114 +17,242 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        margin-bottom: 16px;
-        padding-bottom: 14px;
-        border-bottom: 1px solid var(--table-row-border, #f3f4f6);
+        margin-bottom: 14px;
+        padding: 12px 16px;
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--table-border, #e5e7eb);
+        border-radius: 12px;
         font-family: var(--font-admin, "Metropolis", sans-serif);
     }
+    body[data-theme="dark"] .dt-salon-toolbar {
+        background: rgba(255, 255, 255, 0.02);
+        border-color: #374151;
+    }
     .dt-salon-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+    }
+    .dt-salon-filter-fields {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 12px;
     }
     .dt-salon-filter-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        font-weight: 600;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin: 0 !important;
+    }
+    .dt-salon-filter-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
         color: var(--main-muted, #4b5563);
+        white-space: nowrap;
+    }
+    .dt-salon-filter-select,
+    .dt-salon-filter-input,
+    .dt-salon-toolbar input[type="text"] {
+        display: inline-block !important;
+        width: auto !important;
+        height: 38px !important;
+        margin: 0 !important;
+        padding: 6px 12px !important;
+        border: 1px solid var(--input-border, #d1d5db) !important;
+        border-radius: 8px !important;
+        background: var(--input-bg, #fff) !important;
+        color: var(--input-text, #1f2937) !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
+        min-width: 140px !important;
+        transition: all 0.15s ease-in-out;
     }
     .dt-salon-filter-select {
-        padding: 6px 12px;
-        border: 1px solid var(--input-border, #d1d5db);
-        border-radius: 10px;
-        background: var(--input-bg, #fff);
-        color: var(--input-text, #1f2937);
-        font-size: 13px;
-        font-family: var(--font-admin, "Metropolis", sans-serif);
-        min-width: 150px;
-        cursor: pointer;
+        cursor: pointer !important;
+        padding-right: 28px !important;
     }
-    .dt-salon-filter-select:focus {
-        outline: none;
-        border-color: #C68E00;
-        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    .dt-salon-filter-select:focus,
+    .dt-salon-filter-input:focus,
+    .dt-salon-toolbar input[type="text"]:focus {
+        outline: none !important;
+        border-color: #C68E00 !important;
+        box-shadow: 0 0 0 3px rgba(198, 142, 0, 0.18) !important;
     }
     .dt-salon-filter-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        background: #C68E00;
-        color: #ffffff;
-        border: 1px solid #C68E00;
-        border-radius: 8px;
-        padding: 6px 14px;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: var(--font-admin, "Metropolis", sans-serif);
-        transition: all 0.15s;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        background: #C68E00 !important;
+        color: #ffffff !important;
+        border: 1px solid #C68E00 !important;
+        border-radius: 8px !important;
+        height: 38px !important;
+        padding: 0 16px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        font-family: var(--font-admin, "Metropolis", sans-serif) !important;
+        transition: all 0.15s ease-in-out !important;
     }
     .dt-salon-filter-btn:hover {
-        background: #a87700;
-        border-color: #a87700;
+        background: #a87700 !important;
+        border-color: #a87700 !important;
     }
     .dt-salon-reset-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        color: #C68E00;
-        border: 1px solid rgba(198, 142, 0, 0.4);
-        border-radius: 8px;
-        padding: 6px 12px;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: var(--font-admin, "Metropolis", sans-serif);
-        text-decoration: none;
-        transition: all 0.15s;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        height: 34px !important;
+        padding: 0 12px !important;
+        border-radius: 8px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        background: rgba(220, 38, 38, 0.08) !important;
+        color: #dc2626 !important;
+        border: 1px solid rgba(220, 38, 38, 0.25) !important;
+        text-decoration: none !important;
+        margin-left: auto !important;
+        transition: all 0.15s ease-in-out !important;
     }
     .dt-salon-reset-btn:hover {
-        background: #C68E00;
-        color: #fff;
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+    }
+    body[data-theme="dark"] .dt-salon-reset-btn {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #f87171 !important;
+        border-color: rgba(239, 68, 68, 0.35) !important;
+    }
+    body[data-theme="dark"] .dt-salon-reset-btn:hover {
+        background: #dc2626 !important;
+        color: #ffffff !important;
     }
     .dt-container {
         font-family: var(--font-admin, "Metropolis", sans-serif);
         font-size: 14px;
         color: var(--main-text, #1f2937);
     }
-    .dt-container .dt-length,
-    .dt-container .dt-search,
-    .dt-container .dt-info,
-    .dt-container .dt-paging {
-        padding: 6px 0;
-        font-size: 13px;
-        color: var(--main-muted, #4b5563);
+    /* Modern Industry Standard Top Toolbar Layout */
+    .dt-container .dt-layout-row:first-child {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+        margin-bottom: 14px !important;
+        padding: 0 !important;
     }
-    .dt-container .dt-search input,
+    .dt-container .dt-layout-cell.dt-layout-start,
+    .dt-container .dt-layout-cell.dt-layout-end {
+        display: inline-flex !important;
+        align-items: center !important;
+        width: auto !important;
+    }
+    .dt-container .dt-length {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+        font-size: 13px !important;
+        color: var(--main-muted, #4b5563) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .dt-container .dt-length label {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin: 0 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        color: var(--main-muted, #4b5563) !important;
+        white-space: nowrap !important;
+    }
     .dt-container .dt-length select {
+        display: inline-block !important;
+        width: auto !important;
+        min-width: 65px !important;
+        height: 38px !important;
+        margin: 0 !important;
+        padding: 6px 26px 6px 10px !important;
         border: 1px solid var(--input-border, #d1d5db) !important;
-        border-radius: 10px !important;
-        padding: 6px 10px !important;
-        background: var(--input-bg, #fff) !important;
+        border-radius: 8px !important;
+        background-color: var(--input-bg, #ffffff) !important;
         color: var(--input-text, #1f2937) !important;
-        font-family: var(--font-admin, "Metropolis", sans-serif);
-        font-size: 13px;
-        margin-left: 6px;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease-in-out !important;
     }
-    .dt-container .dt-length select {
-        margin-left: 0;
-        margin-right: 6px;
-    }
-    .dt-container .dt-search input:focus,
     .dt-container .dt-length select:focus {
         outline: none !important;
         border-color: #C68E00 !important;
-        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15) !important;
+        box-shadow: 0 0 0 3px rgba(198, 142, 0, 0.18) !important;
+    }
+    .dt-container .dt-search {
+        display: inline-flex !important;
+        align-items: center !important;
+        position: relative !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .dt-container .dt-search label {
+        font-size: 0 !important;
+        color: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    .dt-container .dt-search::before {
+        content: "\ea0b";
+        font-family: "tabler-icons" !important;
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: var(--main-sub, #9ca3af);
+        pointer-events: none;
+        z-index: 2;
+    }
+    .dt-container .dt-search input {
+        display: inline-block !important;
+        width: 250px !important;
+        height: 38px !important;
+        margin: 0 !important;
+        padding: 8px 12px 8px 36px !important;
+        border: 1px solid var(--input-border, #d1d5db) !important;
+        border-radius: 8px !important;
+        background-color: var(--input-bg, #ffffff) !important;
+        color: var(--input-text, #1f2937) !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        transition: all 0.15s ease-in-out !important;
+    }
+    .dt-container .dt-search input:focus {
+        outline: none !important;
+        border-color: #C68E00 !important;
+        box-shadow: 0 0 0 3px rgba(198, 142, 0, 0.18) !important;
+        width: 280px !important;
+    }
+    .dt-container .dt-search input::placeholder {
+        color: var(--main-sub, #9ca3af) !important;
+    }
+    .dt-container .dt-info,
+    .dt-container .dt-paging {
+        padding: 8px 0;
+        font-size: 13px;
+        color: var(--main-muted, #4b5563);
     }
     body div.dt-container .dt-paging .dt-paging-button {
         border-radius: 8px !important;
@@ -173,9 +301,45 @@
         border-bottom: 1px solid var(--table-border, #e5e7eb) !important;
         color: var(--main-sub, #6b7280);
         font-weight: 600;
+        font-size: 13px;
+        white-space: nowrap;
     }
-    .dt-container table.dataTable tbody td {
+    .dt-container table.dataTable tbody td,
+    table[data-datatable] tbody td {
         border-top: 1px solid var(--table-row-border, #f3f4f6) !important;
+        font-size: 13.5px !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        vertical-align: middle;
+        color: var(--main-text, #1f2937);
+        padding: 13px 12px !important;
+    }
+    .dt-container table.dataTable tbody td strong,
+    table[data-datatable] tbody td strong {
+        font-weight: 500 !important;
+    }
+    .dt-truncate {
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    /* Centralized Row Hover for light & dark mode */
+    .dt-container table.dataTable tbody tr,
+    table[data-datatable] tbody tr {
+        transition: background-color 0.15s ease-in-out;
+    }
+    .dt-container table.dataTable tbody tr:hover,
+    .dt-container table.dataTable tbody tr:hover > *,
+    table[data-datatable] tbody tr:hover,
+    table[data-datatable] tbody tr:hover > * {
+        background-color: var(--table-row-hover, rgba(198, 142, 0, 0.07)) !important;
+    }
+    body[data-theme="dark"] .dt-container table.dataTable tbody tr:hover,
+    body[data-theme="dark"] .dt-container table.dataTable tbody tr:hover > *,
+    body[data-theme="dark"] table[data-datatable] tbody tr:hover,
+    body[data-theme="dark"] table[data-datatable] tbody tr:hover > * {
+        background-color: var(--table-row-hover, rgba(198, 142, 0, 0.14)) !important;
     }
     .dt-container table.dataTable.no-footer {
         border-bottom: 1px solid var(--table-border, #e5e7eb) !important;
@@ -253,7 +417,7 @@
                 columnDefs: columnDefs,
                 language: {
                     processing: '<div class="dt-processing-spinner"><i class="ti ti-loader-2 spin-icon"></i> <span>Loading records...</span></div>',
-                    search: 'Search:',
+                    search: '',
                     searchPlaceholder: searchPlaceholder,
                     lengthMenu: 'Show _MENU_ entries',
                     info: 'Showing _START_ to _END_ of _TOTAL_ entries',

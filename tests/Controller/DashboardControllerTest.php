@@ -459,5 +459,35 @@ class DashboardControllerTest extends WebTestCase
         $content2 = (string) $client->getResponse()->getContent();
         $this->assertStringContainsString('Claire Bautista', $content2);
     }
+
+    public function testAdminUpdateStatusToCompletedUpdatesTableAndOverview(): void
+    {
+        $client = static::createClient();
+        $client->loginUser($this->getAdminUser());
+
+        $crawler = $client->request('GET', '/dashboard/appointments');
+        $this->assertResponseIsSuccessful();
+        $csrfToken = (string) $crawler->filter('input[name="_token"]')->first()->attr('value');
+
+        // Update appointment #1 status to Completed (3)
+        $client->request('POST', '/dashboard/appointment/status', [
+            '_token' => $csrfToken,
+            'appointment_id' => 1,
+            'status_id' => 3,
+        ]);
+
+        $this->assertResponseRedirects();
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+        $tableHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('status-completed', $tableHtml);
+
+        // Check Overview reflects completed status and badge
+        $client->request('GET', '/dashboard');
+        $this->assertResponseIsSuccessful();
+        $overviewHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('badge-3', $overviewHtml);
+        $this->assertStringContainsString('Completed', $overviewHtml);
+    }
 }
 

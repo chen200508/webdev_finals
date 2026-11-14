@@ -233,9 +233,13 @@ class StaffDashboardController extends AbstractController
             return $this->back($r);
         }
 
-        $statusId = (int) $r->request->get('status_id', 1);
-        $this->admin->updateAppointmentStatus($appointmentId, $statusId);
-        $this->addFlash('success', 'Appointment status updated.');
+        $statusId = $r->request->has('status_id') && $r->request->get('status_id') !== '' ? (int) $r->request->get('status_id') : 0;
+        if ($appointmentId > 0 && $statusId > 0) {
+            $this->admin->updateAppointmentStatus($appointmentId, $statusId);
+            $this->addFlash('success', 'Appointment status updated.');
+        } else {
+            $this->addFlash('error', 'Failed to update appointment status.');
+        }
 
         return $this->back($r);
     }

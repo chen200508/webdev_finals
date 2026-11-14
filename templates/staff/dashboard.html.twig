@@ -145,6 +145,7 @@
                                 <th>Schedule</th>
                                 <th>Client Name</th>
                                 <th>Service</th>
+                                <th>Price</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -152,20 +153,10 @@
                         <tbody>
                             {% for app in appointments|slice(0, 6) %}
                                 <tr>
-                                    <td>
-                                        <strong>{{ app.appointment_date|date('M d, Y') }}</strong>
-                                        <div class="muted">{{ app.start_time|slice(0, 5) }}</div>
-                                    </td>
-                                    <td>
-                                        <strong>{{ app.customer_name }}</strong>
-                                        {% if app.phone is defined and app.phone %}
-                                            <div class="muted">{{ app.phone }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span>{{ app.service_name }}</span>
-                                        <div class="muted">₱{{ (app.price|default(0))|number_format(2) }}</div>
-                                    </td>
+                                    <td>{{ app.appointment_date|date('M d, Y') }} {{ app.start_time|slice(0, 5) }}</td>
+                                    <td>{{ app.customer_name }}</td>
+                                    <td>{{ app.service_name }}</td>
+                                    <td>₱{{ (app.price|default(0))|number_format(2) }}</td>
                                     <td>
                                         {% set sId = app.status_id ?? 1 %}
                                         <span class="badge badge-{{ sId }}">{{ statuses[sId] ?? 'Pending' }}</span>
@@ -178,7 +169,7 @@
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td colspan="5" style="text-align:center;padding:32px;color:var(--main-sub);">
+                                    <td colspan="6" style="text-align:center;padding:32px;color:var(--main-sub);">
                                         <i class="ti ti-calendar-off" style="font-size:32px;display:block;margin-bottom:8px;color:#C68E00;"></i>
                                         No appointments scheduled yet.
                                     </td>

@@ -972,14 +972,29 @@ class AdminService
                 );
             }
 
-            $this->logActivity(
-                'appointment_updated',
-                'Updated',
-                null,
-                sprintf('Updated appointment #%d details (%s at %s, ₱%s).', $id, $date, substr($startTime, 0, 5), number_format($price, 2)),
-                'Scheduled',
-                $id
-            );
+            $oldStatusId = (int) ($existing['status_id'] ?? 1);
+            if ($statusId !== null && $statusId > 0 && $statusId !== $oldStatusId) {
+                $oldLabel = self::STATUS_LABELS[$oldStatusId] ?? 'Pending';
+                $newLabel = self::STATUS_LABELS[$statusId] ?? 'Pending';
+                $eventType = $statusId === 3 ? 'completed' : ($statusId === 4 ? 'cancelled' : 'status_updated');
+                $this->logActivity(
+                    $eventType,
+                    $newLabel,
+                    null,
+                    sprintf('Appointment #%d status changed from %s to %s.', $id, $oldLabel, $newLabel),
+                    $oldLabel,
+                    $id
+                );
+            } else {
+                $this->logActivity(
+                    'appointment_updated',
+                    'Updated',
+                    null,
+                    sprintf('Updated appointment #%d details (%s at %s, ₱%s).', $id, $date, substr($startTime, 0, 5), number_format($price, 2)),
+                    'Scheduled',
+                    $id
+                );
+            }
 
             return true;
         } catch (\Throwable) {

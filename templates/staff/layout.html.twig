@@ -22,6 +22,7 @@
             --card-border: rgba(198, 142, 0, 0.25);
             --table-border: #e5e7eb;
             --table-row-border: #f3f4f6;
+            --table-row-hover: rgba(198, 142, 0, 0.07);
             --input-bg: #ffffff;
             --input-border: #d1d5db;
             --input-text: #1f2937;
@@ -38,6 +39,7 @@
             --card-border: #4b5563;
             --table-border: #4b5563;
             --table-row-border: #374151;
+            --table-row-hover: rgba(198, 142, 0, 0.14);
             --input-bg: #14100c;
             --input-border: #4b5563;
             --input-text: #f5efe6;
@@ -205,9 +207,14 @@
             padding: 24px;
             margin-top: 20px;
         }
-        table { width: 100%; border-collapse: collapse; font-family: var(--font-admin); font-size: 14px; color: var(--main-text); }
-        th { text-align: left; padding: 12px; color: var(--main-sub); font-weight: 600; border-bottom: 1px solid var(--table-border); }
-        td { padding: 14px 12px; border-top: 1px solid var(--table-row-border); vertical-align: middle; color: var(--main-text); }
+        table { width: 100%; border-collapse: collapse; font-family: var(--font-admin); font-size: 13.5px; color: var(--main-text); }
+        th { text-align: left; padding: 12px; color: var(--main-sub); font-weight: 600; border-bottom: 1px solid var(--table-border); font-size: 13px; white-space: nowrap; }
+        td { padding: 13px 12px; border-top: 1px solid var(--table-row-border); vertical-align: middle; color: var(--main-text); font-size: 13.5px; font-weight: 500; }
+        table:not(.detail-table):not(.info-table):not(.view-detail-table) td { white-space: nowrap; }
+        table:not(.detail-table):not(.info-table):not(.view-detail-table) td strong { font-weight: 500; }
+        tbody tr { transition: background-color 0.15s ease-in-out; }
+        tbody tr:hover { background-color: var(--table-row-hover); }
+        tbody tr:hover td { background-color: transparent; }
         .muted { color: var(--main-sub); font-size: 12px; }
         .field, select, input[type="text"], input[type="password"], input[type="number"], input[type="date"], input[type="time"] {
             background: var(--input-bg);

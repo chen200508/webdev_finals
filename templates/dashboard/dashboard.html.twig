@@ -198,11 +198,14 @@
                             {% for appointment in appointments|slice(0, 4) %}
                                 <tr>
                                     <td>{{ appointment.appointment_date|date('M j, Y') }} {{ appointment.start_time|date('g:i A') }}</td>
-                                    <td>{{ appointment.customer_name }} ({{ appointment.email }})</td>
+                                    <td>{{ appointment.customer_name }}</td>
                                     <td>{{ appointment.service_name }}</td>
                                     <td>{{ appointment.staff_name|default(staffMap['s_' ~ appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id)) }}</td>
                                     <td>₱{{ appointment.price }}</td>
-                                    <td>{{ statuses[appointment.status_id] ?? 'Pending' }}</td>
+                                    <td>
+                                        {% set sId = appointment.status_id ?? 1 %}
+                                        <span class="badge badge-{{ sId }}">{{ statuses[sId] ?? 'Pending' }}</span>
+                                    </td>
                                 </tr>
                             {% else %}
                                 <tr><td colspan="6">No appointments scheduled yet.</td></tr>
@@ -280,7 +283,7 @@
                                     {% for customer in customers|slice(0, 4) %}
                                         {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : ((customer.first_name ?? '') ~ ' ' ~ (customer.last_name ?? ''))|trim) %}
                                         <tr>
-                                            <td>{{ customerName }}{% if customer.email is defined and customer.email %} ({{ customer.email }}){% endif %}</td>
+                                            <td>{{ customerName }}</td>
                                             <td>{{ customer.phone ?? '' }}</td>
                                         </tr>
                                     {% else %}

@@ -203,11 +203,15 @@ class DashboardController extends AbstractController
     public function updateAppointmentStatus(Request $r): Response
     {
         $this->checkCsrf($r);
-        $this->admin->updateAppointmentStatus(
-            (int) $r->request->get('appointment_id', 0),
-            (int) $r->request->get('status_id', 1)
-        );
-        $this->addFlash('success', 'Appointment status updated successfully.');
+        $appointmentId = (int) $r->request->get('appointment_id', 0);
+        $statusId = $r->request->has('status_id') && $r->request->get('status_id') !== '' ? (int) $r->request->get('status_id') : 0;
+
+        if ($appointmentId > 0 && $statusId > 0) {
+            $this->admin->updateAppointmentStatus($appointmentId, $statusId);
+            $this->addFlash('success', 'Appointment status updated successfully.');
+        } else {
+            $this->addFlash('error', 'Failed to update appointment status.');
+        }
 
         return $this->back($r);
     }
@@ -489,12 +493,29 @@ class DashboardController extends AbstractController
 
     private function getCounts(): array
     {
+        $all = $this->admin->getAllAppointments();
+        $pending = 0;
+        $confirmed = 0;
+        $completed = 0;
+        $cancelled = 0;
+        foreach ($all as $a) {
+            $s = (int) ($a['status_id'] ?? 1);
+            if ($s === 1) $pending++;
+            elseif ($s === 2) $confirmed++;
+            elseif ($s === 3) $completed++;
+            elseif ($s === 4) $cancelled++;
+        }
+
         return [
-            'bookings' => count($this->admin->getAllAppointments()),
+            'bookings' => count($all),
             'services' => count($this->admin->getAllServices()),
             'clients' => count($this->admin->getAllCustomers()),
             'users' => count($this->admin->getAllUsers()),
             'logs' => count($this->admin->getActivityLogs()),
+            'pending' => $pending,
+            'confirmed' => $confirmed,
+            'completed' => $completed,
+            'cancelled' => $cancelled,
         ];
     }
 

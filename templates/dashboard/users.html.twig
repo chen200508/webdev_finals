@@ -4,10 +4,9 @@
 
 {% block styles %}
     td { vertical-align: middle; }
-    select, input { font: inherit; }
     button { background: #C68E00; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 700; cursor: pointer; font-family: var(--font-admin); transition: all 0.15s; }
     button:hover { background: #a87700; }
-    label { display: block; font-size: 12px; font-weight: 700; color: var(--main-muted, #4b5563); font-family: var(--font-admin); }
+    .salon-modal label { display: block; font-size: 12px; font-weight: 700; color: var(--main-muted, #4b5563); font-family: var(--font-admin); }
 
     .page-head {
         display: flex;
@@ -37,7 +36,7 @@
         transform: translateY(-1px);
     }
 
-    .field, select {
+    .salon-modal .field, .salon-modal select {
         width: 100%;
         margin-top: 5px;
         padding: 9px 12px;
@@ -48,18 +47,24 @@
         font-size: 14px;
         font-family: var(--font-admin);
     }
-    .field:focus, select:focus {
+    .salon-modal .field:focus, .salon-modal select:focus {
         outline: none;
         border-color: #C68E00;
         box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
     }
 
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: var(--font-admin); }
-    .badge-admin { background: rgba(198, 142, 0, 0.16); color: #92400e; border: 1px solid rgba(198, 142, 0, 0.35); }
-    .badge-staff { background: #dbeafe; color: #1e40af; }
-    .badge-customer { background: #f3f4f6; color: #374151; }
-    .badge-active { background: #dcfce7; color: #166534; }
-    .badge-inactive { background: #fee2e2; color: #991b1b; }
+    /* Plaintext Role & Status with retained semantic colors */
+    .role-admin { color: #b45309; font-weight: 600; }
+    .role-staff { color: #1d4ed8; font-weight: 600; }
+    .role-customer { color: var(--main-muted, #4b5563); font-weight: 500; }
+    .status-active { color: #059669; font-weight: 600; }
+    .status-inactive { color: #dc2626; font-weight: 600; }
+
+    body[data-theme="dark"] .role-admin { color: #f59e0b; }
+    body[data-theme="dark"] .role-staff { color: #60a5fa; }
+    body[data-theme="dark"] .role-customer { color: #9ca3af; }
+    body[data-theme="dark"] .status-active { color: #34d399; }
+    body[data-theme="dark"] .status-inactive { color: #f87171; }
 
     .action-group {
         display: inline-flex;
@@ -258,17 +263,14 @@
                         {% set statusLabel = user.is_active ? 'Active' : 'Deactivated' %}
                         <tr>
                             <td>{{ user.id }}</td>
-                            <td>
-                                <div><strong>{{ user.name }}</strong></div>
-                                <div style="font-size:12px;color:var(--main-sub,#6b7280);">{{ user.email }}</div>
-                            </td>
+                            <td data-search="{{ user.name }} {{ user.email }}">{{ user.name }}</td>
                             <td data-filter-value="{{ roleLabel }}">
-                                <span class="badge {% if user.role == 'ROLE_ADMIN' %}badge-admin{% elseif user.role == 'ROLE_STAFF' %}badge-staff{% else %}badge-customer{% endif %}">
+                                <span class="{% if user.role == 'ROLE_ADMIN' %}role-admin{% elseif user.role == 'ROLE_STAFF' %}role-staff{% else %}role-customer{% endif %}">
                                     {{ roleLabel }}
                                 </span>
                             </td>
                             <td data-filter-value="{{ statusLabel }}">
-                                <span class="badge {{ user.is_active ? 'badge-active' : 'badge-inactive' }}">
+                                <span class="{{ user.is_active ? 'status-active' : 'status-inactive' }}">
                                     {{ statusLabel }}
                                 </span>
                             </td>
