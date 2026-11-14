@@ -20,24 +20,6 @@
                 <span class="desk-link-label"><i class="ti ti-user-circle"></i><span>My Profile</span></span>
             </a>
         </div>
-
-        {% if staffMember is defined and staffMember %}
-            <div style="margin-top: 28px; padding: 14px; background: rgba(255,255,255,0.06); border-radius: 12px; border: 1px solid rgba(198, 142, 0, 0.25);">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #C68E00; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
-                        {{ (staffMember.first_name|default('S'))|slice(0, 1)|upper }}
-                    </div>
-                    <div style="overflow: hidden;">
-                        <strong style="display: block; font-size: 13px; color: #ffffff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">
-                            {{ staffMember.first_name }} {{ staffMember.last_name }}
-                        </strong>
-                        <span style="font-size: 11px; color: #C68E00; text-transform: uppercase; letter-spacing: .06em; font-weight: 600;">
-                            Staff Specialist
-                        </span>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
     </nav>
     <div class="desk-foot">
         <p class="desk-address"><i class="ti ti-map-pin" style="color:#C68E00;margin-right:6px;"></i>143 Dauin St., Baslay</p>
