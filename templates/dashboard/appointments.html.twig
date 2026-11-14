@@ -274,7 +274,7 @@
     {% set statuses = {1: 'Pending', 2: 'Confirmed', 3: 'Completed', 4: 'Cancelled'} %}
     {% set staffMap = {} %}
     {% for member in staff|default([]) %}
-        {% set staffMap = staffMap|merge({(member.id): (member.first_name ~ ' ' ~ member.last_name)|trim}) %}
+        {% set staffMap = staffMap|merge({('s_' ~ member.id): (member.first_name ~ ' ' ~ member.last_name)|trim}) %}
     {% endfor %}
 
     <div class="page-head">
@@ -314,7 +314,7 @@
                 <tbody>
                     {% for appointment in appointments %}
                         {% set statusLabel = statuses[appointment.status_id] ?? 'Pending' %}
-                        {% set artistName = staffMap[appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id) %}
+                        {% set artistName = appointment.staff_name|default(staffMap['s_' ~ appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id)) %}
                         {% set appPhone = appointment.phone is defined and appointment.phone != '' ? appointment.phone : 'N/A' %}
                         {% set appNotes = appointment.customer_notes is defined ? appointment.customer_notes : '' %}
                         {% set appDuration = appointment.duration_minutes is defined ? appointment.duration_minutes : 60 %}

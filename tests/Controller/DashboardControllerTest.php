@@ -403,5 +403,55 @@ class DashboardControllerTest extends WebTestCase
         $client->request('GET', '/logout');
         $this->assertResponseRedirects();
     }
+
+    public function testAppointmentArtistUpdateDisplaysCorrectly(): void
+    {
+        $client = static::createClient();
+        $client->loginUser($this->getAdminUser());
+
+        $crawler = $client->request('GET', '/dashboard/appointments');
+        $this->assertResponseIsSuccessful();
+        $csrfToken = (string) $crawler->filter('input[name="_token"]')->first()->attr('value');
+
+        // Update appointment #4 to Katrina Ellaine Mendoza (staff_id = 3)
+        $client->request('POST', '/dashboard/appointment/update', [
+            '_token' => $csrfToken,
+            'appointment_id' => 4,
+            'staff_id' => 3,
+            'service_id' => 2,
+            'appointment_date' => '2026-11-11',
+            'start_time' => '14:30',
+            'price' => '1200.00',
+            'status_id' => 1,
+            'customer_notes' => 'Test notes',
+        ]);
+        $this->assertResponseRedirects('/dashboard/appointments');
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+
+        $content = (string) $client->getResponse()->getContent();
+        // Joy Dela Cruz row must display Katrina Ellaine Mendoza as the artist
+        $this->assertStringContainsString('Joy Dela Cruz', $content);
+        $this->assertStringContainsString('Katrina Ellaine Mendoza', $content);
+
+        // Update appointment #4 to Claire Bautista (staff_id = 4)
+        $csrfToken = (string) $client->getCrawler()->filter('input[name="_token"]')->first()->attr('value');
+        $client->request('POST', '/dashboard/appointment/update', [
+            '_token' => $csrfToken,
+            'appointment_id' => 4,
+            'staff_id' => 4,
+            'service_id' => 2,
+            'appointment_date' => '2026-11-11',
+            'start_time' => '14:30',
+            'price' => '1200.00',
+            'status_id' => 1,
+        ]);
+        $this->assertResponseRedirects('/dashboard/appointments');
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+
+        $content2 = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Claire Bautista', $content2);
+    }
 }
 

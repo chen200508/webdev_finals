@@ -140,6 +140,7 @@ class AdminService
                         a.id,
                         a.customer_id,
                         COALESCE(a.staff_id, 1) AS staff_id,
+                        TRIM(CONCAT(COALESCE(st.first_name, ''), ' ', COALESCE(st.last_name, ''))) AS staff_name,
                         DATE_FORMAT(a.appointment_date, '%Y-%m-%d') AS appointment_date,
                         TIME_FORMAT(a.start_time, '%H:%i:%s') AS start_time,
                         TIME_FORMAT(a.end_time, '%H:%i:%s') AS end_time,
@@ -154,6 +155,7 @@ class AdminService
                         COALESCE(aps.subtotal, 0) AS price
                     FROM appointments a
                     JOIN customers c ON c.id = a.customer_id
+                    LEFT JOIN staff st ON st.id = a.staff_id
                     LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
                     LEFT JOIN services s ON s.id = aps.service_id
                     ORDER BY a.id ASC
@@ -163,6 +165,7 @@ class AdminService
                     'id' => (int) $r['id'],
                     'customer_id' => (int) $r['customer_id'],
                     'staff_id' => (int) $r['staff_id'],
+                    'staff_name' => !empty(trim((string) ($r['staff_name'] ?? ''))) ? trim((string) $r['staff_name']) : ('Staff #' . $r['staff_id']),
                     'appointment_date' => (string) $r['appointment_date'],
                     'start_time' => (string) $r['start_time'],
                     'end_time' => (string) $r['end_time'],
@@ -187,6 +190,15 @@ class AdminService
                 ['id' => 3, 'customer_id' => 3, 'staff_id' => 1, 'appointment_date' => '2026-10-28', 'start_time' => '13:00:00', 'end_time' => '14:30:00', 'status_id' => 3, 'customer_name' => 'Liza Cruz',     'email' => 'liza@example.com',   'phone' => '+63 918 333 4444', 'customer_notes' => 'Editorial shoot', 'service_id' => 3, 'service_name' => 'Editorial / Creative Makeup', 'duration_minutes' => 90, 'price' => 1800],
                 ['id' => 4, 'customer_id' => 4, 'staff_id' => 3, 'appointment_date' => '2026-10-29', 'start_time' => '14:30:00', 'end_time' => '16:00:00', 'status_id' => 4, 'customer_name' => 'Joy Dela Cruz', 'email' => 'joy@example.com',    'phone' => '+63 919 555 6666', 'customer_notes' => '', 'service_id' => 2, 'service_name' => 'Everyday Glam',           'duration_minutes' => 60, 'price' => 1200],
             ];
+        }
+
+        $staffMap = [];
+        foreach ($this->getStaff() as $member) {
+            $staffMap[(int) $member['id']] = trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
+        }
+
+        foreach (self::$mockAppointments as &$app) {
+            $app['staff_name'] = $staffMap[(int) ($app['staff_id'] ?? 0)] ?? ('Staff #' . ($app['staff_id'] ?? ''));
         }
 
         return self::$mockAppointments;
@@ -684,10 +696,16 @@ class AdminService
                 }
             }
 
+            $staffMap = [];
+            foreach ($this->getStaff() as $member) {
+                $staffMap[(int) $member['id']] = trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
+            }
+
             self::$mockAppointments[] = [
                 'id' => $nextId,
                 'customer_id' => $customerId > 0 ? $customerId : $nextId + 10,
                 'staff_id' => $staffId,
+                'staff_name' => $staffMap[$staffId] ?? ('Staff #' . $staffId),
                 'appointment_date' => $date ?: date('Y-m-d'),
                 'start_time' => strlen($startTime) === 5 ? $startTime . ':00' : $startTime,
                 'end_time' => date('H:i:s', strtotime($startTime) + 3600),

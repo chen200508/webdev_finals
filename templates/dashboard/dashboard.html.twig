@@ -73,7 +73,7 @@
     {% set statuses = {1: 'Pending', 2: 'Confirmed', 3: 'Completed', 4: 'Cancelled'} %}
     {% set staffMap = {} %}
     {% for member in staff|default([]) %}
-        {% set staffMap = staffMap|merge({(member.id): (member.first_name ~ ' ' ~ member.last_name)|trim}) %}
+        {% set staffMap = staffMap|merge({('s_' ~ member.id): (member.first_name ~ ' ' ~ member.last_name)|trim}) %}
     {% endfor %}
 
     {# Compute status counts and top services for Chart.js #}
@@ -200,7 +200,7 @@
                                     <td>{{ appointment.appointment_date|date('M j, Y') }} {{ appointment.start_time|date('g:i A') }}</td>
                                     <td>{{ appointment.customer_name }} ({{ appointment.email }})</td>
                                     <td>{{ appointment.service_name }}</td>
-                                    <td>{{ staffMap[appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id) }}</td>
+                                    <td>{{ appointment.staff_name|default(staffMap['s_' ~ appointment.staff_id] ?? ('Staff #' ~ appointment.staff_id)) }}</td>
                                     <td>₱{{ appointment.price }}</td>
                                     <td>{{ statuses[appointment.status_id] ?? 'Pending' }}</td>
                                 </tr>
