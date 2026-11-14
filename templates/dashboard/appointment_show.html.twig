@@ -421,16 +421,15 @@
                 <span>{{ statusLabel }}</span>
             </span>
 
-            {# Quick Status Update Form #}
+            {# Quick Status Auto-submits on change #}
             <form class="status-form-main" method="post" action="{{ path('admin_appointment_status') }}" style="margin:0;">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
                 <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
-                <select class="status-select-main" name="status_id" aria-label="Status for appointment #{{ appointment.id }}">
+                <select class="status-select-main" name="status_id" aria-label="Status for appointment #{{ appointment.id }}" onchange="this.form.submit()">
                     {% for id, label in statuses %}
                         <option value="{{ id }}" {% if appointment.status_id == id %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
-                <button class="btn-status-update" type="submit">Update</button>
             </form>
 
             {# Schedule New Appointment (Create) #}

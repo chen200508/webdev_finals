@@ -865,9 +865,15 @@ class AdminService
                 }
             }
 
+            $staffMap = [];
+            foreach ($this->getStaff() as $member) {
+                $staffMap[(int) $member['id']] = trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
+            }
+
             foreach (self::$mockAppointments as &$app) {
                 if ($app['id'] === $id) {
                     $app['staff_id'] = $staffId;
+                    $app['staff_name'] = $staffMap[$staffId] ?? ('Staff #' . $staffId);
                     $app['appointment_date'] = $date;
                     $app['start_time'] = strlen($startTime) === 5 ? $startTime . ':00' : $startTime;
                     $app['end_time'] = date('H:i:s', strtotime($startTime) + ($duration * 60));
@@ -876,7 +882,17 @@ class AdminService
                     $app['duration_minutes'] = $duration;
                     $app['price'] = $price;
                     if ($statusId !== null) $app['status_id'] = $statusId;
-                    if ($customerId !== null) $app['customer_id'] = $customerId;
+                    if ($customerId !== null) {
+                        $app['customer_id'] = $customerId;
+                        foreach ($this->getAllCustomers() as $c) {
+                            if ((int) $c['id'] === $customerId) {
+                                $app['customer_name'] = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                                $app['email'] = $c['email'] ?? '';
+                                $app['phone'] = $c['phone'] ?? '';
+                                break;
+                            }
+                        }
+                    }
                     if ($notes !== null) $app['customer_notes'] = $notes;
                     break;
                 }
@@ -928,13 +944,13 @@ class AdminService
             $hasService = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM appointment_services WHERE appointment_id = :id', ['id' => $id]);
             if ($hasService > 0) {
                 $this->connection->executeStatement(
-                    'UPDATE appointment_services SET service_id = :serviceId, unit_price = :price, duration_minutes = :duration, subtotal = :price WHERE appointment_id = :id',
-                    ['serviceId' => $serviceId, 'price' => $price, 'duration' => $duration, 'id' => $id]
+                    'UPDATE appointment_services SET service_id = :serviceId, unit_price = :unitPrice, duration_minutes = :duration, subtotal = :subtotal WHERE appointment_id = :id',
+                    ['serviceId' => $serviceId, 'unitPrice' => $price, 'duration' => $duration, 'subtotal' => $price, 'id' => $id]
                 );
             } else {
                 $this->connection->executeStatement(
-                    'INSERT INTO appointment_services (appointment_id, service_id, quantity, unit_price, duration_minutes, subtotal) VALUES (:id, :serviceId, 1, :price, :duration, :price)',
-                    ['id' => $id, 'serviceId' => $serviceId, 'price' => $price, 'duration' => $duration]
+                    'INSERT INTO appointment_services (appointment_id, service_id, quantity, unit_price, duration_minutes, subtotal) VALUES (:id, :serviceId, 1, :unitPrice, :duration, :subtotal)',
+                    ['id' => $id, 'serviceId' => $serviceId, 'unitPrice' => $price, 'duration' => $duration, 'subtotal' => $price]
                 );
             }
 

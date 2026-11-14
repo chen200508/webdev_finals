@@ -79,6 +79,10 @@ class DashboardControllerTest extends WebTestCase
         $this->assertStringContainsString('btn-edit', $html);
         $this->assertStringContainsString('btn-delete', $html);
 
+        // Auto-submitting status select without redundant Update button (Industry standard)
+        $this->assertStringContainsString('onchange="this.form.submit()"', $html);
+        $this->assertStringNotContainsString('<button type="submit">Update</button>', $html);
+
         // Centralized View Details Page
         $client->request('GET', '/dashboard/appointments/1');
         $this->assertResponseIsSuccessful();

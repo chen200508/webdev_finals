@@ -343,16 +343,15 @@
                                         <span>View</span>
                                     </a>
 
-                                    {# Fast Status Change #}
+                                    {# Fast Status Change - Auto-submits on change (Industry standard, no separate button) #}
                                     <form class="status-form" method="post" action="{{ path('admin_appointment_status') }}" style="margin:0;">
                                         <input type="hidden" name="_token" value="{{ csrf_token('admin_action') }}">
                                         <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
-                                        <select class="status-select" name="status_id" aria-label="Status for {{ appointment.customer_name }}">
+                                        <select class="status-select" name="status_id" aria-label="Status for {{ appointment.customer_name }}" onchange="this.form.submit()">
                                             {% for id, label in statuses %}
                                                 <option value="{{ id }}" {% if appointment.status_id == id %}selected{% endif %}>{{ label }}</option>
                                             {% endfor %}
                                         </select>
-                                        <button type="submit">Update</button>
                                     </form>
 
                                     {# Edit Button #}
@@ -362,14 +361,14 @@
                                         data-edit-appointment
                                         data-id="{{ appointment.id }}"
                                         data-customer-id="{{ appointment.customer_id|default(0) }}"
-                                        data-client="{{ appointment.customer_name }}"
+                                        data-client="{{ appointment.customer_name|e('html_attr') }}"
                                         data-staff-id="{{ appointment.staff_id }}"
                                         data-service-id="{{ appointment.service_id }}"
-                                        data-date="{{ appointment.appointment_date }}"
-                                        data-time="{{ appointment.start_time|slice(0, 5) }}"
+                                        data-date="{{ appointment.appointment_date|date('Y-m-d') }}"
+                                        data-time="{{ appointment.start_time|date('H:i') }}"
                                         data-price="{{ appointment.price }}"
                                         data-status-id="{{ appointment.status_id }}"
-                                        data-notes="{{ appNotes }}"
+                                        data-notes="{{ appNotes|e('html_attr') }}"
                                     >
                                         <i class="ti ti-edit"></i>
                                         <span>Edit</span>
@@ -686,23 +685,57 @@
             closeAllModals();
             if (!editModal) return;
 
-            editIdInput.value = data.id || '';
-            if (editCustomerSelect && data.customerId) {
-                editCustomerSelect.value = data.customerId;
+            if (editIdInput) editIdInput.value = data.id || '';
+
+            if (editCustomerSelect) {
+                if (data.customerId && data.customerId !== '0') {
+                    editCustomerSelect.value = String(data.customerId);
+                }
+                // Fallback: match by client name if selection didn't take
+                if (editCustomerSelect.selectedIndex < 0 && data.client) {
+                    for (let i = 0; i < editCustomerSelect.options.length; i++) {
+                        if (editCustomerSelect.options[i].text.toLowerCase().includes(data.client.toLowerCase())) {
+                            editCustomerSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
             }
+
             if (editServiceSelect && data.serviceId) {
-                editServiceSelect.value = data.serviceId;
+                editServiceSelect.value = String(data.serviceId);
             }
             if (editStaffSelect && data.staffId) {
-                editStaffSelect.value = data.staffId;
+                editStaffSelect.value = String(data.staffId);
             }
-            if (editPriceInput) editPriceInput.value = data.price || '0';
-            if (editDateInput) editDateInput.value = data.date || '';
-            if (editTimeInput) editTimeInput.value = data.time || '';
+
+            // Clean price input to ensure pure numeric value
+            if (editPriceInput) {
+                const rawPrice = String(data.price || '0').replace(/[^0-9.]/g, '');
+                editPriceInput.value = parseFloat(rawPrice || 0).toFixed(2);
+            }
+
+            if (editDateInput) {
+                editDateInput.value = data.date || '';
+            }
+
+            // Ensure 24-hr time format HH:MM for input[type="time"]
+            if (editTimeInput) {
+                let formattedTime = String(data.time || '').trim();
+                if (formattedTime.length === 4 && formattedTime.indexOf(':') === 1) {
+                    formattedTime = '0' + formattedTime;
+                } else if (formattedTime.length >= 5) {
+                    formattedTime = formattedTime.substring(0, 5);
+                }
+                editTimeInput.value = formattedTime;
+            }
+
             if (editStatusSelect && data.statusId) {
-                editStatusSelect.value = data.statusId;
+                editStatusSelect.value = String(data.statusId);
             }
-            if (editNotesInput) editNotesInput.value = data.notes || '';
+            if (editNotesInput) {
+                editNotesInput.value = data.notes || '';
+            }
 
             if (editClientSub) {
                 editClientSub.textContent = data.client

@@ -357,13 +357,13 @@
                                     {% if isOwner %}
                                         <button type="button" class="btn-action btn-edit js-edit-btn"
                                             data-id="{{ app.id }}"
-                                            data-date="{{ app.appointment_date }}"
-                                            data-time="{{ app.start_time|slice(0, 5) }}"
+                                            data-date="{{ app.appointment_date|date('Y-m-d') }}"
+                                            data-time="{{ app.start_time|date('H:i') }}"
                                             data-service="{{ app.service_id|default(1) }}"
                                             data-price="{{ app.price|default(0) }}"
                                             data-status="{{ app.status_id|default(1) }}"
-                                            data-notes="{{ app.customer_notes|default('') }}"
-                                            data-customer="{{ app.customer_name }}"
+                                            data-notes="{{ app.customer_notes|default('')|e('html_attr') }}"
+                                            data-customer="{{ app.customer_name|e('html_attr') }}"
                                             title="Edit own booking">
                                             <i class="ti ti-pencil"></i> Edit
                                         </button>
