@@ -1,0 +1,158 @@
+{#
+  Centralized Loading Spinner & Async State Component (`partials/loading_spinner.html.twig`)
+  - Displays top progress bar during page transactions and form submissions
+  - Automatically equips submit buttons with spinners and disables double-submission
+  - Provides inline loading spinners on fast status dropdown updates
+#}
+<style>
+    /* 1. Global Top Loading Bar */
+    #salon-top-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        z-index: 999999;
+        display: none;
+        background: linear-gradient(90deg, #C68E00 0%, #FBBF24 50%, #C68E00 100%);
+        background-size: 200% 100%;
+        animation: salonProgressGlow 1.2s infinite linear;
+        box-shadow: 0 0 10px rgba(198, 142, 0, 0.7);
+    }
+
+    @keyframes salonProgressGlow {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* 2. Keyframes for spinning icons */
+    @keyframes salonSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .spin-icon {
+        display: inline-block !important;
+        animation: salonSpin 0.75s linear infinite !important;
+    }
+
+    /* 3. Button Loading States */
+    .btn-loading {
+        position: relative !important;
+        opacity: 0.8 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+    }
+
+    .btn-loading .btn-text-hide {
+        visibility: hidden;
+    }
+
+    /* 4. Inline Select Spinner (Fast Status Change) */
+    .inline-select-spinner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 6px;
+        vertical-align: middle;
+        color: #C68E00;
+        font-size: 14px;
+        line-height: 1;
+    }
+</style>
+
+<div id="salon-top-loader" aria-hidden="true"></div>
+
+<script>
+    (function() {
+        const topLoader = document.getElementById('salon-top-loader');
+
+        window.startPageLoading = function() {
+            if (topLoader) topLoader.style.display = 'block';
+        };
+
+        window.stopPageLoading = function() {
+            if (topLoader) topLoader.style.display = 'none';
+        };
+
+        window.setButtonLoading = function(button, customText = null) {
+            if (!button || button.classList.contains('btn-loading')) return;
+
+            button.classList.add('btn-loading');
+            button.dataset.origHtml = button.innerHTML;
+
+            const iconSpan = `<span class="spin-icon" style="margin-right: 6px;"><i class="ti ti-loader-2"></i></span>`;
+            
+            // Intelligent label replacement based on button content
+            const origText = (button.textContent || '').trim();
+            let loadingText = customText;
+            if (!loadingText) {
+                if (/save/i.test(origText)) loadingText = 'Saving...';
+                else if (/delete/i.test(origText)) loadingText = 'Deleting...';
+                else if (/update/i.test(origText)) loadingText = 'Updating...';
+                else if (/schedule/i.test(origText)) loadingText = 'Scheduling...';
+                else if (/create/i.test(origText)) loadingText = 'Creating...';
+                else loadingText = 'Processing...';
+            }
+
+            button.innerHTML = `${iconSpan}<span>${loadingText}</span>`;
+            button.disabled = true;
+        };
+
+        window.resetButtonLoading = function(button) {
+            if (!button || !button.classList.contains('btn-loading')) return;
+            button.classList.remove('btn-loading');
+            if (button.dataset.origHtml) {
+                button.innerHTML = button.dataset.origHtml;
+                delete button.dataset.origHtml;
+            }
+            button.disabled = false;
+        };
+
+        // Auto-hook on all forms in the document
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form || form.dataset.isSubmitting === 'true') {
+                return;
+            }
+
+            // Mark form as submitting to prevent double-post
+            form.dataset.isSubmitting = 'true';
+            window.startPageLoading();
+
+            // Find submit button in this form
+            const submitBtn = form.querySelector('button[type="submit"]:not([data-no-spinner]), input[type="submit"]:not([data-no-spinner])');
+            if (submitBtn) {
+                window.setButtonLoading(submitBtn);
+            }
+        }, true);
+
+        // Auto-hook on status forms (.status-select or select in .status-form)
+        document.addEventListener('change', function(e) {
+            const target = e.target;
+            if (target && target.matches && (target.matches('.status-select') || target.closest('.status-form select'))) {
+                window.startPageLoading();
+                target.disabled = true;
+                target.style.opacity = '0.6';
+
+                // Add inline spinner next to select
+                const parent = target.parentElement;
+                if (parent && !parent.querySelector('.inline-select-spinner')) {
+                    const spinner = document.createElement('span');
+                    spinner.className = 'inline-select-spinner';
+                    spinner.innerHTML = '<i class="ti ti-loader-2 spin-icon"></i>';
+                    parent.appendChild(spinner);
+                }
+            }
+        }, true);
+
+        // Reset page loader on page show (e.g. browser back button from cache)
+        window.addEventListener('pageshow', function() {
+            window.stopPageLoading();
+            document.querySelectorAll('.btn-loading').forEach(window.resetButtonLoading);
+            document.querySelectorAll('[data-is-submitting="true"]').forEach((f) => {
+                delete f.dataset.isSubmitting;
+            });
+        });
+    })();
+</script>

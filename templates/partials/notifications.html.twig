@@ -1,0 +1,279 @@
+{#
+  Centralized Notifications & Toast Banner System (`partials/notifications.html.twig`)
+  - Auto-renders Symfony `app.flashes` as high-visibility dismissible toasts
+  - Provides `window.showToast(message, type, duration, title)` API for JS/AJAX actions
+#}
+<style>
+    #salon-toast-container {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 380px;
+        max-width: calc(100vw - 32px);
+        pointer-events: none;
+    }
+
+    .salon-toast {
+        pointer-events: auto;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px 16px;
+        border-radius: 12px;
+        background: var(--card-bg, #ffffff);
+        color: var(--main-text, #1f2937);
+        border: 1px solid var(--card-border, rgba(198, 142, 0, 0.25));
+        border-left: 5px solid #C68E00;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        font-family: var(--font-admin, "Metropolis", sans-serif);
+        animation: salonToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .salon-toast.is-hiding {
+        opacity: 0;
+        transform: translateX(110%);
+    }
+
+    .salon-toast-icon {
+        font-size: 20px;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .salon-toast-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .salon-toast-title {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: var(--main-text, #1f2937);
+    }
+
+    .salon-toast-msg {
+        font-size: 13px;
+        line-height: 1.4;
+        color: var(--main-muted, #4b5563);
+        word-break: break-word;
+    }
+
+    .salon-toast-close {
+        background: transparent;
+        border: 0;
+        color: var(--main-sub, #9ca3af);
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 0 0 6px;
+        margin-top: -2px;
+        transition: color 0.15s;
+    }
+
+    .salon-toast-close:hover {
+        color: var(--main-text, #1f2937);
+    }
+
+    .salon-toast-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        opacity: 0.35;
+        width: 100%;
+        transform-origin: left;
+        animation: salonToastProgress 4s linear forwards;
+    }
+
+    .salon-toast:hover .salon-toast-bar {
+        animation-play-state: paused;
+    }
+
+    /* Status Themes */
+    .salon-toast-success {
+        border-left-color: #10b981;
+    }
+    .salon-toast-success .salon-toast-icon {
+        color: #10b981;
+    }
+    .salon-toast-success .salon-toast-bar {
+        background: #10b981;
+    }
+
+    .salon-toast-error,
+    .salon-toast-danger {
+        border-left-color: #ef4444;
+    }
+    .salon-toast-error .salon-toast-icon,
+    .salon-toast-danger .salon-toast-icon {
+        color: #ef4444;
+    }
+    .salon-toast-error .salon-toast-bar,
+    .salon-toast-danger .salon-toast-bar {
+        background: #ef4444;
+    }
+
+    .salon-toast-warning {
+        border-left-color: #f59e0b;
+    }
+    .salon-toast-warning .salon-toast-icon {
+        color: #f59e0b;
+    }
+    .salon-toast-warning .salon-toast-bar {
+        background: #f59e0b;
+    }
+
+    .salon-toast-info {
+        border-left-color: #3b82f6;
+    }
+    .salon-toast-info .salon-toast-icon {
+        color: #3b82f6;
+    }
+    .salon-toast-info .salon-toast-bar {
+        background: #3b82f6;
+    }
+
+    @keyframes salonToastSlideIn {
+        from {
+            opacity: 0;
+            transform: translateX(110%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes salonToastProgress {
+        from { transform: scaleX(1); }
+        to { transform: scaleX(0); }
+    }
+</style>
+
+<div id="salon-toast-container" aria-live="polite" aria-atomic="true">
+    {% for label, messages in app.flashes %}
+        {% for msg in messages %}
+            {% set normalizedType = (label == 'error' or label == 'danger') ? 'error' : ((label == 'warning') ? 'warning' : ((label == 'info') ? 'info' : 'success')) %}
+            <div class="salon-toast salon-toast-{{ normalizedType }}" data-salon-toast data-duration="4500">
+                <div class="salon-toast-icon">
+                    {% if normalizedType == 'error' %}
+                        <i class="ti ti-alert-triangle"></i>
+                    {% elseif normalizedType == 'warning' %}
+                        <i class="ti ti-alert-circle"></i>
+                    {% elseif normalizedType == 'info' %}
+                        <i class="ti ti-info-circle"></i>
+                    {% else %}
+                        <i class="ti ti-circle-check"></i>
+                    {% endif %}
+                </div>
+                <div class="salon-toast-body">
+                    <span class="salon-toast-title">
+                        {% if normalizedType == 'error' %}
+                            Action Failed
+                        {% elseif normalizedType == 'warning' %}
+                            Notice
+                        {% elseif normalizedType == 'info' %}
+                            Information
+                        {% else %}
+                            Success
+                        {% endif %}
+                    </span>
+                    <div class="salon-toast-msg">{{ msg }}</div>
+                </div>
+                <button type="button" class="salon-toast-close" aria-label="Dismiss">&times;</button>
+                <div class="salon-toast-bar" style="animation-duration: 4500ms;"></div>
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<script>
+    (function() {
+        const container = document.getElementById('salon-toast-container');
+        if (!container) return;
+
+        function initToast(el, duration) {
+            let timeoutId = null;
+            let remaining = duration;
+            let start = Date.now();
+
+            function close() {
+                el.classList.add('is-hiding');
+                setTimeout(() => el.remove(), 250);
+            }
+
+            const closeBtn = el.querySelector('.salon-toast-close');
+            if (closeBtn) closeBtn.addEventListener('click', close);
+
+            function startTimer() {
+                start = Date.now();
+                timeoutId = setTimeout(close, remaining);
+            }
+
+            function pauseTimer() {
+                clearTimeout(timeoutId);
+                remaining -= Date.now() - start;
+            }
+
+            el.addEventListener('mouseenter', pauseTimer);
+            el.addEventListener('mouseleave', () => {
+                if (remaining > 0) startTimer();
+            });
+
+            if (duration > 0) {
+                startTimer();
+            }
+        }
+
+        // Initialize server flashes
+        container.querySelectorAll('[data-salon-toast]').forEach((el) => {
+            const dur = parseInt(el.dataset.duration || '4500', 10);
+            initToast(el, dur);
+        });
+
+        // Global API
+        window.showToast = function(message, type = 'success', duration = 4000, title = null) {
+            const normalized = (type === 'error' || type === 'danger') ? 'error' : ((type === 'warning') ? 'warning' : ((type === 'info') ? 'info' : 'success'));
+            const defaultTitles = {
+                success: 'Success',
+                error: 'Action Failed',
+                warning: 'Notice',
+                info: 'Information'
+            };
+            const icons = {
+                success: 'ti ti-circle-check',
+                error: 'ti ti-alert-triangle',
+                warning: 'ti ti-alert-circle',
+                info: 'ti ti-info-circle'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `salon-toast salon-toast-${normalized}`;
+            toast.setAttribute('data-duration', duration);
+
+            toast.innerHTML = `
+                <div class="salon-toast-icon"><i class="${icons[normalized]}"></i></div>
+                <div class="salon-toast-body">
+                    <span class="salon-toast-title">${title || defaultTitles[normalized]}</span>
+                    <div class="salon-toast-msg">${message}</div>
+                </div>
+                <button type="button" class="salon-toast-close" aria-label="Dismiss">&times;</button>
+                <div class="salon-toast-bar" style="animation-duration: ${duration}ms;"></div>
+            `;
+
+            container.appendChild(toast);
+            initToast(toast, duration);
+        };
+    })();
+</script>

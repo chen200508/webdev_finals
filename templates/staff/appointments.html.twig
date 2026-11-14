@@ -259,6 +259,18 @@
     .badge-3 { background: #dcfce7; color: #166534; }
     .badge-4 { background: #fee2e2; color: #991b1b; }
     .badge-mine { background: rgba(198, 142, 0, 0.18); color: #C68E00; border: 1px solid rgba(198, 142, 0, 0.4); }
+
+    .badge-status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+    .status-confirmed { background: rgba(16, 185, 129, 0.15); color: #047857; }
+    .status-completed { background: rgba(59, 130, 246, 0.15); color: #1d4ed8; }
+    .status-cancelled { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
 {% endblock %}
 
 {% block content %}
@@ -287,74 +299,73 @@
     </div>
 
     <section class="card">
+        {% include 'partials/datatable_filter.html.twig' with {
+            filterForm: filterForm,
+            resetPath: path('staff_appointments', {'view': viewMode})
+        } %}
         <div style="overflow-x: auto;">
-            <table class="datatable">
+            <table
+                data-datatable
+                data-page-length="10"
+                data-search-placeholder="Search appointments..."
+                data-empty-text="No appointments found."
+            >
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Schedule</th>
+                        <th>Date &amp; Time</th>
                         <th>Client</th>
                         <th>Service</th>
                         <th>Artist</th>
+                        <th>Price</th>
                         <th>Status</th>
-                        <th>Quick Status</th>
-                        <th style="text-align: right;">Actions</th>
+                        <th data-orderable="false" style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for app in appointments %}
                         {% set isOwner = (app.staff_id|default(0) == currentStaffId) %}
                         {% set sId = app.status_id ?? 1 %}
+                        {% set statusLabel = statuses[sId] ?? 'Pending' %}
                         <tr>
-                            <td>
-                                <strong>#{{ app.id }}</strong>
+                            <td style="white-space: nowrap;">
+                                <strong>{{ app.appointment_date|date('M j, Y') }}</strong> {{ app.start_time|date('g:i A') }}
                             </td>
                             <td>
-                                <strong>{{ app.appointment_date|date('M d, Y') }}</strong>
-                                <div class="muted">{{ app.start_time|slice(0, 5) }}</div>
+                                <div><strong>{{ app.customer_name }}</strong></div>
+                                <div style="font-size:12px;color:var(--main-sub,#6b7280);">{{ app.email|default(app.phone|default('')) }}</div>
                             </td>
-                            <td>
-                                <strong>{{ app.customer_name }}</strong>
-                                {% if app.phone is defined and app.phone %}
-                                    <div class="muted">{{ app.phone }}</div>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span>{{ app.service_name }}</span>
-                                <div class="muted">₱{{ (app.price|default(0))|number_format(2) }}</div>
-                            </td>
+                            <td data-filter-value="{{ app.service_name }}">{{ app.service_name }}</td>
                             <td>
                                 {% if isOwner %}
-                                    <span class="badge badge-mine"><i class="ti ti-user-check"></i> You ({{ staffMember.first_name }})</span>
+                                    <span class="badge badge-mine" style="font-size: 11px;"><i class="ti ti-user-check"></i> You ({{ staffMember.first_name }})</span>
                                 {% else %}
-                                    <span class="muted"><i class="ti ti-user"></i> {{ app.staff_name|default('Staff #' ~ app.staff_id) }}</span>
+                                    <span class="muted" style="font-size: 12px;"><i class="ti ti-user"></i> {{ app.staff_name|default('Staff #' ~ app.staff_id) }}</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                <span class="badge badge-{{ sId }}">{{ statuses[sId] ?? 'Pending' }}</span>
-                            </td>
-                            <td>
-                                {% if isOwner %}
-                                    <form method="post" action="{{ path('staff_appointment_status') }}" class="status-form">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('staff_action') }}">
-                                        <input type="hidden" name="appointment_id" value="{{ app.id }}">
-                                        <select name="status_id" class="status-select" onchange="this.form.submit()">
-                                            {% for id, label in statuses %}
-                                                <option value="{{ id }}" {{ sId == id ? 'selected' : '' }}>{{ label }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </form>
-                                {% else %}
-                                    <span class="muted" style="font-size:11px;"><i class="ti ti-lock"></i> Locked</span>
-                                {% endif %}
+                            <td style="white-space: nowrap;">₱{{ (app.price|default(0))|number_format(2) }}</td>
+                            <td data-filter-value="{{ statusLabel }}" data-search="{{ statusLabel }}">
+                                <span class="badge-status status-{{ statusLabel|lower }}">{{ statusLabel }}</span>
                             </td>
                             <td style="text-align: right;">
-                                <div class="action-group">
+                                <div class="action-group" style="justify-content: flex-end;">
+                                    {# View Link #}
                                     <a class="btn-action btn-view" href="{{ path('staff_appointment_show', {id: app.id}) }}" title="View details">
-                                        <i class="ti ti-eye"></i> View
+                                        <i class="ti ti-eye"></i> <span>View</span>
                                     </a>
 
                                     {% if isOwner %}
+                                        {# Auto-submitting fast status change without separate button #}
+                                        <form method="post" action="{{ path('staff_appointment_status') }}" class="status-form" style="margin:0;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('staff_action') }}">
+                                            <input type="hidden" name="appointment_id" value="{{ app.id }}">
+                                            <select name="status_id" class="status-select" aria-label="Status for {{ app.customer_name }}" onchange="this.form.submit()">
+                                                {% for id, label in statuses %}
+                                                    <option value="{{ id }}" {{ sId == id ? 'selected' : '' }}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </form>
+
+                                        {# Edit Button #}
                                         <button type="button" class="btn-action btn-edit js-edit-btn"
                                             data-id="{{ app.id }}"
                                             data-date="{{ app.appointment_date|date('Y-m-d') }}"
@@ -365,29 +376,23 @@
                                             data-notes="{{ app.customer_notes|default('')|e('html_attr') }}"
                                             data-customer="{{ app.customer_name|e('html_attr') }}"
                                             title="Edit own booking">
-                                            <i class="ti ti-pencil"></i> Edit
+                                            <i class="ti ti-edit"></i> <span>Edit</span>
                                         </button>
 
+                                        {# Delete Button #}
                                         <button type="button" class="btn-action btn-delete js-delete-btn"
                                             data-id="{{ app.id }}"
-                                            data-client="{{ app.customer_name }}"
-                                            data-date="{{ app.appointment_date|date('M d, Y') }}"
+                                            data-client="{{ app.customer_name|e('html_attr') }}"
+                                            data-date="{{ app.appointment_date|date('M j, Y') }}"
                                             title="Delete own booking">
-                                            <i class="ti ti-trash"></i> Delete
+                                            <i class="ti ti-trash"></i> <span>Delete</span>
                                         </button>
                                     {% else %}
-                                        <span class="muted" style="font-size:11px;" title="Only the assigned staff member can edit or delete this record">
-                                            <i class="ti ti-shield-check"></i> Read-only
+                                        <span class="muted" style="font-size:11px;display:inline-flex;align-items:center;gap:4px;" title="Only the assigned staff member can edit or delete this record">
+                                            <i class="ti ti-lock"></i> Read-only
                                         </span>
                                     {% endif %}
                                 </div>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 36px; color: var(--main-sub);">
-                                <i class="ti ti-calendar-off" style="font-size: 36px; display: block; margin-bottom: 8px; color: #C68E00;"></i>
-                                No appointments found matching your filter criteria.
                             </td>
                         </tr>
                     {% endfor %}
@@ -625,9 +630,10 @@
             if (p) document.getElementById('create_price').value = parseFloat(p).toFixed(2);
         }
 
-        // Edit Modal Trigger
-        document.querySelectorAll('.js-edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+        // Delegated Edit Modal Trigger (works across all DataTables pages & sorting)
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.js-edit-btn');
+            if (btn) {
                 document.getElementById('edit_appointment_id').value = btn.dataset.id;
                 document.getElementById('edit_date').value = btn.dataset.date;
                 document.getElementById('edit_time').value = btn.dataset.time;
@@ -635,19 +641,21 @@
                 document.getElementById('edit_price').value = btn.dataset.price;
                 document.getElementById('edit_status').value = btn.dataset.status;
                 document.getElementById('edit_notes').value = btn.dataset.notes || '';
-                document.getElementById('edit-modal-sub').textContent = 'Editing booking #' + btn.dataset.id + ' for ' + btn.dataset.customer;
+                const sub = document.getElementById('edit-modal-sub');
+                if (sub) sub.textContent = 'Editing booking #' + btn.dataset.id + ' for ' + (btn.dataset.customer || 'Client');
                 openModal('edit-modal');
-            });
+            }
         });
 
-        // Delete Modal Trigger
-        document.querySelectorAll('.js-delete-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+        // Delegated Delete Modal Trigger (works across all DataTables pages & sorting)
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.js-delete-btn');
+            if (btn) {
                 document.getElementById('delete_appointment_id').value = btn.dataset.id;
-                document.getElementById('delete-client-name').textContent = btn.dataset.client;
-                document.getElementById('delete-client-date').textContent = btn.dataset.date;
+                document.getElementById('delete-client-name').textContent = btn.dataset.client || 'Client';
+                document.getElementById('delete-client-date').textContent = btn.dataset.date || '';
                 openModal('delete-modal');
-            });
+            }
         });
     </script>
 {% endblock %}

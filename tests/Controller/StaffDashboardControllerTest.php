@@ -80,6 +80,19 @@ class StaffDashboardControllerTest extends WebTestCase
         $this->assertStringContainsString('New Appointment', $content);
         $this->assertStringContainsString('All Salon Bookings', $content);
         $this->assertStringContainsString('Assigned to Me', $content);
+
+        // Centralized DataTable & Filters
+        $this->assertStringContainsString('data-datatable', $content);
+        $this->assertStringContainsString('dt-salon-toolbar', $content);
+        $this->assertStringContainsString('datatables.min.js', $content);
+        $this->assertStringContainsString('datatables.min.css', $content);
+
+        // Centralized Loading Spinner & Toast Notifications
+        $this->assertStringContainsString('id="salon-top-loader"', $content);
+        $this->assertStringContainsString('id="salon-toast-container"', $content);
+        $this->assertStringContainsString('window.showToast', $content);
+        $this->assertStringContainsString('window.setButtonLoading', $content);
+        $this->assertStringContainsString('onchange="this.form.submit()"', $content);
     }
 
     public function testStaffProfilePageLoadsWithChangePassword(): void

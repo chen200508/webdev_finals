@@ -269,25 +269,14 @@
             {% include 'partials/staff_nav.html.twig' %}
 
             <div class="page">
-                {% for message in app.flashes('success') %}
-                    <div class="flash-msg flash-success">
-                        <i class="ti ti-circle-check" style="font-size: 20px;"></i>
-                        <span>{{ message }}</span>
-                    </div>
-                {% endfor %}
-                {% for message in app.flashes('error') %}
-                    <div class="flash-msg flash-error">
-                        <i class="ti ti-alert-triangle" style="font-size: 20px;"></i>
-                        <span>{{ message }}</span>
-                    </div>
-                {% endfor %}
-
                 {% block content %}{% endblock %}
             </div>
         </div>
     </div>
 
     {% include 'partials/datatable.html.twig' %}
+    {% include 'partials/notifications.html.twig' %}
+    {% include 'partials/loading_spinner.html.twig' %}
 
     <script>
         document.querySelectorAll('.desk-link, .desk-brand').forEach((link) => {

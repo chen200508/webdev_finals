@@ -1,9 +1,14 @@
+{#
+  Centralized Flash Message Bridge (`partials/flash.html.twig`)
+  Delegates to window.showToast if notifications.html.twig is active,
+  or safely renders alerts if JS is disabled.
+#}
 {% for type, messages in app.flashes %}
     {% for message in messages %}
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 if (window.showToast) {
-                    window.showToast({{ message|json_encode|raw }}, {{ (type == 'error' ? 'error' : 'success')|json_encode|raw }}, 2500);
+                    window.showToast({{ message|json_encode|raw }}, {{ (type == 'error' or type == 'danger' ? 'error' : (type == 'warning' ? 'warning' : (type == 'info' ? 'info' : 'success')))|json_encode|raw }}, 4500);
                 }
             });
         </script>

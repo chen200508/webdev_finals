@@ -83,6 +83,12 @@ class DashboardControllerTest extends WebTestCase
         $this->assertStringContainsString('onchange="this.form.submit()"', $html);
         $this->assertStringNotContainsString('<button type="submit">Update</button>', $html);
 
+        // Centralized Loading Spinner & Toast Notifications
+        $this->assertStringContainsString('id="salon-top-loader"', $html);
+        $this->assertStringContainsString('id="salon-toast-container"', $html);
+        $this->assertStringContainsString('window.showToast', $html);
+        $this->assertStringContainsString('window.setButtonLoading', $html);
+
         // Centralized View Details Page
         $client->request('GET', '/dashboard/appointments/1');
         $this->assertResponseIsSuccessful();
