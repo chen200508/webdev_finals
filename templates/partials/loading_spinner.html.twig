@@ -62,6 +62,12 @@
 </style>
 
 <div id="salon-top-loader" aria-hidden="true"></div>
+<div id="salon-logout-overlay" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(0,0,0,0.45); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); align-items:center; justify-content:center; flex-direction:column; gap:12px; color:#ffffff; font-family:var(--font-admin, 'Metropolis', sans-serif);">
+    <div style="width:48px; height:48px; border-radius:50%; background:rgba(28,20,12,0.92); border:2px solid #C68E00; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 25px rgba(0,0,0,0.35);">
+        <i class="ti ti-loader-2 spin-icon" style="color:#C68E00; font-size:24px;"></i>
+    </div>
+    <span style="font-size:14px; font-weight:700; letter-spacing:0.04em;">Logging out...</span>
+</div>
 
 <script>
     (function() {
@@ -146,9 +152,32 @@
             }
         }, true);
 
+        // Auto-hook on logout links (.desk-logout or href containing logout)
+        document.addEventListener('click', function(e) {
+            const logoutLink = e.target.closest('.desk-logout, a[href*="logout"]');
+            if (logoutLink) {
+                window.startPageLoading();
+                logoutLink.style.pointerEvents = 'none';
+                logoutLink.style.opacity = '0.75';
+                logoutLink.innerHTML = '<i class="ti ti-loader-2 spin-icon" style="font-size:16px;"></i><span>Logging out...</span>';
+
+                const overlay = document.getElementById('salon-logout-overlay');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                }
+            }
+        }, true);
+
         // Reset page loader on page show (e.g. browser back button from cache)
         window.addEventListener('pageshow', function() {
             window.stopPageLoading();
+            const overlay = document.getElementById('salon-logout-overlay');
+            if (overlay) overlay.style.display = 'none';
+            document.querySelectorAll('.desk-logout').forEach((l) => {
+                l.style.pointerEvents = '';
+                l.style.opacity = '';
+                l.innerHTML = '<i class="ti ti-logout"></i><span>Log out</span>';
+            });
             document.querySelectorAll('.btn-loading').forEach(window.resetButtonLoading);
             document.querySelectorAll('[data-is-submitting="true"]').forEach((f) => {
                 delete f.dataset.isSubmitting;
