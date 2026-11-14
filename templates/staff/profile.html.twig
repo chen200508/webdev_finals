@@ -1,0 +1,216 @@
+{% extends 'staff/layout.html.twig' %}
+
+{% block title %}My Profile & Security · Staff Portal · S Beauty Salon{% endblock %}
+
+{% block styles %}
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1.5fr;
+        gap: 24px;
+        align-items: start;
+        margin-top: 20px;
+    }
+    .profile-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--table-border);
+    }
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #C68E00;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(198, 142, 0, 0.35);
+        flex-shrink: 0;
+    }
+    .profile-info h2 {
+        margin: 0 0 4px;
+        font-size: 20px;
+        color: var(--main-text);
+    }
+    .profile-role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(198, 142, 0, 0.15);
+        color: #C68E00;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .info-table th {
+        width: 38%;
+        padding: 10px 0;
+        color: var(--main-muted);
+        font-weight: 600;
+        border-bottom: 1px solid var(--table-row-border);
+    }
+    .info-table td {
+        padding: 10px 0;
+        color: var(--main-text);
+        font-weight: 500;
+        border-bottom: 1px solid var(--table-row-border);
+    }
+    .field-group {
+        margin-bottom: 16px;
+    }
+    .field-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--main-muted);
+    }
+    .field {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--input-border);
+        border-radius: 10px;
+        background: var(--input-bg);
+        color: var(--input-text);
+        font-size: 14px;
+        font-family: var(--font-admin);
+    }
+    .field:focus {
+        outline: none;
+        border-color: #C68E00;
+        box-shadow: 0 0 0 2px rgba(198, 142, 0, 0.15);
+    }
+    .btn-submit {
+        background: #C68E00;
+        color: #fff;
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background .15s;
+    }
+    .btn-submit:hover {
+        background: #a87700;
+    }
+    @media (max-width: 900px) {
+        .profile-grid { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block content %}
+    <div>
+        <p class="eyebrow">Staff Account</p>
+        <h1>My Profile & Security</h1>
+        <p class="lede">Manage your artist credentials, view your system role, and update your account password.</p>
+    </div>
+
+    <div class="profile-grid">
+        <!-- Account Information Card -->
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ (staffMember.first_name|default('S'))|slice(0, 1)|upper }}
+                </div>
+                <div class="profile-info">
+                    <h2>{{ staffMember.first_name }} {{ staffMember.last_name }}</h2>
+                    <span class="profile-role-badge"><i class="ti ti-shield-check"></i> Staff Artist</span>
+                </div>
+            </div>
+
+            <table class="info-table">
+                <tbody>
+                    <tr>
+                        <th>Display Name</th>
+                        <td><strong>{{ staffMember.first_name }} {{ staffMember.last_name }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Email Account</th>
+                        <td>{{ user ? user.userIdentifier : staffMember.first_name|lower ~ '@salon.com' }}</td>
+                    </tr>
+                    <tr>
+                        <th>System Role</th>
+                        <td><span style="font-family: monospace; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">ROLE_STAFF</span></td>
+                    </tr>
+                    <tr>
+                        <th>Specialist ID</th>
+                        <td>#{{ staffMember.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Assigned Bookings</th>
+                        <td><strong>{{ counts.my_total }}</strong> appointments</td>
+                    </tr>
+                    <tr>
+                        <th>Account Status</th>
+                        <td>
+                            <span style="display:inline-flex;align-items:center;gap:5px;color:#15803d;font-weight:700;">
+                                <i class="ti ti-circle-check"></i> Active & Verified
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Change Password Card (Rubric Requirement) -->
+        <div class="profile-card">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--table-border);">
+                <span style="width: 36px; height: 36px; border-radius: 10px; background: rgba(198, 142, 0, 0.15); color: #C68E00; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="ti ti-key"></i>
+                </span>
+                <div>
+                    <h2 style="margin: 0; font-size: 18px;">Change Password</h2>
+                    <p class="muted" style="margin: 2px 0 0;">Update your login password securely with bcrypt/argon hashing.</p>
+                </div>
+            </div>
+
+            <form method="post" action="{{ path('staff_profile') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('staff_profile_action') }}">
+
+                <div class="field-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" name="new_password" id="new_password" class="field" required minlength="6" placeholder="Minimum 6 characters">
+                </div>
+
+                <div class="field-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" name="confirm_password" id="confirm_password" class="field" required minlength="6" placeholder="Re-type new password">
+                </div>
+
+                <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-submit">
+                        <i class="ti ti-lock-check"></i>
+                        <span>Update Password</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+

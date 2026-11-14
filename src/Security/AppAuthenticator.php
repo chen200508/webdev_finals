@@ -49,12 +49,14 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
     {
         $identifier = $token->getUserIdentifier();
         $isAdmin = \in_array('ROLE_ADMIN', $token->getRoleNames(), true);
+        $isStaff = \in_array('ROLE_STAFF', $token->getRoleNames(), true);
 
+        $roleLabel = $isAdmin ? 'Administrator' : ($isStaff ? 'Staff' : 'User');
         $this->admin->logActivity(
             'user_login',
             'Signed In',
             $identifier,
-            sprintf('%s (%s) signed in.', $isAdmin ? 'Administrator' : 'User', $identifier),
+            sprintf('%s (%s) signed in.', $roleLabel, $identifier),
             'Signed Out'
         );
 
@@ -64,6 +66,14 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             }
 
             return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
+        }
+
+        if ($isStaff) {
+            if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+                return new RedirectResponse($targetPath);
+            }
+
+            return new RedirectResponse($this->urlGenerator->generate('staff_dashboard'));
         }
 
         $this->removeTargetPath($request->getSession(), $firewallName);

@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}403 Access Denied · S Beauty Salon{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body %}
+<section class="relative bg-[#FBF4DE] py-12 md:py-16 px-4 flex items-center justify-center min-h-screen overflow-hidden">
+    <img
+        src="{{ asset('images/hero.webp') }}"
+        alt=""
+        aria-hidden="true"
+        class="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none"
+    >
+    <div class="absolute inset-0 bg-[#FBF4DE]/60 pointer-events-none"></div>
+
+    <div class="relative z-10 w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-[#C68E00]/25 overflow-hidden p-8 sm:p-10 md:p-14 text-center flex flex-col items-center">
+        <span class="text-xs uppercase tracking-[0.25em] text-[#dc2626] font-bold font-heading">Security Error 403</span>
+        <h1 class="text-6xl sm:text-7xl md:text-8xl font-heading font-bold text-[#dc2626] leading-none mt-2">403</h1>
+
+        <h2 class="text-2xl sm:text-3xl font-heading font-bold text-gray-900 mt-4">Access Denied</h2>
+        <p class="text-xs sm:text-sm text-gray-600 mt-3 max-w-md leading-relaxed">
+            You do not have permission to access this administrator resource. Staff accounts are strictly restricted from accessing administrator management pages and user controls.
+        </p>
+
+        <div class="mt-7 w-full sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-3">
+            {% if is_granted('ROLE_STAFF') %}
+                <a
+                    href="{{ path('staff_dashboard') }}"
+                    class="btn btn-lg w-full sm:w-auto inline-flex items-center justify-center bg-[#C68E00] hover:bg-[#a87700] text-white font-heading font-bold text-sm py-3 px-8 rounded-xl transition-colors shadow-md cursor-pointer"
+                >
+                    <i class="ti ti-layout-dashboard" style="margin-right: 6px;"></i>
+                    <span>Return to Staff Dashboard</span>
+                </a>
+            {% elseif is_granted('ROLE_ADMIN') %}
+                <a
+                    href="{{ path('app_dashboard') }}"
+                    class="btn btn-lg w-full sm:w-auto inline-flex items-center justify-center bg-[#C68E00] hover:bg-[#a87700] text-white font-heading font-bold text-sm py-3 px-8 rounded-xl transition-colors shadow-md cursor-pointer"
+                >
+                    <i class="ti ti-layout-dashboard" style="margin-right: 6px;"></i>
+                    <span>Return to Admin Dashboard</span>
+                </a>
+            {% else %}
+                <a
+                    href="{{ path('app_login') }}"
+                    class="btn btn-lg w-full sm:w-auto inline-flex items-center justify-center bg-[#C68E00] hover:bg-[#a87700] text-white font-heading font-bold text-sm py-3 px-8 rounded-xl transition-colors shadow-md cursor-pointer"
+                >
+                    <span>Back to Login</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+

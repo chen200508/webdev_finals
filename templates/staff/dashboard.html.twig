@@ -1,0 +1,194 @@
+{% extends 'staff/layout.html.twig' %}
+
+{% block title %}Staff Overview · S Beauty Salon{% endblock %}
+
+{% block styles %}
+    .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
+    .kpi {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 22px;
+        background: var(--card-bg);
+        color: var(--main-text);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.02);
+    }
+    .kpi-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .kpi-label { color: #C68E00; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; font-family: var(--font-admin); }
+    .kpi-icon {
+        width: 42px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(198, 142, 0, 0.14);
+        border: 1px solid rgba(198, 142, 0, 0.3);
+        color: #C68E00;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+    .kpi strong { display: block; margin: 8px 0 4px; font-size: 30px; line-height: 1; color: var(--main-text); }
+    .kpi-desc { margin: 0 0 16px; color: var(--main-sub); font-size: 13px; font-family: var(--font-admin); }
+    .kpi-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; align-self: flex-start; background: #C68E00; color: #fff; border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 700; font-family: var(--font-admin); transition: background .15s; }
+    .kpi-action:hover { background: #a87700; }
+    .overview-grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 24px; }
+    .card { display: flex; flex-direction: column; justify-content: space-between; margin-top: 0; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .card-head-title { display: flex; align-items: center; gap: 12px; }
+    .card-head-icon {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: rgba(198, 142, 0, 0.14);
+        border: 1px solid rgba(198, 142, 0, 0.3);
+        color: #C68E00;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    .card-head h2 { margin: 0; font-size: 18px; color: var(--main-text); }
+    .card-sub { margin: 2px 0 0; color: var(--main-sub); font-size: 12px; font-family: var(--font-admin); }
+    .btn-link { display: inline-flex; align-items: center; gap: 6px; background: #1c140c; color: #D49A26; border: 1px solid #C68E00; border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 700; font-family: var(--font-admin); transition: all .15s; }
+    .btn-link:hover { background: #C68E00; color: #fff; }
+    th { padding: 10px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    td { padding: 12px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: var(--font-admin); }
+    .badge-1 { background: #fef3c7; color: #92400e; }
+    .badge-2 { background: #dbeafe; color: #1e40af; }
+    .badge-3 { background: #dcfce7; color: #166534; }
+    .badge-4 { background: #fee2e2; color: #991b1b; }
+    @media (max-width: 900px) {
+        .kpis { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block content %}
+    {% set statuses = {1: 'Pending', 2: 'Confirmed', 3: 'Completed', 4: 'Cancelled'} %}
+
+    <div id="overview">
+        <p class="eyebrow">Staff Workspace</p>
+        <h1>Welcome, {{ staffMember.first_name }} {{ staffMember.last_name }}</h1>
+        <p class="lede">Manage your assigned client appointments, record service sessions, and track daily beauty bookings.</p>
+
+        <div class="kpis">
+            <article class="kpi">
+                <div>
+                    <div class="kpi-top">
+                        <span class="kpi-label">My Appointments</span>
+                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-calendar-event"></i></span>
+                    </div>
+                    <strong>{{ counts.my_total }}</strong>
+                    <p class="kpi-desc">Total bookings assigned to your artist schedule.</p>
+                </div>
+                <a class="kpi-action" href="{{ path('staff_appointments') }}">
+                    <span>Manage Schedule</span>
+                    <i class="ti ti-arrow-right"></i>
+                </a>
+            </article>
+
+            <article class="kpi">
+                <div>
+                    <div class="kpi-top">
+                        <span class="kpi-label">Confirmed Bookings</span>
+                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-calendar-check"></i></span>
+                    </div>
+                    <strong>{{ counts.confirmed }}</strong>
+                    <p class="kpi-desc">Upcoming clients confirmed and ready for service.</p>
+                </div>
+                <a class="kpi-action" href="{{ path('staff_appointments', {'status_id': 2}) }}">
+                    <span>View Confirmed</span>
+                    <i class="ti ti-arrow-right"></i>
+                </a>
+            </article>
+
+            <article class="kpi">
+                <div>
+                    <div class="kpi-top">
+                        <span class="kpi-label">Completed Sessions</span>
+                        <span class="kpi-icon" aria-hidden="true"><i class="ti ti-award"></i></span>
+                    </div>
+                    <strong>{{ counts.completed }}</strong>
+                    <p class="kpi-desc">Client beauty treatments successfully completed.</p>
+                </div>
+                <a class="kpi-action" href="{{ path('staff_appointments', {'status_id': 3}) }}">
+                    <span>View Completed</span>
+                    <i class="ti ti-arrow-right"></i>
+                </a>
+            </article>
+        </div>
+
+        <div class="overview-grid">
+            <section class="card">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <span class="card-head-icon"><i class="ti ti-clock-hour-4"></i></span>
+                        <div>
+                            <h2>Upcoming Schedule</h2>
+                            <p class="card-sub">Next scheduled appointments assigned to you</p>
+                        </div>
+                    </div>
+                    <a class="btn-link" href="{{ path('staff_appointments') }}">
+                        <span>View All ({{ counts.my_total }})</span>
+                        <i class="ti ti-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Schedule</th>
+                                <th>Client Name</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in appointments|slice(0, 6) %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ app.appointment_date|date('M d, Y') }}</strong>
+                                        <div class="muted">{{ app.start_time|slice(0, 5) }}</div>
+                                    </td>
+                                    <td>
+                                        <strong>{{ app.customer_name }}</strong>
+                                        {% if app.phone is defined and app.phone %}
+                                            <div class="muted">{{ app.phone }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span>{{ app.service_name }}</span>
+                                        <div class="muted">₱{{ (app.price|default(0))|number_format(2) }}</div>
+                                    </td>
+                                    <td>
+                                        {% set sId = app.status_id ?? 1 %}
+                                        <span class="badge badge-{{ sId }}">{{ statuses[sId] ?? 'Pending' }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('staff_appointment_show', {id: app.id}) }}" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;background:rgba(37,99,235,0.1);color:#2563eb;font-weight:700;font-size:12px;">
+                                            <i class="ti ti-eye"></i> Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align:center;padding:32px;color:var(--main-sub);">
+                                        <i class="ti ti-calendar-off" style="font-size:32px;display:block;margin-bottom:8px;color:#C68E00;"></i>
+                                        No appointments scheduled yet.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+{% endblock %}
+

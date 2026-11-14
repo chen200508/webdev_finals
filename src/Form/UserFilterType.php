@@ -40,6 +40,7 @@ class UserFilterType extends AbstractType
                 ->add('filter', SubmitType::class, [
                     'label' => 'Filter',
                 ]);
+                
         });
 
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {

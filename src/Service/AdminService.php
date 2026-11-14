@@ -518,6 +518,79 @@ class AdminService
         ];
     }
 
+    public function getStaffMemberForUser(?\Symfony\Component\Security\Core\User\UserInterface $user): array
+    {
+        $allStaff = $this->getStaff();
+        if ($user === null) {
+            return $allStaff[0] ?? ['id' => 1, 'first_name' => 'Staff', 'last_name' => 'Member'];
+        }
+
+        $email = strtolower($user->getUserIdentifier());
+        $userName = method_exists($user, 'getName') ? (string) $user->getName() : '';
+
+        if ($this->canUseDatabase()) {
+            try {
+                $userDbId = (int) $this->connection->fetchOne('SELECT id FROM users WHERE email = :email', ['email' => $email]);
+                if ($userDbId > 0) {
+                    $staffRow = $this->connection->fetchAssociative('SELECT id, first_name, last_name FROM staff WHERE user_id = :uid LIMIT 1', ['uid' => $userDbId]);
+                    if ($staffRow) {
+                        return [
+                            'id' => (int) $staffRow['id'],
+                            'first_name' => (string) $staffRow['first_name'],
+                            'last_name' => (string) $staffRow['last_name'],
+                        ];
+                    }
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        foreach ($allStaff as $member) {
+            $firstName = strtolower($member['first_name'] ?? '');
+            $fullName = strtolower(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
+            if ($firstName !== '' && str_contains($email, $firstName)) {
+                return $member;
+            }
+            if ($userName !== '' && (str_contains(strtolower($userName), $firstName) || strtolower($userName) === $fullName)) {
+                return $member;
+            }
+        }
+
+        return $allStaff[0] ?? ['id' => 1, 'first_name' => 'Staff', 'last_name' => 'Member'];
+    }
+
+    public function isAppointmentOwnedByStaff(int $appointmentId, int $staffId): bool
+    {
+        $appointment = $this->getAppointmentById($appointmentId);
+        if (!$appointment) {
+            return false;
+        }
+
+        return (int) ($appointment['staff_id'] ?? 0) === $staffId;
+    }
+
+    public function getStaffAppointments(int $staffId): array
+    {
+        $all = $this->getAllAppointments();
+        return array_values(array_filter($all, static fn (array $a): bool => (int) ($a['staff_id'] ?? 0) === $staffId));
+    }
+
+    public function updateUserPassword(string $email, string $hashedPassword): bool
+    {
+        if ($this->canUseDatabase()) {
+            try {
+                $this->connection->executeStatement('UPDATE users SET password_hash = :pwd WHERE email = :email', [
+                    'pwd' => $hashedPassword,
+                    'email' => $email,
+                ]);
+                return true;
+            } catch (\Throwable) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function updateAppointmentStatus(int $id, int $statusId): void
     {
         if (!$this->canUseDatabase()) {

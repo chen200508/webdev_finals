@@ -6,15 +6,30 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class DashboardControllerTest extends WebTestCase
 {
+    private function getAdminUser(): \App\Entity\User
+    {
+        $em = static::getContainer()->get(\Doctrine\ORM\EntityManagerInterface::class);
+        $userRepo = $em->getRepository(\App\Entity\User::class);
+        $admin = $userRepo->findOneBy(['email' => 'admin@salon.com']);
+        if (!$admin) {
+            $admin = new \App\Entity\User();
+            $admin->setEmail('admin@salon.com');
+            $admin->setName('Shaina Truno');
+            $admin->setRole('ROLE_ADMIN');
+            $admin->setPassword('testpass');
+            $admin->setIsActive(true);
+            $admin->setCreatedAt(new \DateTimeImmutable());
+            $em->persist($admin);
+            $em->flush();
+        }
+
+        return $admin;
+    }
+
     public function testDashboardPagesIncludeDataTableAndNinetyPercentLayout(): void
     {
         $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(\App\Repository\UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'admin@salon.com']);
-        if ($admin) {
-            $client->loginUser($admin);
-        }
+        $client->loginUser($this->getAdminUser());
 
         $pages = [
             '/dashboard/services' => 'Category',
@@ -47,12 +62,7 @@ class DashboardControllerTest extends WebTestCase
     public function testAppointmentsPageHasCrudElements(): void
     {
         $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(\App\Repository\UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'admin@salon.com']);
-        if ($admin) {
-            $client->loginUser($admin);
-        }
+        $client->loginUser($this->getAdminUser());
 
         $crawler = $client->request('GET', '/dashboard/appointments');
         $this->assertResponseIsSuccessful();
@@ -85,12 +95,7 @@ class DashboardControllerTest extends WebTestCase
     public function testUsersPageHasAddUserModal(): void
     {
         $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(\App\Repository\UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'admin@salon.com']);
-        if ($admin) {
-            $client->loginUser($admin);
-        }
+        $client->loginUser($this->getAdminUser());
 
         $crawler = $client->request('GET', '/dashboard/users');
         $this->assertResponseIsSuccessful();
@@ -109,12 +114,7 @@ class DashboardControllerTest extends WebTestCase
     public function testAppointmentsCrudOperations(): void
     {
         $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(\App\Repository\UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'admin@salon.com']);
-        if ($admin) {
-            $client->loginUser($admin);
-        }
+        $client->loginUser($this->getAdminUser());
 
         $crawler = $client->request('GET', '/dashboard/appointments');
         $this->assertResponseIsSuccessful();
@@ -187,12 +187,7 @@ class DashboardControllerTest extends WebTestCase
     public function testAppointmentShowPageCrudSectionsAndCustomerUsersSync(): void
     {
         $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(\App\Repository\UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'admin@salon.com']);
-        if ($admin) {
-            $client->loginUser($admin);
-        }
+        $client->loginUser($this->getAdminUser());
 
         // 1. Verify Appointment #2 details page has all CRUD sections, buttons, and modals
         $crawler = $client->request('GET', '/dashboard/appointments/2');
@@ -277,12 +272,7 @@ class DashboardControllerTest extends WebTestCase
     public function testCustomersPageHasFullCrudOperations(): void
     {
         $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(\App\Repository\UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'admin@salon.com']);
-        if ($admin) {
-            $client->loginUser($admin);
-        }
+        $client->loginUser($this->getAdminUser());
 
         // 1. GET /dashboard/customers
         $crawler = $client->request('GET', '/dashboard/customers');
@@ -361,12 +351,7 @@ class DashboardControllerTest extends WebTestCase
     public function testActivityLogsPerformedByIsDynamic(): void
     {
         $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(\App\Repository\UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'admin@salon.com']);
-        if ($admin) {
-            $client->loginUser($admin);
-        }
+        $client->loginUser($this->getAdminUser());
 
         // 1. Visit activity logs page
         $crawler = $client->request('GET', '/dashboard/activity-logs');

@@ -20,7 +20,7 @@ security:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\AppAuthenticator
-            access_denied_url: /404
+            access_denied_handler: App\Security\AccessDeniedHandler
             logout:
                 path: app_logout
                 target: app_login
@@ -39,9 +39,13 @@ security:
             # https://symfony.com/doc/current/security/impersonating_user.html
             # switch_user: true
 
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_STAFF]
+
     # Note: Only the *first* matching rule is applied
     access_control:
         - { path: ^/dashboard, roles: ROLE_ADMIN }
+        - { path: ^/staff, roles: ROLE_STAFF }
 
 when@test:
     security:
