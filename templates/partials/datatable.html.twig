@@ -386,8 +386,9 @@
             const pageLength = parseInt(tableEl.dataset.pageLength || '10', 10);
             const emptyText = tableEl.dataset.emptyText || 'No records found.';
             const searchPlaceholder = tableEl.dataset.searchPlaceholder || 'Search records...';
-            const orderCol = tableEl.dataset.orderCol !== undefined ? parseInt(tableEl.dataset.orderCol, 10) : 0;
-            const orderDir = tableEl.dataset.orderDir || 'asc';
+            const initialOrder = tableEl.dataset.orderCol !== undefined
+                ? [[parseInt(tableEl.dataset.orderCol, 10), tableEl.dataset.orderDir || 'desc']]
+                : [];
 
             // Detect non-orderable columns from <th data-orderable="false">
             const columnDefs = [];
@@ -401,7 +402,7 @@
                 pageLength: pageLength,
                 lengthMenu: [5, 10, 25, 50, 100],
                 ordering: true,
-                order: [[orderCol, orderDir]],
+                order: initialOrder,
                 searching: true,
                 paging: true,
                 pagingType: 'simple_numbers',

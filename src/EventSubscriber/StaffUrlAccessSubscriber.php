@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -83,6 +84,7 @@ class StaffUrlAccessSubscriber implements EventSubscriberInterface
             $throwable instanceof NotFoundHttpException
             || $throwable instanceof AccessDeniedHttpException
             || $throwable instanceof AccessDeniedException
+            || $throwable instanceof MethodNotAllowedHttpException
         ) {
             $content = $this->twig->render('security/403.html.twig');
             $event->setResponse(new Response($content, Response::HTTP_FORBIDDEN));

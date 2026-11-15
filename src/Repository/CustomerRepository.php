@@ -20,7 +20,7 @@ class CustomerRepository extends ServiceEntityRepository
     public function createFilterQueryBuilder(array $filters): QueryBuilder
     {
         $qb = $this->createQueryBuilder('c')
-            ->orderBy('c.id', 'ASC');
+            ->orderBy('c.id', 'DESC');
 
         if (!empty($filters['keyword'])) {
             $kw = '%' . strtolower((string) $filters['keyword']) . '%';

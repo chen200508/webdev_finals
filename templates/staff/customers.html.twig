@@ -261,13 +261,40 @@
     .view-detail-table tr:last-child td {
         border-bottom: none;
     }
+
+    /* Tabs / Filter Pills */
+    .view-pills {
+        display: inline-flex;
+        background: rgba(198, 142, 0, 0.12);
+        padding: 4px;
+        border-radius: 12px;
+        gap: 4px;
+        margin-bottom: 16px;
+    }
+    .view-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--main-muted);
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+    .view-pill.active {
+        background: #C68E00;
+        color: #ffffff;
+    }
 {% endblock %}
 
 {% block content %}
     <div class="page-head">
         <div>
+            <p class="eyebrow">Client Directory</p>
             <h1>Customers</h1>
-            <p class="lede">Manage client records and contact details at S Beauty Salon.</p>
+            <p class="lede">Manage your client records and view shared customer profiles at S Beauty Salon.</p>
         </div>
         <button type="button" class="btn-create-customer" id="openAddCustomerModal">
             <i class="ti ti-user-plus"></i>
@@ -275,15 +302,27 @@
         </button>
     </div>
 
+    <!-- View Mode Pills -->
+    <div class="view-pills">
+        <a href="{{ path('staff_customers', {'view': 'all'}) }}" class="view-pill {{ (viewMode|default('all')) == 'all' ? 'active' : '' }}">
+            <i class="ti ti-users"></i> All Salon Clients
+        </a>
+        <a href="{{ path('staff_customers', {'view': 'mine'}) }}" class="view-pill {{ (viewMode|default('all')) == 'mine' ? 'active' : '' }}">
+            <i class="ti ti-user-check"></i> My Clients ({{ myClientsCount|default(0) }})
+        </a>
+    </div>
+
     <section class="card">
         {% include 'partials/datatable_filter.html.twig' with {
             filterForm: filterForm,
-            resetPath: path('staff_customers')
+            resetPath: path('staff_customers', {'view': viewMode|default('all')})
         } %}
         <div style="overflow-x:auto;">
             <table
                 data-datatable
                 data-page-length="10"
+                data-order-col="0"
+                data-order-dir="desc"
                 data-search-placeholder="Search customers..."
                 data-empty-text="No customers yet."
             >
@@ -293,8 +332,9 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Artist</th>
                         <th style="width: 110px;">Bookings</th>
-                        <th style="width: 190px; text-align: right;">Actions</th>
+                        <th data-orderable="false" style="width: 190px; text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -303,11 +343,19 @@
                         {% set lastName = customer.last_name|default('') %}
                         {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : (firstName ~ ' ' ~ lastName)|trim) %}
                         {% set totalBookings = customer.total_bookings|default(0) %}
+                        {% set isOwner = (customer.staff_id|default(0) == currentStaffId|default(0)) %}
                         <tr>
-                            <td>{{ loop.index }}</td>
+                            <td data-order="{{ customer.id|default(loop.revindex) }}">{{ loop.index }}</td>
                             <td>{{ customerName }}</td>
                             <td>{{ customer.email|default('—') }}</td>
                             <td>{{ customer.phone|default('—') }}</td>
+                            <td>
+                                {% if isOwner %}
+                                    <span style="color: #C68E00;">You ({{ staffMember.first_name }})</span>
+                                {% else %}
+                                    <span>{{ customer.staff_name|default('Admin / Shared') }}</span>
+                                {% endif %}
+                            </td>
                             <td>{{ totalBookings }} {{ totalBookings == 1 ? 'booking' : 'bookings' }}</td>
                             <td style="text-align: right;">
                                 <div class="action-group">
@@ -321,40 +369,45 @@
                                         data-email="{{ customer.email|default('') }}"
                                         data-phone="{{ customer.phone|default('') }}"
                                         data-bookings="{{ totalBookings }}"
+                                        data-owner="{{ isOwner ? '1' : '0' }}"
                                         title="View customer details"
                                     >
                                         <i class="ti ti-eye"></i>
                                         <span>View</span>
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        class="btn-action btn-edit btn-edit-customer"
-                                        data-id="{{ customer.id }}"
-                                        data-first="{{ firstName }}"
-                                        data-last="{{ lastName }}"
-                                        data-name="{{ customerName }}"
-                                        data-email="{{ customer.email|default('') }}"
-                                        data-phone="{{ customer.phone|default('') }}"
-                                        title="Edit customer details"
-                                    >
-                                        <i class="ti ti-edit"></i>
-                                        <span>Edit</span>
-                                    </button>
+                                    {% if isOwner %}
+                                        <button
+                                            type="button"
+                                            class="btn-action btn-edit btn-edit-customer"
+                                            data-id="{{ customer.id }}"
+                                            data-first="{{ firstName }}"
+                                            data-last="{{ lastName }}"
+                                            data-name="{{ customerName }}"
+                                            data-email="{{ customer.email|default('') }}"
+                                            data-phone="{{ customer.phone|default('') }}"
+                                            title="Edit own customer details"
+                                        >
+                                            <i class="ti ti-edit"></i>
+                                            <span>Edit</span>
+                                        </button>
 
-                                    <form
-                                        method="post"
-                                        action="{{ path('staff_customer_delete') }}"
-                                        onsubmit="return confirm('Permanently remove customer {{ customerName }}?');"
-                                        style="margin: 0;"
-                                    >
-                                        <input type="hidden" name="_token" value="{{ csrf_token('staff_action') }}">
-                                        <input type="hidden" name="customer_id" value="{{ customer.id }}">
-                                        <button class="btn-action btn-delete" type="submit" title="Delete customer">
+                                        <button
+                                            type="button"
+                                            class="btn-action btn-delete js-delete-customer-btn"
+                                            data-id="{{ customer.id }}"
+                                            data-name="{{ customerName|e('html_attr') }}"
+                                            data-email="{{ customer.email|default('')|e('html_attr') }}"
+                                            title="Delete own customer"
+                                        >
                                             <i class="ti ti-trash"></i>
                                             <span>Delete</span>
                                         </button>
-                                    </form>
+                                    {% else %}
+                                        <span class="muted" style="font-size:11px;display:inline-flex;align-items:center;gap:4px;" title="Only the assigned staff member or admin can edit or delete this record">
+                                            <i class="ti ti-lock"></i> Read-only
+                                        </span>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -508,6 +561,40 @@
             </form>
         </div>
     </div>
+
+    {# Modal 4: Delete Customer Confirmation Prompt #}
+    <div class="salon-modal-backdrop" id="deleteCustomerModal" role="dialog" aria-modal="true" aria-labelledby="deleteCustomerTitle">
+        <div class="salon-modal" style="max-width: 460px;">
+            <div class="salon-modal-head">
+                <h2 class="salon-modal-title" id="deleteCustomerTitle" style="color: #dc2626;">
+                    <i class="ti ti-alert-triangle" style="color: #dc2626;"></i>
+                    <span>Confirm Deletion</span>
+                </h2>
+                <button type="button" class="salon-modal-close" data-close="deleteCustomerModal" aria-label="Close modal">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p style="margin: 0 0 12px; color: var(--main-text); font-size: 14px; line-height: 1.5;">
+                Are you sure you want to delete customer <strong id="deleteCustName">Client</strong> (<span id="deleteCustEmail">email</span>)?
+            </p>
+            <p class="muted" style="margin-bottom: 20px;">
+                This action is permanent and will remove your customer profile record.
+            </p>
+
+            <form method="post" action="{{ path('staff_customer_delete') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('staff_action') }}">
+                <input type="hidden" name="customer_id" id="deleteCustomerId" value="0">
+
+                <div class="salon-modal-foot" style="border: 0; padding: 0; margin-top: 0;">
+                    <button type="button" class="btn-cancel" data-close="deleteCustomerModal">Cancel</button>
+                    <button type="submit" class="btn-save" style="background: #dc2626;">
+                        <i class="ti ti-trash"></i>
+                        <span>Yes, Delete Customer</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
@@ -548,17 +635,29 @@
         }
 
         let activeCustomerData = null;
-        document.querySelectorAll('.btn-view-customer').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = btn.getAttribute('data-id') || '';
-                const name = btn.getAttribute('data-name') || '';
-                const first = btn.getAttribute('data-first') || '';
-                const last = btn.getAttribute('data-last') || '';
-                const email = btn.getAttribute('data-email') || '';
-                const phone = btn.getAttribute('data-phone') || 'N/A';
-                const bookings = btn.getAttribute('data-bookings') || '0';
 
-                activeCustomerData = { id, name, first, last, email, phone };
+        function populateEditModal(data) {
+            document.getElementById('editCustomerId').value = data.id || '0';
+            document.getElementById('editCustomerFirst').value = data.first || '';
+            document.getElementById('editCustomerLast').value = data.last || '';
+            document.getElementById('editCustomerEmail').value = data.email || '';
+            document.getElementById('editCustomerPhone').value = data.phone || '';
+            openModal('editCustomerModal');
+        }
+
+        document.addEventListener('click', (e) => {
+            const viewBtn = e.target.closest('.btn-view-customer');
+            if (viewBtn) {
+                const id = viewBtn.getAttribute('data-id') || '';
+                const name = viewBtn.getAttribute('data-name') || '';
+                const first = viewBtn.getAttribute('data-first') || '';
+                const last = viewBtn.getAttribute('data-last') || '';
+                const email = viewBtn.getAttribute('data-email') || '';
+                const phone = viewBtn.getAttribute('data-phone') || 'N/A';
+                const bookings = viewBtn.getAttribute('data-bookings') || '0';
+                const isOwner = viewBtn.getAttribute('data-owner') === '1';
+
+                activeCustomerData = { id, name, first, last, email, phone, isOwner };
 
                 document.getElementById('viewCustId').textContent = 'Customer #' + id;
                 document.getElementById('viewCustName').textContent = name;
@@ -571,37 +670,42 @@
                     apptBtn.href = "{{ path('staff_appointments') }}?keyword=" + encodeURIComponent(email);
                 }
 
+                const viewToEditBtn = document.getElementById('viewToEditBtn');
+                if (viewToEditBtn) {
+                    viewToEditBtn.style.display = isOwner ? 'inline-flex' : 'none';
+                }
+
                 openModal('viewCustomerModal');
-            });
-        });
+                return;
+            }
 
-        function populateEditModal(data) {
-            document.getElementById('editCustomerId').value = data.id || '0';
-            document.getElementById('editCustomerFirst').value = data.first || '';
-            document.getElementById('editCustomerLast').value = data.last || '';
-            document.getElementById('editCustomerEmail').value = data.email || '';
-            document.getElementById('editCustomerPhone').value = data.phone || '';
-            openModal('editCustomerModal');
-        }
-
-        document.querySelectorAll('.btn-edit-customer').forEach(btn => {
-            btn.addEventListener('click', () => {
+            const editBtn = e.target.closest('.btn-edit-customer');
+            if (editBtn) {
                 populateEditModal({
-                    id: btn.getAttribute('data-id'),
-                    first: btn.getAttribute('data-first'),
-                    last: btn.getAttribute('data-last'),
-                    name: btn.getAttribute('data-name'),
-                    email: btn.getAttribute('data-email'),
-                    phone: btn.getAttribute('data-phone')
+                    id: editBtn.getAttribute('data-id'),
+                    first: editBtn.getAttribute('data-first'),
+                    last: editBtn.getAttribute('data-last'),
+                    name: editBtn.getAttribute('data-name'),
+                    email: editBtn.getAttribute('data-email'),
+                    phone: editBtn.getAttribute('data-phone')
                 });
-            });
+                return;
+            }
+
+            const delBtn = e.target.closest('.js-delete-customer-btn');
+            if (delBtn) {
+                document.getElementById('deleteCustomerId').value = delBtn.getAttribute('data-id') || '0';
+                document.getElementById('deleteCustName').textContent = delBtn.getAttribute('data-name') || 'Client';
+                document.getElementById('deleteCustEmail').textContent = delBtn.getAttribute('data-email') || '';
+                openModal('deleteCustomerModal');
+            }
         });
 
         const viewToEditBtn = document.getElementById('viewToEditBtn');
         if (viewToEditBtn) {
             viewToEditBtn.addEventListener('click', () => {
                 closeModal('viewCustomerModal');
-                if (activeCustomerData) {
+                if (activeCustomerData && activeCustomerData.isOwner) {
                     populateEditModal(activeCustomerData);
                 }
             });

@@ -307,6 +307,8 @@
             <table
                 data-datatable
                 data-page-length="10"
+                data-order-col="0"
+                data-order-dir="desc"
                 data-search-placeholder="Search appointments..."
                 data-empty-text="No appointments found."
             >
@@ -327,7 +329,7 @@
                         {% set sId = app.status_id ?? 1 %}
                         {% set statusLabel = statuses[sId] ?? 'Pending' %}
                         <tr>
-                            <td style="white-space: nowrap;">
+                            <td style="white-space: nowrap;" data-order="{{ app.id }}">
                                 {{ app.appointment_date|date('M j, Y') }} {{ app.start_time|date('g:i A') }}
                             </td>
                             <td data-filter-value="{{ app.customer_name }}" data-search="{{ app.customer_name }} {{ app.email|default(app.phone|default('')) }}">

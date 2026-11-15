@@ -21,7 +21,7 @@ class ServiceRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('s')
             ->leftJoin('s.category', 'c')
-            ->orderBy('s.id', 'ASC');
+            ->orderBy('s.id', 'DESC');
 
         if (!empty($filters['category'])) {
             $qb->andWhere('c.name = :category')

@@ -159,7 +159,7 @@ class AdminService
                     LEFT JOIN staff st ON st.id = a.staff_id
                     LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
                     LEFT JOIN services s ON s.id = aps.service_id
-                    ORDER BY a.id ASC
+                    ORDER BY a.id DESC
                 SQL);
 
                 return array_map(static fn (array $r): array => [
@@ -202,7 +202,10 @@ class AdminService
             $app['staff_name'] = $staffMap[(int) ($app['staff_id'] ?? 0)] ?? ('Staff #' . ($app['staff_id'] ?? ''));
         }
 
-        return self::$mockAppointments;
+        $result = self::$mockAppointments;
+        usort($result, static fn (array $a, array $b): int => ((int) ($b['id'] ?? 0)) <=> ((int) ($a['id'] ?? 0)));
+
+        return $result;
     }
 
     public function getAppointmentById(int $id): ?array
@@ -297,7 +300,7 @@ class AdminService
                     FROM services s
                     JOIN service_categories sc ON sc.id = s.category_id
                     WHERE s.is_active = 1
-                    ORDER BY s.id ASC
+                    ORDER BY s.id DESC
                 SQL);
 
                 return array_map(static fn (array $r): array => [
@@ -322,12 +325,36 @@ class AdminService
             ];
         }
 
-        return self::$mockServices;
+        $result = self::$mockServices;
+        usort($result, static fn (array $a, array $b): int => ((int) ($b['id'] ?? 0)) <=> ((int) ($a['id'] ?? 0)));
+
+        return $result;
+    }
+
+    private function ensureCustomerOwnershipColumn(): void
+    {
+        if (!$this->canUseDatabase()) {
+            return;
+        }
+
+        try {
+            $col = $this->connection->fetchOne("SHOW COLUMNS FROM customers LIKE 'created_by_staff_id'");
+            if ($col === false) {
+                $this->connection->executeStatement('ALTER TABLE customers ADD COLUMN created_by_staff_id INT NULL DEFAULT NULL');
+            }
+        } catch (\Throwable) {
+        }
     }
 
     public function getAllCustomers(): array
     {
+        $staffMap = [];
+        foreach ($this->getStaff() as $member) {
+            $staffMap[(int) $member['id']] = trim(($member['first_name'] ?? '') . ' ' . ($member['last_name'] ?? ''));
+        }
+
         if ($this->canUseDatabase()) {
+            $this->ensureCustomerOwnershipColumn();
             try {
                 $rows = $this->connection->fetchAllAssociative(<<<'SQL'
                     SELECT 
@@ -337,34 +364,53 @@ class AdminService
                         c.email, 
                         COALESCE(c.phone, '') AS phone,
                         c.user_id,
+                        COALESCE(
+                            c.created_by_staff_id,
+                            (SELECT a.staff_id FROM appointments a WHERE a.customer_id = c.id ORDER BY a.id ASC LIMIT 1),
+                            0
+                        ) AS staff_id,
                         COALESCE((SELECT COUNT(*) FROM appointments a WHERE a.customer_id = c.id), 0) AS total_bookings
                     FROM customers c 
-                    ORDER BY c.id ASC
+                    ORDER BY c.id DESC
                 SQL);
 
-                return array_map(static fn (array $r): array => [
-                    'id' => (int) $r['id'],
-                    'first_name' => (string) $r['first_name'],
-                    'last_name' => (string) $r['last_name'],
-                    'email' => (string) $r['email'],
-                    'phone' => (string) $r['phone'],
-                    'user_id' => $r['user_id'] !== null ? (int) $r['user_id'] : null,
-                    'total_bookings' => (int) $r['total_bookings'],
-                ], $rows);
+                return array_map(static function (array $r) use ($staffMap): array {
+                    $sId = (int) ($r['staff_id'] ?? 0);
+                    return [
+                        'id' => (int) $r['id'],
+                        'first_name' => (string) $r['first_name'],
+                        'last_name' => (string) $r['last_name'],
+                        'email' => (string) $r['email'],
+                        'phone' => (string) $r['phone'],
+                        'user_id' => $r['user_id'] !== null ? (int) $r['user_id'] : null,
+                        'staff_id' => $sId,
+                        'staff_name' => $sId > 0 ? ($staffMap[$sId] ?? ('Staff #' . $sId)) : 'Admin / Shared',
+                        'total_bookings' => (int) $r['total_bookings'],
+                    ];
+                }, $rows);
             } catch (\Throwable) {
             }
         }
 
         if (self::$mockCustomers === null) {
             self::$mockCustomers = [
-                ['id' => 1, 'first_name' => 'Maria', 'last_name' => 'Santos',    'email' => 'maria@example.com', 'phone' => '+63 912 345 6789', 'total_bookings' => 1],
-                ['id' => 2, 'first_name' => 'Ana',   'last_name' => 'Reyes',     'email' => 'ana@example.com',   'phone' => '+63 917 111 2222', 'total_bookings' => 1],
-                ['id' => 3, 'first_name' => 'Liza',  'last_name' => 'Cruz',      'email' => 'liza@example.com',  'phone' => '+63 918 333 4444', 'total_bookings' => 1],
-                ['id' => 4, 'first_name' => 'Joy',   'last_name' => 'Dela Cruz', 'email' => 'joy@example.com',   'phone' => '+63 919 555 6666', 'total_bookings' => 1],
+                ['id' => 1, 'first_name' => 'Maria', 'last_name' => 'Santos',    'email' => 'maria@example.com', 'phone' => '+63 912 345 6789', 'staff_id' => 1, 'total_bookings' => 1],
+                ['id' => 2, 'first_name' => 'Ana',   'last_name' => 'Reyes',     'email' => 'ana@example.com',   'phone' => '+63 917 111 2222', 'staff_id' => 2, 'total_bookings' => 1],
+                ['id' => 3, 'first_name' => 'Liza',  'last_name' => 'Cruz',      'email' => 'liza@example.com',  'phone' => '+63 918 333 4444', 'staff_id' => 1, 'total_bookings' => 1],
+                ['id' => 4, 'first_name' => 'Joy',   'last_name' => 'Dela Cruz', 'email' => 'joy@example.com',   'phone' => '+63 919 555 6666', 'staff_id' => 3, 'total_bookings' => 1],
             ];
         }
 
-        return self::$mockCustomers;
+        foreach (self::$mockCustomers as &$c) {
+            $sId = (int) ($c['staff_id'] ?? 0);
+            $c['staff_id'] = $sId;
+            $c['staff_name'] = $sId > 0 ? ($staffMap[$sId] ?? ('Staff #' . $sId)) : 'Admin / Shared';
+        }
+
+        $result = self::$mockCustomers;
+        usort($result, static fn (array $a, array $b): int => ((int) ($b['id'] ?? 0)) <=> ((int) ($a['id'] ?? 0)));
+
+        return $result;
     }
 
     public function getAllUsers(): array
@@ -397,7 +443,7 @@ class AdminService
                 $rows = $this->connection->fetchAllAssociative(<<<'SQL'
                     SELECT id, COALESCE(name, email) AS name, email, role, is_active, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at
                     FROM users
-                    ORDER BY id ASC
+                    ORDER BY id DESC
                 SQL);
 
                 return array_map(static fn (array $r): array => [
@@ -443,7 +489,10 @@ class AdminService
             }
         }
 
-        return self::$mockUsers;
+        $result = self::$mockUsers;
+        usort($result, static fn (array $a, array $b): int => ((int) ($b['id'] ?? 0)) <=> ((int) ($a['id'] ?? 0)));
+
+        return $result;
     }
 
     public function getActivityLogs(): array
@@ -516,22 +565,93 @@ class AdminService
         ];
     }
 
+    private const DEFAULT_STAFF_IMAGES = [
+        1 => 'images/preview.webp',
+        2 => 'images/mem.webp',
+        3 => 'images/Gem.webp',
+        4 => 'images/rem.webp',
+        5 => 'images/ew.webp',
+        6 => 'images/em.webp',
+    ];
+
+    private const DEFAULT_STAFF_IMAGES_BY_NAME = [
+        'chantelle' => 'images/preview.webp',
+        'chariz' => 'images/mem.webp',
+        'katrina' => 'images/Gem.webp',
+        'claire' => 'images/rem.webp',
+        'rheanne' => 'images/ew.webp',
+        'lin' => 'images/em.webp',
+    ];
+
+    private function resolveDefaultStaffImage(int $id, string $firstName): ?string
+    {
+        $lowerFirst = strtolower(trim($firstName));
+        foreach (self::DEFAULT_STAFF_IMAGES_BY_NAME as $prefix => $img) {
+            if ($lowerFirst !== '' && str_starts_with($lowerFirst, $prefix)) {
+                return $img;
+            }
+        }
+
+        return self::DEFAULT_STAFF_IMAGES[$id] ?? null;
+    }
+
+    private function ensureStaffImageColumn(): void
+    {
+        if (!$this->canUseDatabase()) {
+            return;
+        }
+
+        try {
+            $col = $this->connection->fetchOne("SHOW COLUMNS FROM staff LIKE 'image'");
+            if ($col === false) {
+                $this->connection->executeStatement('ALTER TABLE staff ADD COLUMN image VARCHAR(255) NULL DEFAULT NULL');
+            }
+
+            $rows = $this->connection->fetchAllAssociative('SELECT id, first_name, image FROM staff');
+            foreach ($rows as $row) {
+                $currentImg = trim((string) ($row['image'] ?? ''));
+                if ($currentImg === '') {
+                    $defaultImg = $this->resolveDefaultStaffImage((int) $row['id'], (string) ($row['first_name'] ?? ''));
+                    if ($defaultImg !== null) {
+                        $this->connection->executeStatement(
+                            'UPDATE staff SET image = :img WHERE id = :id',
+                            ['img' => $defaultImg, 'id' => (int) $row['id']]
+                        );
+                    }
+                }
+            }
+        } catch (\Throwable) {
+        }
+    }
+
     public function getStaff(): array
     {
         if ($this->canUseDatabase()) {
+            $this->ensureStaffImageColumn();
             try {
-                return $this->connection->fetchAllAssociative('SELECT id, first_name, last_name FROM staff WHERE is_active = 1 ORDER BY id ASC');
+                $rows = $this->connection->fetchAllAssociative('SELECT id, first_name, last_name, image FROM staff WHERE is_active = 1 ORDER BY id ASC');
+                return array_map(function (array $r): array {
+                    $id = (int) $r['id'];
+                    $firstName = (string) ($r['first_name'] ?? '');
+                    $img = trim((string) ($r['image'] ?? ''));
+                    return [
+                        'id' => $id,
+                        'first_name' => $firstName,
+                        'last_name' => (string) ($r['last_name'] ?? ''),
+                        'image' => $img !== '' ? $img : $this->resolveDefaultStaffImage($id, $firstName),
+                    ];
+                }, $rows);
             } catch (\Throwable) {
             }
         }
 
         return [
-            ['id' => 1, 'first_name' => 'Chantelle',       'last_name' => 'Ramos'],
-            ['id' => 2, 'first_name' => 'Chariz Mae',      'last_name' => 'Lopez'],
-            ['id' => 3, 'first_name' => 'Katrina Ellaine', 'last_name' => 'Mendoza'],
-            ['id' => 4, 'first_name' => 'Claire',          'last_name' => 'Bautista'],
-            ['id' => 5, 'first_name' => 'Rheanne',         'last_name' => 'Villanueva'],
-            ['id' => 6, 'first_name' => 'Lin',             'last_name' => 'Delos Santos'],
+            ['id' => 1, 'first_name' => 'Chantelle',       'last_name' => 'Ramos',        'image' => 'images/preview.webp'],
+            ['id' => 2, 'first_name' => 'Chariz Mae',      'last_name' => 'Lopez',        'image' => 'images/mem.webp'],
+            ['id' => 3, 'first_name' => 'Katrina Ellaine', 'last_name' => 'Mendoza',      'image' => 'images/Gem.webp'],
+            ['id' => 4, 'first_name' => 'Claire',          'last_name' => 'Bautista',     'image' => 'images/rem.webp'],
+            ['id' => 5, 'first_name' => 'Rheanne',         'last_name' => 'Villanueva',   'image' => 'images/ew.webp'],
+            ['id' => 6, 'first_name' => 'Lin',             'last_name' => 'Delos Santos', 'image' => 'images/em.webp'],
         ];
     }
 
@@ -539,22 +659,27 @@ class AdminService
     {
         $allStaff = $this->getStaff();
         if ($user === null) {
-            return $allStaff[0] ?? ['id' => 1, 'first_name' => 'Staff', 'last_name' => 'Member'];
+            return $allStaff[0] ?? ['id' => 1, 'first_name' => 'Staff', 'last_name' => 'Member', 'image' => null];
         }
 
         $email = strtolower($user->getUserIdentifier());
         $userName = method_exists($user, 'getName') ? (string) $user->getName() : '';
 
         if ($this->canUseDatabase()) {
+            $this->ensureStaffImageColumn();
             try {
                 $userDbId = (int) $this->connection->fetchOne('SELECT id FROM users WHERE email = :email', ['email' => $email]);
                 if ($userDbId > 0) {
-                    $staffRow = $this->connection->fetchAssociative('SELECT id, first_name, last_name FROM staff WHERE user_id = :uid LIMIT 1', ['uid' => $userDbId]);
+                    $staffRow = $this->connection->fetchAssociative('SELECT id, first_name, last_name, image FROM staff WHERE user_id = :uid LIMIT 1', ['uid' => $userDbId]);
                     if ($staffRow) {
+                        $id = (int) $staffRow['id'];
+                        $firstName = (string) $staffRow['first_name'];
+                        $img = trim((string) ($staffRow['image'] ?? ''));
                         return [
-                            'id' => (int) $staffRow['id'],
-                            'first_name' => (string) $staffRow['first_name'],
+                            'id' => $id,
+                            'first_name' => $firstName,
                             'last_name' => (string) $staffRow['last_name'],
+                            'image' => $img !== '' ? $img : $this->resolveDefaultStaffImage($id, $firstName),
                         ];
                     }
                 }
@@ -573,7 +698,7 @@ class AdminService
             }
         }
 
-        return $allStaff[0] ?? ['id' => 1, 'first_name' => 'Staff', 'last_name' => 'Member'];
+        return $allStaff[0] ?? ['id' => 1, 'first_name' => 'Staff', 'last_name' => 'Member', 'image' => null];
     }
 
     public function isAppointmentOwnedByStaff(int $appointmentId, int $staffId): bool
@@ -584,6 +709,21 @@ class AdminService
         }
 
         return (int) ($appointment['staff_id'] ?? 0) === $staffId;
+    }
+
+    public function isCustomerOwnedByStaff(int $customerId, int $staffId): bool
+    {
+        if ($customerId <= 0 || $staffId <= 0) {
+            return false;
+        }
+
+        foreach ($this->getAllCustomers() as $customer) {
+            if ((int) ($customer['id'] ?? 0) === $customerId) {
+                return (int) ($customer['staff_id'] ?? 0) === $staffId;
+            }
+        }
+
+        return false;
     }
 
     public function getStaffAppointments(int $staffId): array
@@ -1099,7 +1239,7 @@ class AdminService
         );
     }
 
-    public function createCustomer(string $firstName, string $lastName, string $email, string $phone): int
+    public function createCustomer(string $firstName, string $lastName, string $email, string $phone, ?int $createdByStaffId = null): int
     {
         $firstName = trim($firstName) !== '' ? trim($firstName) : 'Walk-in';
         $lastName = trim($lastName) !== '' ? trim($lastName) : 'Client';
@@ -1118,6 +1258,7 @@ class AdminService
                 'last_name' => $lastName,
                 'email' => $email,
                 'phone' => $phone,
+                'staff_id' => $createdByStaffId ?? 0,
                 'total_bookings' => 0,
             ];
             if (self::$mockUsers !== null) {
@@ -1126,20 +1267,38 @@ class AdminService
             return $newId;
         }
 
+        $this->ensureCustomerOwnershipColumn();
+
         try {
-            $this->connection->executeStatement(
-                'INSERT INTO customers (first_name, last_name, email, phone) VALUES (:first, :last, :email, :phone)',
-                [
-                    'first' => $firstName,
-                    'last' => $lastName,
-                    'email' => $email,
-                    'phone' => $phone,
-                ]
-            );
+            try {
+                $this->connection->executeStatement(
+                    'INSERT INTO customers (first_name, last_name, email, phone, created_by_staff_id) VALUES (:first, :last, :email, :phone, :staffId)',
+                    [
+                        'first' => $firstName,
+                        'last' => $lastName,
+                        'email' => $email,
+                        'phone' => $phone,
+                        'staffId' => $createdByStaffId,
+                    ]
+                );
+            } catch (\Throwable) {
+                $this->connection->executeStatement(
+                    'INSERT INTO customers (first_name, last_name, email, phone) VALUES (:first, :last, :email, :phone)',
+                    [
+                        'first' => $firstName,
+                        'last' => $lastName,
+                        'email' => $email,
+                        'phone' => $phone,
+                    ]
+                );
+            }
             $customerId = (int) $this->connection->lastInsertId();
 
             $existingUserId = $this->connection->fetchOne('SELECT id FROM users WHERE email = :email LIMIT 1', ['email' => $email]);
-            if ($existingUserId === false) {
+            if ($existingUserId !== false) {
+                $this->connection->executeStatement('UPDATE customers SET user_id = :userId WHERE id = :id', ['userId' => (int) $existingUserId, 'id' => $customerId]);
+            } elseif ($createdByStaffId === null) {
+                // Only Admin creates linked user accounts; Staff never creates system user accounts
                 $this->connection->executeStatement(
                     'INSERT INTO users (name, email, password_hash, role, is_active, created_at, updated_at) VALUES (:name, :email, :hash, :role, 1, NOW(), NOW())',
                     [
@@ -1151,8 +1310,6 @@ class AdminService
                 );
                 $newUserId = (int) $this->connection->lastInsertId();
                 $this->connection->executeStatement('UPDATE customers SET user_id = :userId WHERE id = :id', ['userId' => $newUserId, 'id' => $customerId]);
-            } else {
-                $this->connection->executeStatement('UPDATE customers SET user_id = :userId WHERE id = :id', ['userId' => (int) $existingUserId, 'id' => $customerId]);
             }
 
             $this->logActivity(
@@ -1168,7 +1325,7 @@ class AdminService
         }
     }
 
-    public function updateCustomer(int $customerId, string $name, string $email, string $phone, ?string $firstName = null, ?string $lastName = null): bool
+    public function updateCustomer(int $customerId, string $name, string $email, string $phone, ?string $firstName = null, ?string $lastName = null, bool $syncUserAccount = true): bool
     {
         $name = trim($name);
         $email = trim($email);
@@ -1207,7 +1364,7 @@ class AdminService
                 }
             }
 
-            if (self::$mockUsers !== null) {
+            if ($syncUserAccount && self::$mockUsers !== null) {
                 foreach (self::$mockUsers as &$u) {
                     if (strtolower($u['email']) === strtolower($email)) {
                         $u['name'] = $name;
@@ -1236,43 +1393,45 @@ class AdminService
                 ]
             );
 
-            $userId = $oldCustomer['user_id'] ?? null;
-            $oldEmail = (string) ($oldCustomer['email'] ?? $email);
+            if ($syncUserAccount) {
+                $userId = $oldCustomer['user_id'] ?? null;
+                $oldEmail = (string) ($oldCustomer['email'] ?? $email);
 
-            if ($userId) {
-                $this->connection->executeStatement(
-                    'UPDATE users SET name = :name, email = :email WHERE id = :userId',
-                    ['name' => $name, 'email' => $email, 'userId' => $userId]
-                );
-            } else {
-                $existingUserId = $this->connection->fetchOne(
-                    'SELECT id FROM users WHERE email = :oldEmail OR email = :email LIMIT 1',
-                    ['oldEmail' => $oldEmail, 'email' => $email]
-                );
-                if ($existingUserId) {
+                if ($userId) {
                     $this->connection->executeStatement(
                         'UPDATE users SET name = :name, email = :email WHERE id = :userId',
-                        ['name' => $name, 'email' => $email, 'userId' => (int) $existingUserId]
-                    );
-                    $this->connection->executeStatement(
-                        'UPDATE customers SET user_id = :userId WHERE id = :id',
-                        ['userId' => (int) $existingUserId, 'id' => $customerId]
+                        ['name' => $name, 'email' => $email, 'userId' => $userId]
                     );
                 } else {
-                    $this->connection->executeStatement(
-                        'INSERT INTO users (name, email, password_hash, role, is_active, created_at, updated_at) VALUES (:name, :email, :hash, :role, 1, NOW(), NOW())',
-                        [
-                            'name' => $name,
-                            'email' => $email,
-                            'hash' => password_hash('password', PASSWORD_BCRYPT),
-                            'role' => 'ROLE_CUSTOMER',
-                        ]
+                    $existingUserId = $this->connection->fetchOne(
+                        'SELECT id FROM users WHERE email = :oldEmail OR email = :email LIMIT 1',
+                        ['oldEmail' => $oldEmail, 'email' => $email]
                     );
-                    $newUserId = (int) $this->connection->lastInsertId();
-                    $this->connection->executeStatement(
-                        'UPDATE customers SET user_id = :userId WHERE id = :id',
-                        ['userId' => $newUserId, 'id' => $customerId]
-                    );
+                    if ($existingUserId) {
+                        $this->connection->executeStatement(
+                            'UPDATE users SET name = :name, email = :email WHERE id = :userId',
+                            ['name' => $name, 'email' => $email, 'userId' => (int) $existingUserId]
+                        );
+                        $this->connection->executeStatement(
+                            'UPDATE customers SET user_id = :userId WHERE id = :id',
+                            ['userId' => (int) $existingUserId, 'id' => $customerId]
+                        );
+                    } else {
+                        $this->connection->executeStatement(
+                            'INSERT INTO users (name, email, password_hash, role, is_active, created_at, updated_at) VALUES (:name, :email, :hash, :role, 1, NOW(), NOW())',
+                            [
+                                'name' => $name,
+                                'email' => $email,
+                                'hash' => password_hash('password', PASSWORD_BCRYPT),
+                                'role' => 'ROLE_CUSTOMER',
+                            ]
+                        );
+                        $newUserId = (int) $this->connection->lastInsertId();
+                        $this->connection->executeStatement(
+                            'UPDATE customers SET user_id = :userId WHERE id = :id',
+                            ['userId' => $newUserId, 'id' => $customerId]
+                        );
+                    }
                 }
             }
 
@@ -1289,7 +1448,7 @@ class AdminService
         }
     }
 
-    public function deleteCustomer(int $id): bool
+    public function deleteCustomer(int $id, bool $deleteLinkedUser = true, ?int $staffId = null): bool
     {
         if (!$this->canUseDatabase()) {
             if (self::$mockCustomers === null) {
@@ -1309,10 +1468,10 @@ class AdminService
             if (self::$mockAppointments !== null) {
                 self::$mockAppointments = array_values(array_filter(
                     self::$mockAppointments,
-                    static fn (array $a): bool => $a['customer_id'] !== $id
+                    static fn (array $a): bool => $a['customer_id'] !== $id || ($staffId !== null && (int) ($a['staff_id'] ?? 0) !== $staffId)
                 ));
             }
-            if ($targetEmail !== '' && self::$mockUsers !== null) {
+            if ($deleteLinkedUser && $targetEmail !== '' && self::$mockUsers !== null) {
                 self::$mockUsers = array_values(array_filter(
                     self::$mockUsers,
                     static fn (array $u): bool => strtolower($u['email']) !== strtolower($targetEmail) || $u['role'] === 'ROLE_ADMIN'
@@ -1327,10 +1486,17 @@ class AdminService
                 return false;
             }
 
-            $this->connection->executeStatement('DELETE FROM appointments WHERE customer_id = :id', ['id' => $id]);
+            if ($staffId !== null) {
+                $this->connection->executeStatement(
+                    'DELETE FROM appointments WHERE customer_id = :id AND staff_id = :staffId',
+                    ['id' => $id, 'staffId' => $staffId]
+                );
+            } else {
+                $this->connection->executeStatement('DELETE FROM appointments WHERE customer_id = :id', ['id' => $id]);
+            }
             $this->connection->executeStatement('DELETE FROM customers WHERE id = :id', ['id' => $id]);
 
-            if (!empty($customer['user_id'])) {
+            if ($deleteLinkedUser && !empty($customer['user_id'])) {
                 $this->connection->executeStatement('DELETE FROM users WHERE id = :userId AND role = "ROLE_CUSTOMER"', ['userId' => $customer['user_id']]);
             }
 

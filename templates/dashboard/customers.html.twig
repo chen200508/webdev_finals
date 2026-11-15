@@ -285,6 +285,8 @@
             <table
                 data-datatable
                 data-page-length="10"
+                data-order-col="0"
+                data-order-dir="desc"
                 data-search-placeholder="Search customers..."
                 data-empty-text="No customers yet."
             >
@@ -305,7 +307,7 @@
                         {% set customerName = customer.name is defined ? customer.name : (customer.customer_name is defined ? customer.customer_name : (firstName ~ ' ' ~ lastName)|trim) %}
                         {% set totalBookings = customer.total_bookings|default(0) %}
                         <tr>
-                            <td>{{ loop.index }}</td>
+                            <td data-order="{{ customer.id|default(loop.revindex) }}">{{ loop.index }}</td>
                             <td>{{ customerName }}</td>
                             <td>{{ customer.email|default('—') }}</td>
                             <td>{{ customer.phone|default('—') }}</td>

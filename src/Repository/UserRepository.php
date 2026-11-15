@@ -20,7 +20,7 @@ class UserRepository extends ServiceEntityRepository
     public function createFilterQueryBuilder(array $filters): QueryBuilder
     {
         $qb = $this->createQueryBuilder('u')
-            ->orderBy('u.id', 'ASC');
+            ->orderBy('u.id', 'DESC');
 
         if (!empty($filters['role'])) {
             $qb->andWhere('u.role = :role')

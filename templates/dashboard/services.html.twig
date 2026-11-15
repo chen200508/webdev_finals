@@ -223,6 +223,8 @@
             <table
                 data-datatable
                 data-page-length="10"
+                data-order-col="0"
+                data-order-dir="desc"
                 data-search-placeholder="Search services..."
                 data-empty-text="No services in the catalog."
             >
@@ -244,7 +246,7 @@
                         {% set categoryId = service.category_id is defined ? service.category_id : 1 %}
                         {% set serviceDesc = service.description is defined and service.description != '' ? service.description : '—' %}
                         <tr>
-                            <td>{{ serviceName }}</td>
+                            <td data-order="{{ service.id|default(loop.revindex) }}">{{ serviceName }}</td>
                             <td data-filter-value="{{ categoryLabel }}">{{ categoryLabel }}</td>
                             <td>{% if minutes != '' %}{{ minutes }} mins{% endif %}</td>
                             <td>₱{{ service.price is defined ? service.price : '' }}</td>

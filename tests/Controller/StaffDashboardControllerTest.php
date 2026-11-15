@@ -357,5 +357,46 @@ class StaffDashboardControllerTest extends WebTestCase
         $afterCreateHtml = (string) $client->getResponse()->getContent();
         $this->assertStringContainsString('Customer profile created successfully', $afterCreateHtml);
         $this->assertStringContainsString('Elena Gomez', $afterCreateHtml);
+        $this->assertStringContainsString('id="deleteCustomerModal"', $afterCreateHtml);
+        $this->assertStringContainsString('Read-only', $afterCreateHtml);
+    }
+
+    public function testStaffCannotEditOrDeleteOtherStaffCustomers(): void
+    {
+        $client = static::createClient();
+        $staff = $this->getStaffUser();
+        $client->loginUser($staff);
+
+        $crawler = $client->request('GET', '/staff/customers');
+        $csrfToken = (string) $crawler->filter('input[name="_token"]')->first()->attr('value');
+
+        // Customer #2 (Ana Reyes) is assigned to staff_id 2 (Chariz Mae), while Chantelle is staff_id 1
+        $client->request('POST', '/staff/customer/update', [
+            '_token' => $csrfToken,
+            'customer_id' => 2,
+            'first_name' => 'Unauthorized',
+            'last_name' => 'Edit',
+            'email' => 'ana@example.com',
+            'phone' => '0000',
+        ]);
+
+        $this->assertResponseRedirects();
+        $client->followRedirect();
+        $this->assertStringContainsString(
+            'Access denied: You can only edit your own customer records',
+            (string) $client->getResponse()->getContent()
+        );
+
+        $client->request('POST', '/staff/customer/delete', [
+            '_token' => $csrfToken,
+            'customer_id' => 2,
+        ]);
+
+        $this->assertResponseRedirects();
+        $client->followRedirect();
+        $this->assertStringContainsString(
+            'Access denied: You cannot delete customer records belonging to other staff or admin',
+            (string) $client->getResponse()->getContent()
+        );
     }
 }

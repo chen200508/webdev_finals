@@ -22,7 +22,7 @@ class AppointmentRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('a')
             ->leftJoin('a.service', 's')
             ->leftJoin('a.staff', 'st')
-            ->orderBy('a.id', 'ASC');
+            ->orderBy('a.id', 'DESC');
 
         if (!empty($filters['service'])) {
             $qb->andWhere('s.name = :service')

@@ -297,6 +297,8 @@
             <table
                 data-datatable
                 data-page-length="10"
+                data-order-col="0"
+                data-order-dir="desc"
                 data-search-placeholder="Search appointments..."
                 data-empty-text="No appointments on the book."
             >
@@ -320,7 +322,7 @@
                         {% set appDuration = appointment.duration_minutes is defined ? appointment.duration_minutes : 60 %}
                         {% set appEndTime = appointment.end_time is defined and appointment.end_time != '' ? appointment.end_time : '' %}
                         <tr>
-                            <td style="white-space: nowrap;">{{ appointment.appointment_date|date('M j, Y') }} {{ appointment.start_time|date('g:i A') }}</td>
+                            <td style="white-space: nowrap;" data-order="{{ appointment.id }}">{{ appointment.appointment_date|date('M j, Y') }} {{ appointment.start_time|date('g:i A') }}</td>
                             <td data-filter-value="{{ appointment.customer_name }}" data-search="{{ appointment.customer_name }} {{ appointment.email }}">{{ appointment.customer_name }}</td>
                             <td data-filter-value="{{ appointment.service_name }}">{{ appointment.service_name }}</td>
                             <td data-filter-value="{{ artistName }}">{{ artistName }}</td>

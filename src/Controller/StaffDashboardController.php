@@ -198,6 +198,13 @@ class StaffDashboardController extends AbstractController
         $staffId = (int) $staffMember['id'];
 
         $allCustomers = $this->admin->getAllCustomers();
+        $myCustomers = array_values(array_filter(
+            $allCustomers,
+            static fn (array $c): bool => (int) ($c['staff_id'] ?? 0) === $staffId
+        ));
+
+        $viewMode = $request->query->get('view', 'all'); // 'mine' or 'all'
+        $filteredPool = $viewMode === 'mine' ? $myCustomers : $allCustomers;
 
         $filterForm = $this->createForm(CustomerFilterType::class, null, [
             'customers' => $allCustomers,
@@ -208,8 +215,11 @@ class StaffDashboardController extends AbstractController
 
         return $this->render('staff/customers.html.twig', [
             'staffMember' => $staffMember,
+            'currentStaffId' => $staffId,
+            'myClientsCount' => count($myCustomers),
+            'viewMode' => $viewMode,
             'counts' => $this->getStaffCounts($staffId),
-            'customers' => $customerRepository->findByFilters($filters, $allCustomers),
+            'customers' => $customerRepository->findByFilters($filters, $filteredPool),
             'filterForm' => $filterForm->createView(),
         ]);
     }
@@ -218,6 +228,9 @@ class StaffDashboardController extends AbstractController
     public function createCustomer(Request $r): Response
     {
         $this->checkCsrf($r);
+        $staffMember = $this->getCurrentStaffMember();
+        $staffId = (int) $staffMember['id'];
+
         $firstName = trim((string) $r->request->get('first_name', ''));
         $lastName = trim((string) $r->request->get('last_name', ''));
         $name = trim((string) $r->request->get('name', ''));
@@ -230,7 +243,7 @@ class StaffDashboardController extends AbstractController
         $email = trim((string) $r->request->get('email', ''));
         $phone = trim((string) $r->request->get('phone', ''));
 
-        $id = $this->admin->createCustomer($firstName, $lastName, $email, $phone);
+        $id = $this->admin->createCustomer($firstName, $lastName, $email, $phone, $staffId);
         $id > 0
             ? $this->addFlash('success', 'Customer profile created successfully.')
             : $this->addFlash('error', 'Failed to create customer profile.');
@@ -242,17 +255,27 @@ class StaffDashboardController extends AbstractController
     public function updateCustomer(Request $r): Response
     {
         $this->checkCsrf($r);
+        $staffMember = $this->getCurrentStaffMember();
+        $staffId = (int) $staffMember['id'];
+        $customerId = (int) $r->request->get('customer_id', 0);
+
+        if (!$this->admin->isCustomerOwnedByStaff($customerId, $staffId)) {
+            $this->addFlash('error', 'Access denied: You can only edit your own customer records.');
+            return $this->back($r);
+        }
+
         $firstName = $r->request->has('first_name') ? trim((string) $r->request->get('first_name')) : null;
         $lastName = $r->request->has('last_name') ? trim((string) $r->request->get('last_name')) : null;
         $name = trim((string) $r->request->get('name', ''));
 
         $ok = $this->admin->updateCustomer(
-            (int) $r->request->get('customer_id', 0),
+            $customerId,
             $name,
             trim((string) $r->request->get('email', '')),
             trim((string) $r->request->get('phone', '')),
             $firstName,
-            $lastName
+            $lastName,
+            false
         );
 
         $ok ? $this->addFlash('success', 'Client information updated successfully.')
@@ -265,7 +288,16 @@ class StaffDashboardController extends AbstractController
     public function deleteCustomer(Request $r): Response
     {
         $this->checkCsrf($r);
-        $ok = $this->admin->deleteCustomer((int) $r->request->get('customer_id', 0));
+        $staffMember = $this->getCurrentStaffMember();
+        $staffId = (int) $staffMember['id'];
+        $customerId = (int) $r->request->get('customer_id', 0);
+
+        if (!$this->admin->isCustomerOwnedByStaff($customerId, $staffId)) {
+            $this->addFlash('error', 'Access denied: You cannot delete customer records belonging to other staff or admin.');
+            return $this->back($r);
+        }
+
+        $ok = $this->admin->deleteCustomer($customerId, false, $staffId);
         $ok ? $this->addFlash('success', 'Customer profile removed.')
             : $this->addFlash('error', 'Failed to remove customer.');
 
@@ -431,6 +463,14 @@ class StaffDashboardController extends AbstractController
             $currentPassword = (string) $r->request->get('current_password', '');
             $newPassword = (string) $r->request->get('new_password', '');
             $confirmPassword = (string) $r->request->get('confirm_password', '');
+
+            if ($currentPassword !== '' && $user instanceof User) {
+                $storedHash = (string) $user->getPassword();
+                if (str_starts_with($storedHash, '$') && !$this->passwordHasher->isPasswordValid($user, $currentPassword)) {
+                    $this->addFlash('error', 'Current password is incorrect.');
+                    return $this->redirectToRoute('staff_profile');
+                }
+            }
 
             if (strlen($newPassword) < 6) {
                 $this->addFlash('error', 'New password must be at least 6 characters long.');

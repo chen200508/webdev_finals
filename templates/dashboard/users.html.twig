@@ -244,6 +244,8 @@
             <table
                 data-datatable
                 data-page-length="10"
+                data-order-col="0"
+                data-order-dir="desc"
                 data-search-placeholder="Search users..."
                 data-empty-text="No user accounts found."
             >
@@ -262,7 +264,7 @@
                         {% set roleLabel = roleLabels[user.role] ?? user.role %}
                         {% set statusLabel = user.is_active ? 'Active' : 'Deactivated' %}
                         <tr>
-                            <td>{{ user.id }}</td>
+                            <td data-order="{{ user.id }}">{{ user.id }}</td>
                             <td data-search="{{ user.name }} {{ user.email }}">{{ user.name }}</td>
                             <td data-filter-value="{{ roleLabel }}">
                                 <span class="{% if user.role == 'ROLE_ADMIN' %}role-admin{% elseif user.role == 'ROLE_STAFF' %}role-staff{% else %}role-customer{% endif %}">

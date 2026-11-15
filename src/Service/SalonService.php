@@ -148,62 +148,59 @@ class SalonService
 
     public function getSpecialists(): array
     {
-        return [
-            [
-                'id' => 1,
-                'name' => 'Chantelle Ramos',
-                'title' => 'Hairdresser',
-                'rating' => '4.9',
-                'image' => 'images/preview.webp',
-            ],
-            [
-                'id' => 2,
-                'name' => 'Chariz Mae Lopez',
-                'title' => 'Hairdresser',
-                'rating' => '5.0',
-                'image' => 'images/mem.webp',
-            ],
-            [
-                'id' => 3,
-                'name' => 'Katrina ellaine Mendoza',
-                'title' => 'Hairdresser',
-                'rating' => '4.8',
-                'image' => 'images/Gem.webp',
-            ],
-            [
-                'id' => 4,
-                'name' => 'Claire Bautista',
-                'title' => 'Hairdresser',
-                'rating' => '4.9',
-                'image' => 'images/rem.webp',
-            ],
-            [
-                'id' => 5,
-                'name' => 'Rheanne Villanueva',
-                'title' => 'Hairdresser',
-                'rating' => '4.8',
-                'image' => 'images/ew.webp',
-            ],
-            [
-                'id' => 6,
-                'name' => 'Lin Delos Santos',
-                'title' => 'Hairdresser',
-                'rating' => '5.0',
-                'image' => 'images/em.webp',
-            ],
+        $defaults = [
+            1 => ['id' => 1, 'name' => 'Chantelle Ramos',         'title' => 'Hairdresser', 'rating' => '4.9', 'image' => 'images/preview.webp'],
+            2 => ['id' => 2, 'name' => 'Chariz Mae Lopez',        'title' => 'Hairdresser', 'rating' => '5.0', 'image' => 'images/mem.webp'],
+            3 => ['id' => 3, 'name' => 'Katrina ellaine Mendoza', 'title' => 'Hairdresser', 'rating' => '4.8', 'image' => 'images/Gem.webp'],
+            4 => ['id' => 4, 'name' => 'Claire Bautista',         'title' => 'Hairdresser', 'rating' => '4.9', 'image' => 'images/rem.webp'],
+            5 => ['id' => 5, 'name' => 'Rheanne Villanueva',      'title' => 'Hairdresser', 'rating' => '4.8', 'image' => 'images/ew.webp'],
+            6 => ['id' => 6, 'name' => 'Lin Delos Santos',        'title' => 'Hairdresser', 'rating' => '5.0', 'image' => 'images/em.webp'],
         ];
+
+        if ($this->canUseDatabase()) {
+            try {
+                $col = $this->connection->fetchOne("SHOW COLUMNS FROM staff LIKE 'image'");
+                if ($col === false) {
+                    $this->connection->executeStatement('ALTER TABLE staff ADD COLUMN image VARCHAR(255) NULL DEFAULT NULL');
+                }
+                foreach ($defaults as $id => $spec) {
+                    $this->connection->executeStatement(
+                        "UPDATE staff SET image = :img WHERE id = :id AND (image IS NULL OR image = '')",
+                        ['img' => $spec['image'], 'id' => $id]
+                    );
+                }
+
+                $rows = $this->connection->fetchAllAssociative('SELECT id, first_name, last_name, image FROM staff WHERE is_active = 1 ORDER BY id ASC');
+                if (!empty($rows)) {
+                    $list = [];
+                    foreach ($rows as $row) {
+                        $id = (int) $row['id'];
+                        $def = $defaults[$id] ?? ['title' => 'Hairdresser', 'rating' => '4.9', 'image' => 'images/preview.webp'];
+                        $img = trim((string) ($row['image'] ?? ''));
+                        $list[] = [
+                            'id' => $id,
+                            'name' => trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')),
+                            'title' => $def['title'],
+                            'rating' => $def['rating'],
+                            'image' => $img !== '' ? $img : $def['image'],
+                        ];
+                    }
+                    return $list;
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        return array_values($defaults);
     }
 
     public function getTeamMembers(): array
     {
-        return [
-            ['name' => 'Chantelle Ramos', 'title' => 'Hairdresser', 'image' => 'images/preview.webp'],
-            ['name' => 'Chariz Mae Lopez', 'title' => 'Hairdresser', 'image' => 'images/mem.webp'],
-            ['name' => 'Katrina ellaine Mendoza', 'title' => 'Hairdresser', 'image' => 'images/Gem.webp'],
-            ['name' => 'Claire Bautista', 'title' => 'Hairdresser', 'image' => 'images/rem.webp'],
-            ['name' => 'Rheanne Villanueva', 'title' => 'Hairdresser', 'image' => 'images/ew.webp'],
-            ['name' => 'Lin Delos Santos', 'title' => 'Hairdresser', 'image' => 'images/em.webp'],
-        ];
+        return array_map(static fn (array $s): array => [
+            'name' => $s['name'],
+            'title' => $s['title'],
+            'image' => $s['image'],
+        ], $this->getSpecialists());
     }
 
     public function getTestimonials(): array
