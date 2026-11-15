@@ -254,6 +254,34 @@
         @media (max-width: 900px) {
             h1 { font-size: 22px; }
         }
+        @media (max-width: 640px) {
+            .desk-main-head {
+                width: 94%;
+                height: auto;
+                min-height: 68px;
+                padding: 12px 14px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .desk-head-eyebrow {
+                font-size: 11px;
+                letter-spacing: .12em;
+            }
+            .desk-logout span {
+                display: none;
+            }
+            .desk-logout {
+                padding: 0 10px;
+            }
+            .page {
+                width: 94%;
+                padding: 18px 12px 48px;
+            }
+            .card {
+                padding: 16px;
+                border-radius: 14px;
+            }
+        }
         {% block styles %}{% endblock %}
     </style>
 </head>

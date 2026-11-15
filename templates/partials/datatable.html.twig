@@ -368,6 +368,77 @@
         color: #C68E00;
         box-shadow: 0 4px 15px rgba(0,0,0,0.12);
     }
+    .dt-container .dt-layout-row.dt-layout-table {
+        overflow-x: auto !important;
+        width: 100% !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .dt-container .dt-layout-row.dt-layout-table .dt-layout-cell {
+        width: 100% !important;
+        overflow-x: auto !important;
+    }
+    .dt-container .dt-layout-row:last-child {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+    }
+    @media (max-width: 640px) {
+        .dt-salon-toolbar {
+            padding: 12px;
+        }
+        .dt-salon-filters,
+        .dt-salon-filter-fields {
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+        }
+        .dt-salon-filter-item {
+            display: flex !important;
+            flex-direction: column;
+            align-items: stretch !important;
+            width: 100%;
+            gap: 4px !important;
+        }
+        .dt-salon-filter-select,
+        .dt-salon-filter-input,
+        .dt-salon-toolbar input[type="text"],
+        .dt-salon-filter-btn {
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+        }
+        .dt-salon-reset-btn {
+            margin-left: 0 !important;
+            justify-content: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .dt-container .dt-layout-row:first-child {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        .dt-container .dt-layout-cell.dt-layout-start,
+        .dt-container .dt-layout-cell.dt-layout-end {
+            width: 100% !important;
+            justify-content: space-between !important;
+        }
+        .dt-container .dt-search,
+        .dt-container .dt-search label {
+            width: 100% !important;
+        }
+        .dt-container .dt-search input,
+        .dt-container .dt-search input:focus {
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .dt-container .dt-layout-row:last-child {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+        }
+    }
 </style>
 
 <script src="https://cdn.datatables.net/v/dt/dt-3.1.5/datatables.min.js"></script>

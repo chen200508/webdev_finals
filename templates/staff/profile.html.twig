@@ -168,6 +168,12 @@
     @media (max-width: 900px) {
         .profile-grid { grid-template-columns: 1fr; }
     }
+    @media (max-width: 640px) {
+        .profile-card { padding: 18px; border-radius: 14px; }
+        .profile-header { flex-wrap: wrap; gap: 12px; }
+        .info-table th, .info-table td { font-size: 13px; word-break: break-word; padding: 8px 4px; }
+        .btn-submit { width: 100%; justify-content: center; }
+    }
 {% endblock %}
 
 {% block content %}

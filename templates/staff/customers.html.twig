@@ -287,6 +287,16 @@
         background: #C68E00;
         color: #ffffff;
     }
+
+    @media (max-width: 640px) {
+        .modal-grid { grid-template-columns: 1fr; }
+        .view-pills { display: flex; flex-wrap: wrap; width: 100%; }
+        .view-pill { flex: 1 1 auto; justify-content: center; text-align: center; }
+        .salon-modal { padding: 18px; border-radius: 16px; }
+        .salon-modal-foot { flex-wrap: wrap; }
+        .salon-modal-foot button { flex: 1 1 auto; justify-content: center; }
+        .btn-create-customer { width: 100%; justify-content: center; }
+    }
 {% endblock %}
 
 {% block content %}

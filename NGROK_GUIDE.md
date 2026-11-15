@@ -44,7 +44,7 @@ Run the following command in a separate terminal to forward your static domain t
 
 ### For Port `8000` (Standard Symfony Port)
 ```powershell
-ngrok http --url=jet-acronym-opposing.ngrok-free.dev 8000
+ngrok http 8000
 ```
 
 ### For Port `800`
