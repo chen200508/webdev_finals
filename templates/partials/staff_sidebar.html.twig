@@ -2,7 +2,7 @@
 
 <aside class="desk-sidebar" aria-label="Staff Portal">
     <a class="desk-brand" href="{{ path('staff_dashboard') }}">
-        <img class="desk-logo" src="{{ asset('images/secondary.webp') }}" alt="Beauty Salon" width="150" height="54" loading="eager" decoding="sync" data-no-skeleton>
+        <img class="desk-logo" src="{{ asset('images/secondary.webp') }}" alt="Beauty Salon" width="220" height="76" loading="eager" decoding="sync" data-no-skeleton>
     </a>
     <nav class="desk-nav-wrap" aria-label="Staff sections">
         <p class="desk-label">Staff Portal</p>
@@ -14,6 +14,18 @@
                 <span class="desk-link-label"><i class="ti ti-calendar-event"></i><span>Appointments</span></span>
                 {% if counts.bookings is defined and counts.bookings > 0 %}
                     <span class="desk-count">{{ counts.bookings }}</span>
+                {% endif %}
+            </a>
+            <a class="desk-link {{ route == 'staff_services' ? 'is-on' : '' }}" href="{{ path('staff_services') }}">
+                <span class="desk-link-label"><i class="ti ti-scissors"></i><span>Services</span></span>
+                {% if counts.services is defined %}
+                    <span class="desk-count">{{ counts.services }}</span>
+                {% endif %}
+            </a>
+            <a class="desk-link {{ route == 'staff_customers' ? 'is-on' : '' }}" href="{{ path('staff_customers') }}">
+                <span class="desk-link-label"><i class="ti ti-users"></i><span>Customers</span></span>
+                {% if counts.clients is defined %}
+                    <span class="desk-count">{{ counts.clients }}</span>
                 {% endif %}
             </a>
             <a class="desk-link {{ route == 'staff_profile' ? 'is-on' : '' }}" href="{{ path('staff_profile') }}">

@@ -16,6 +16,7 @@ class AdminService
     ];
 
     private static ?array $mockAppointments = null;
+    private static ?array $mockServices = null;
     private static ?array $mockUsers = null;
     private static ?array $mockCustomers = null;
     private static ?array $mockLogs = null;
@@ -312,12 +313,16 @@ class AdminService
             }
         }
 
-        return [
-            ['id' => 1, 'name' => 'Bridal Makeup & Styling',     'category_id' => 1, 'category_name' => 'Make up', 'duration_minutes' => 120, 'price' => 2500, 'description' => 'Full skin prep, trial planning, lash attachment and airbrushing.'],
-            ['id' => 2, 'name' => 'Everyday Glam',               'category_id' => 1, 'category_name' => 'Make up', 'duration_minutes' => 60,  'price' => 1200, 'description' => 'Soft makeup contouring with natural lash definition.'],
-            ['id' => 3, 'name' => 'Editorial / Creative Makeup', 'category_id' => 1, 'category_name' => 'Make up', 'duration_minutes' => 90,  'price' => 1800, 'description' => 'Fashion-focused color application for shoots and events.'],
-            ['id' => 4, 'name' => 'Manicure',                    'category_id' => 3, 'category_name' => 'Nail care', 'duration_minutes' => 45, 'price' => 115,  'description' => 'Classic manicure.'],
-        ];
+        if (self::$mockServices === null) {
+            self::$mockServices = [
+                ['id' => 1, 'name' => 'Bridal Makeup & Styling',     'category_id' => 1, 'category_name' => 'Make up', 'duration_minutes' => 120, 'price' => 2500, 'description' => 'Full skin prep, trial planning, lash attachment and airbrushing.'],
+                ['id' => 2, 'name' => 'Everyday Glam',               'category_id' => 1, 'category_name' => 'Make up', 'duration_minutes' => 60,  'price' => 1200, 'description' => 'Soft makeup contouring with natural lash definition.'],
+                ['id' => 3, 'name' => 'Editorial / Creative Makeup', 'category_id' => 1, 'category_name' => 'Make up', 'duration_minutes' => 90,  'price' => 1800, 'description' => 'Fashion-focused color application for shoots and events.'],
+                ['id' => 4, 'name' => 'Manicure',                    'category_id' => 3, 'category_name' => 'Nail care', 'duration_minutes' => 45, 'price' => 115,  'description' => 'Classic manicure.'],
+            ];
+        }
+
+        return self::$mockServices;
     }
 
     public function getAllCustomers(): array
@@ -1005,6 +1010,32 @@ class AdminService
     public function createService(string $name, int $categoryId, int $duration, float $price, string $description): void
     {
         if (!$this->canUseDatabase()) {
+            if (self::$mockServices === null) {
+                $this->getAllServices();
+            }
+            $categoryName = 'Make up';
+            foreach ($this->getCategories() as $cat) {
+                if ((int) $cat['id'] === $categoryId) {
+                    $categoryName = (string) $cat['name'];
+                    break;
+                }
+            }
+            $newId = empty(self::$mockServices) ? 1 : (max(array_column(self::$mockServices, 'id')) + 1);
+            self::$mockServices[] = [
+                'id' => $newId,
+                'name' => $name,
+                'category_id' => $categoryId,
+                'category_name' => $categoryName,
+                'duration_minutes' => $duration,
+                'price' => $price,
+                'description' => $description,
+            ];
+            $this->logActivity(
+                'service_created',
+                'Active',
+                null,
+                sprintf('Added new service "%s" (₱%s, %d mins) to catalog.', $name, number_format($price, 2), $duration)
+            );
             return;
         }
         $slug = strtolower(trim((string) preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-')) . '-' . random_int(100, 999);

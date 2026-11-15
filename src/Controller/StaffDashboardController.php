@@ -5,7 +5,12 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\AppointmentFilterType;
 use App\Form\AppointmentFormType;
+use App\Form\CustomerFilterType;
+use App\Form\ServiceFilterType;
+use App\Form\ServiceFormType;
 use App\Repository\AppointmentRepository;
+use App\Repository\CustomerRepository;
+use App\Repository\ServiceRepository;
 use App\Service\AdminService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -118,6 +123,153 @@ class StaffDashboardController extends AbstractController
             'customers' => $customers,
             'counts' => $this->getStaffCounts($staffId),
         ]);
+    }
+
+    #[Route('/services', name: 'staff_services', methods: ['GET'])]
+    public function services(Request $request, ServiceRepository $serviceRepository): Response
+    {
+        $staffMember = $this->getCurrentStaffMember();
+        $staffId = (int) $staffMember['id'];
+
+        $allServices = $this->admin->getAllServices();
+        $categories = $this->admin->getCategories();
+
+        $filterForm = $this->createForm(ServiceFilterType::class, null, [
+            'categories' => $categories,
+        ]);
+        $filterForm->handleRequest($request);
+
+        $serviceForm = $this->createForm(ServiceFormType::class, ['duration' => 60], [
+            'categories' => $categories,
+            'action' => $this->generateUrl('staff_service_create'),
+        ]);
+
+        $filters = $filterForm->isSubmitted() ? (array) $filterForm->getData() : $request->query->all();
+
+        return $this->render('staff/services.html.twig', [
+            'staffMember' => $staffMember,
+            'counts' => $this->getStaffCounts($staffId),
+            'services' => $serviceRepository->findByFilters($filters, $allServices),
+            'categories' => $categories,
+            'filterForm' => $filterForm->createView(),
+            'serviceForm' => $serviceForm->createView(),
+        ]);
+    }
+
+    #[Route('/service/create', name: 'staff_service_create', methods: ['POST'])]
+    public function createService(Request $r): Response
+    {
+        $form = $this->createForm(ServiceFormType::class, null, [
+            'categories' => $this->admin->getCategories(),
+        ]);
+        $form->handleRequest($r);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = (array) $form->getData();
+            $this->admin->createService(
+                (string) ($data['service_name'] ?? ''),
+                (int) ($data['category_id'] ?? 1),
+                (int) ($data['duration'] ?? 60),
+                (float) ($data['price'] ?? 0),
+                (string) ($data['description'] ?? '')
+            );
+            $this->addFlash('success', 'New service added to catalog.');
+
+            return $this->back($r);
+        }
+
+        $this->checkCsrf($r);
+        $this->admin->createService(
+            trim((string) $r->request->get('service_name', '')),
+            (int) $r->request->get('category_id', 1),
+            (int) $r->request->get('duration', 60),
+            (float) $r->request->get('price', 0),
+            trim((string) $r->request->get('description', ''))
+        );
+        $this->addFlash('success', 'New service added to catalog.');
+
+        return $this->back($r);
+    }
+
+    #[Route('/customers', name: 'staff_customers', methods: ['GET'])]
+    public function customers(Request $request, CustomerRepository $customerRepository): Response
+    {
+        $staffMember = $this->getCurrentStaffMember();
+        $staffId = (int) $staffMember['id'];
+
+        $allCustomers = $this->admin->getAllCustomers();
+
+        $filterForm = $this->createForm(CustomerFilterType::class, null, [
+            'customers' => $allCustomers,
+        ]);
+        $filterForm->handleRequest($request);
+
+        $filters = $filterForm->isSubmitted() ? (array) $filterForm->getData() : $request->query->all();
+
+        return $this->render('staff/customers.html.twig', [
+            'staffMember' => $staffMember,
+            'counts' => $this->getStaffCounts($staffId),
+            'customers' => $customerRepository->findByFilters($filters, $allCustomers),
+            'filterForm' => $filterForm->createView(),
+        ]);
+    }
+
+    #[Route('/customer/create', name: 'staff_customer_create', methods: ['POST'])]
+    public function createCustomer(Request $r): Response
+    {
+        $this->checkCsrf($r);
+        $firstName = trim((string) $r->request->get('first_name', ''));
+        $lastName = trim((string) $r->request->get('last_name', ''));
+        $name = trim((string) $r->request->get('name', ''));
+        if ($firstName === '' && $name !== '') {
+            $parts = explode(' ', $name, 2);
+            $firstName = $parts[0];
+            $lastName = $parts[1] ?? 'Client';
+        }
+
+        $email = trim((string) $r->request->get('email', ''));
+        $phone = trim((string) $r->request->get('phone', ''));
+
+        $id = $this->admin->createCustomer($firstName, $lastName, $email, $phone);
+        $id > 0
+            ? $this->addFlash('success', 'Customer profile created successfully.')
+            : $this->addFlash('error', 'Failed to create customer profile.');
+
+        return $this->back($r);
+    }
+
+    #[Route('/customer/update', name: 'staff_customer_update', methods: ['POST'])]
+    public function updateCustomer(Request $r): Response
+    {
+        $this->checkCsrf($r);
+        $firstName = $r->request->has('first_name') ? trim((string) $r->request->get('first_name')) : null;
+        $lastName = $r->request->has('last_name') ? trim((string) $r->request->get('last_name')) : null;
+        $name = trim((string) $r->request->get('name', ''));
+
+        $ok = $this->admin->updateCustomer(
+            (int) $r->request->get('customer_id', 0),
+            $name,
+            trim((string) $r->request->get('email', '')),
+            trim((string) $r->request->get('phone', '')),
+            $firstName,
+            $lastName
+        );
+
+        $ok ? $this->addFlash('success', 'Client information updated successfully.')
+            : $this->addFlash('error', 'Failed to update client information.');
+
+        return $this->back($r);
+    }
+
+    #[Route('/customer/delete', name: 'staff_customer_delete', methods: ['POST'])]
+    public function deleteCustomer(Request $r): Response
+    {
+        $this->checkCsrf($r);
+        $ok = $this->admin->deleteCustomer((int) $r->request->get('customer_id', 0));
+        $ok ? $this->addFlash('success', 'Customer profile removed.')
+            : $this->addFlash('error', 'Failed to remove customer.');
+
+        return $this->back($r);
     }
 
     #[Route('/appointment/create', name: 'staff_appointment_create', methods: ['POST'])]
@@ -326,6 +478,12 @@ class StaffDashboardController extends AbstractController
         ]);
     }
 
+    #[Route('/{path}', name: 'staff_restricted_catchall', requirements: ['path' => '.+'], priority: -100)]
+    public function restrictedCatchAll(): Response
+    {
+        throw $this->createAccessDeniedException('Access denied.');
+    }
+
     private function getCurrentStaffMember(): array
     {
         return $this->admin->getStaffMemberForUser($this->getUser());
@@ -359,6 +517,7 @@ class StaffDashboardController extends AbstractController
             'completed' => $completed,
             'cancelled' => $cancelled,
             'services' => count($this->admin->getAllServices()),
+            'clients' => count($this->admin->getAllCustomers()),
         ];
     }
 

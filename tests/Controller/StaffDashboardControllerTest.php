@@ -255,4 +255,107 @@ class StaffDashboardControllerTest extends WebTestCase
         $overviewHtml = (string) $client->getResponse()->getContent();
         $this->assertStringContainsString('Completed Sessions', $overviewHtml);
     }
+
+    public function testStaffCanSeeAndCreateServices(): void
+    {
+        $client = static::createClient();
+        $staff = $this->getStaffUser();
+        $client->loginUser($staff);
+
+        $crawler = $client->request('GET', '/staff/services');
+        $this->assertResponseIsSuccessful();
+
+        $content = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Services Catalog', $content);
+        $this->assertStringContainsString('Create a new service', $content);
+        $this->assertStringContainsString('id="addServiceModal"', $content);
+        $this->assertStringContainsString('data-datatable', $content);
+        $this->assertStringContainsString('Service Details', $content);
+
+        $csrfToken = (string) $crawler->filter('input[name="_token"]')->first()->attr('value');
+
+        $serviceName = 'Staff Signature Glow ' . uniqid();
+        $client->request('POST', '/staff/service/create', [
+            '_token' => $csrfToken,
+            'service_name' => $serviceName,
+            'category_id' => 1,
+            'duration' => 45,
+            'price' => 1500,
+            'description' => 'Created by staff member',
+        ]);
+
+        $this->assertResponseRedirects();
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+        $afterHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('New service added to catalog', $afterHtml);
+        $this->assertStringContainsString($serviceName, $afterHtml);
+    }
+
+    public function testStaffEditingUrlToRestrictedRoutesReturns403(): void
+    {
+        $client = static::createClient();
+        $staff = $this->getStaffUser();
+        $client->loginUser($staff);
+
+        $restrictedUrls = [
+            '/admin',
+            '/admin/',
+            '/admin/users',
+            '/dashboard',
+            '/dashboard/users',
+            '/dashboard/services',
+            '/dashboard/activity-logs',
+            '/staff/users',
+            '/staff/activity-logs',
+            '/staff/service/delete',
+            '/',
+            '/services',
+            '/booking',
+            '/random-unmatched-url',
+        ];
+
+        foreach ($restrictedUrls as $url) {
+            $client->request('GET', $url);
+            $this->assertResponseStatusCodeSame(
+                Response::HTTP_FORBIDDEN,
+                sprintf('Expected 403 Forbidden when staff edits URL to %s', $url)
+            );
+            $this->assertStringContainsString('Access Denied', (string) $client->getResponse()->getContent());
+        }
+    }
+
+    public function testStaffCanManageCustomers(): void
+    {
+        $client = static::createClient();
+        $staff = $this->getStaffUser();
+        $client->loginUser($staff);
+
+        $crawler = $client->request('GET', '/staff/customers');
+        $this->assertResponseIsSuccessful();
+
+        $content = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Customers', $content);
+        $this->assertStringContainsString('Add Customer', $content);
+        $this->assertStringContainsString('data-datatable', $content);
+
+        $csrfToken = (string) $crawler->filter('input[name="_token"]')->first()->attr('value');
+
+        // Create a customer as staff
+        $uniqueEmail = 'staff.client.' . uniqid() . '@salon.com';
+        $client->request('POST', '/staff/customer/create', [
+            '_token' => $csrfToken,
+            'first_name' => 'Elena',
+            'last_name' => 'Gomez',
+            'email' => $uniqueEmail,
+            'phone' => '+63 917 555 8899',
+        ]);
+
+        $this->assertResponseRedirects();
+        $client->followRedirect();
+        $this->assertResponseIsSuccessful();
+        $afterCreateHtml = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString('Customer profile created successfully', $afterCreateHtml);
+        $this->assertStringContainsString('Elena Gomez', $afterCreateHtml);
+    }
 }

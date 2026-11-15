@@ -48,7 +48,7 @@ class DashboardControllerTest extends WebTestCase
             $this->assertStringContainsString('https://cdn.datatables.net/v/dt/dt-3.1.5/datatables.min.js', $content);
             $this->assertStringContainsString('data-datatable', $content);
             $this->assertStringContainsString('width: 90%; max-width: none;', $content);
-            $this->assertStringContainsString('.desk-logo { width: 150px;', $content);
+            $this->assertStringContainsString('.desk-logo { width: 220px;', $content);
             $this->assertStringContainsString('secondary', $content);
             $this->assertStringContainsString($expectedFilterOrPlaceholder, $content);
         }

@@ -69,8 +69,13 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         }
 
         if ($isStaff) {
-            if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
-                return new RedirectResponse($targetPath);
+            $targetPath = $this->getTargetPath($request->getSession(), $firewallName);
+            if ($targetPath) {
+                $parsedPath = (string) parse_url($targetPath, \PHP_URL_PATH);
+                if (str_starts_with($parsedPath, '/staff')) {
+                    return new RedirectResponse($targetPath);
+                }
+                $this->removeTargetPath($request->getSession(), $firewallName);
             }
 
             return new RedirectResponse($this->urlGenerator->generate('staff_dashboard'));
