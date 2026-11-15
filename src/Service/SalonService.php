@@ -2,8 +2,10 @@
 
 namespace App\Service;
 
+use App\Entity\User;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * Salon Service for Public Landing & Booking Pages
@@ -16,7 +18,24 @@ class SalonService
         private ?Connection $connection = null,
         #[Autowire('%kernel.environment%')]
         private string $env = 'dev',
+        private ?UserPasswordHasherInterface $passwordHasher = null,
     ) {
+    }
+
+    private function hashRandomPassword(int $length = 6): string
+    {
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+        $max = strlen($alphabet) - 1;
+        $plain = '';
+        for ($i = 0; $i < $length; ++$i) {
+            $plain .= $alphabet[random_int(0, $max)];
+        }
+
+        if ($this->passwordHasher !== null) {
+            return $this->passwordHasher->hashPassword(new User(), $plain);
+        }
+
+        return password_hash($plain, PASSWORD_BCRYPT, ['cost' => 13]);
     }
 
     private function canUseDatabase(): bool
@@ -310,7 +329,7 @@ class SalonService
                         [
                             'name' => trim(($firstName !== '' ? $firstName : 'Guest') . ' ' . ($lastName !== '' ? $lastName : 'Client')),
                             'email' => $email !== '' ? $email : 'guest@example.com',
-                            'hash' => password_hash('password', PASSWORD_BCRYPT),
+                            'hash' => $this->hashRandomPassword(6),
                             'role' => 'ROLE_CUSTOMER',
                         ]
                     );

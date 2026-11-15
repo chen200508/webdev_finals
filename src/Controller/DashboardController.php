@@ -328,6 +328,11 @@ class DashboardController extends AbstractController
         $email = trim((string) $r->request->get('email', ''));
         $phone = trim((string) $r->request->get('phone', ''));
 
+        if ($firstName === '' || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->addFlash('error', 'Please provide a valid customer name and email address.');
+            return $this->back($r);
+        }
+
         $id = $this->admin->createCustomer($firstName, $lastName, $email, $phone);
         $id > 0
             ? $this->addFlash('success', 'Customer profile created and synchronized with users.')
@@ -343,11 +348,17 @@ class DashboardController extends AbstractController
         $firstName = $r->request->has('first_name') ? trim((string) $r->request->get('first_name')) : null;
         $lastName = $r->request->has('last_name') ? trim((string) $r->request->get('last_name')) : null;
         $name = trim((string) $r->request->get('name', ''));
+        $email = trim((string) $r->request->get('email', ''));
+
+        if (($name === '' && (string) $firstName === '') || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->addFlash('error', 'Please provide a valid client name and email address.');
+            return $this->back($r);
+        }
 
         $ok = $this->admin->updateCustomer(
             (int) $r->request->get('customer_id', 0),
             $name,
-            trim((string) $r->request->get('email', '')),
+            $email,
             trim((string) $r->request->get('phone', '')),
             $firstName,
             $lastName
@@ -393,11 +404,20 @@ class DashboardController extends AbstractController
         }
 
         $this->checkCsrf($r);
+        $serviceName = trim((string) $r->request->get('service_name', ''));
+        $duration = (int) $r->request->get('duration', 60);
+        $price = (float) $r->request->get('price', 0);
+
+        if ($serviceName === '' || $duration <= 0 || $price < 0) {
+            $this->addFlash('error', 'Please enter a valid service name, duration, and price.');
+            return $this->back($r);
+        }
+
         $this->admin->createService(
-            trim((string) $r->request->get('service_name', '')),
+            $serviceName,
             (int) $r->request->get('category_id', 1),
-            (int) $r->request->get('duration', 60),
-            (float) $r->request->get('price', 0),
+            $duration,
+            $price,
             trim((string) $r->request->get('description', ''))
         );
         $this->addFlash('success', 'New service added to catalog.');
@@ -456,11 +476,26 @@ class DashboardController extends AbstractController
     public function createUser(Request $r): Response
     {
         $this->checkCsrf($r);
+        $name = trim((string) $r->request->get('name', ''));
+        $email = trim((string) $r->request->get('email', ''));
+        $password = trim((string) $r->request->get('password', ''));
+
+        if ($name === '' || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->addFlash('error', 'Please provide a valid full name and email address.');
+            return $this->back($r);
+        }
+
+        if ($password !== '' && strlen($password) < 6) {
+            $this->addFlash('error', 'Password must be at least 6 characters long.');
+            return $this->back($r);
+        }
+
         $this->admin->createUser(
-            trim((string) $r->request->get('name', '')),
-            trim((string) $r->request->get('email', '')),
+            $name,
+            $email,
             (string) $r->request->get('role', 'ROLE_CUSTOMER'),
-            (bool) $r->request->get('is_active', true)
+            (bool) $r->request->get('is_active', true),
+            $password !== '' ? $password : null
         );
         $this->addFlash('success', 'New user account created.');
 

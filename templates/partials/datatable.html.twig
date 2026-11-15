@@ -303,6 +303,21 @@
         font-weight: 600;
         font-size: 13px;
         white-space: nowrap;
+        text-align: left;
+    }
+    .dt-container table.dataTable thead th.dt-type-numeric,
+    .dt-container table.dataTable thead th.dt-type-date,
+    .dt-container table.dataTable thead td.dt-type-numeric,
+    .dt-container table.dataTable thead td.dt-type-date,
+    .dt-container table.dataTable tbody td.dt-type-numeric,
+    .dt-container table.dataTable tbody td.dt-type-date {
+        text-align: left !important;
+    }
+    .dt-container table.dataTable thead th.dt-type-numeric div.dt-column-header,
+    .dt-container table.dataTable thead th.dt-type-date div.dt-column-header,
+    .dt-container table.dataTable thead td.dt-type-numeric div.dt-column-header,
+    .dt-container table.dataTable thead td.dt-type-date div.dt-column-header {
+        flex-direction: row !important;
     }
     .dt-container table.dataTable tbody td,
     table[data-datatable] tbody td {
@@ -313,6 +328,7 @@
         vertical-align: middle;
         color: var(--main-text, #1f2937);
         padding: 13px 12px !important;
+        text-align: left;
     }
     .dt-container table.dataTable tbody td strong,
     table[data-datatable] tbody td strong {

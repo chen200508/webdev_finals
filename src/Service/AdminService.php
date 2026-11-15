@@ -2,9 +2,11 @@
 
 namespace App\Service;
 
+use App\Entity\User;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AdminService
 {
@@ -26,7 +28,33 @@ class AdminService
         #[Autowire('%kernel.environment%')]
         private string $env = 'dev',
         private ?Security $security = null,
+        private ?UserPasswordHasherInterface $passwordHasher = null,
     ) {
+    }
+
+    public function generateRandomPassword(int $length = 6): string
+    {
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+        $max = strlen($alphabet) - 1;
+        $password = '';
+        for ($i = 0; $i < $length; ++$i) {
+            $password .= $alphabet[random_int(0, $max)];
+        }
+
+        return $password;
+    }
+
+    public function hashPassword(?string $plainPassword = null): string
+    {
+        $plain = ($plainPassword !== null && trim($plainPassword) !== '')
+            ? trim($plainPassword)
+            : $this->generateRandomPassword(6);
+
+        if ($this->passwordHasher !== null) {
+            return $this->passwordHasher->hashPassword(new User(), $plain);
+        }
+
+        return password_hash($plain, PASSWORD_BCRYPT, ['cost' => 13]);
     }
 
     public function getActor(?string $performedBy = null): string
@@ -418,20 +446,26 @@ class AdminService
         if ($this->canUseDatabase()) {
             try {
                 // Ensure every customer in customers table is automatically present in users table
-                $this->connection->executeStatement(<<<'SQL'
-                    INSERT INTO users (name, email, password_hash, role, is_active, created_at, updated_at)
+                $missingCustomers = $this->connection->fetchAllAssociative(<<<'SQL'
                     SELECT 
-                        TRIM(CONCAT(c.first_name, ' ', c.last_name)),
-                        c.email,
-                        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-                        'ROLE_CUSTOMER',
-                        1,
-                        NOW(),
-                        NOW()
+                        TRIM(CONCAT(c.first_name, ' ', c.last_name)) AS name,
+                        c.email
                     FROM customers c
                     WHERE c.email IS NOT NULL AND c.email != ''
                       AND c.email NOT IN (SELECT u.email FROM users u WHERE u.email IS NOT NULL);
                 SQL);
+
+                foreach ($missingCustomers as $mc) {
+                    $this->connection->executeStatement(
+                        'INSERT INTO users (name, email, password_hash, role, is_active, created_at, updated_at) VALUES (:name, :email, :hash, :role, 1, NOW(), NOW())',
+                        [
+                            'name' => (string) ($mc['name'] ?: $mc['email']),
+                            'email' => (string) $mc['email'],
+                            'hash' => $this->hashPassword(),
+                            'role' => 'ROLE_CUSTOMER',
+                        ]
+                    );
+                }
 
                 $this->connection->executeStatement(<<<'SQL'
                     UPDATE customers c
@@ -917,7 +951,7 @@ class AdminService
                             [
                                 'name' => trim($firstName . ' ' . $lastName),
                                 'email' => $email,
-                                'hash' => password_hash('password', PASSWORD_BCRYPT),
+                                'hash' => $this->hashPassword(),
                                 'role' => 'ROLE_CUSTOMER',
                             ]
                         );
@@ -1304,7 +1338,7 @@ class AdminService
                     [
                         'name' => $fullName,
                         'email' => $email,
-                        'hash' => password_hash('password', PASSWORD_BCRYPT),
+                        'hash' => $this->hashPassword(),
                         'role' => 'ROLE_CUSTOMER',
                     ]
                 );
@@ -1422,7 +1456,7 @@ class AdminService
                             [
                                 'name' => $name,
                                 'email' => $email,
-                                'hash' => password_hash('password', PASSWORD_BCRYPT),
+                                'hash' => $this->hashPassword(),
                                 'role' => 'ROLE_CUSTOMER',
                             ]
                         );
@@ -1513,7 +1547,7 @@ class AdminService
         }
     }
 
-    public function createUser(string $name, string $email, string $role, bool $isActive = true): void
+    public function createUser(string $name, string $email, string $role, bool $isActive = true, ?string $plainPassword = null): void
     {
         if (!$this->canUseDatabase()) {
             if (self::$mockUsers === null) {
@@ -1535,7 +1569,7 @@ class AdminService
             [
                 'name' => $name,
                 'email' => $email,
-                'hash' => password_hash('password', PASSWORD_BCRYPT),
+                'hash' => $this->hashPassword($plainPassword),
                 'role' => $role,
                 'isActive' => $isActive ? 1 : 0,
             ]
